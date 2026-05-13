@@ -1,0 +1,16 @@
+// This is the Prisma schema for AniHype
+// Full schema will be created in Etapa 3
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Placeholder model — full schema created in Etapa 3
+model SetupCheck {
+  id Int @id @default(autoincrement())
+}
