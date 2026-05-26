@@ -12,6 +12,7 @@ import { HealthModule } from './modules/health/health.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { AnimeModule } from './modules/anime/anime.module';
+import { EpisodesModule } from './modules/episodes/episodes.module';
 import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
 
 @Module({
@@ -34,6 +35,7 @@ import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
     AuthModule,
     UsersModule,
     AnimeModule,
+    EpisodesModule,
   ],
   providers: [
     // Exception filter global
