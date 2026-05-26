@@ -1,0 +1,105 @@
+import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
+import { PrismaService } from '../../prisma/prisma.service';
+import { CommentQueryDto } from './dto/comment-query.dto';
+import { PaginatedResult, paginate } from '../../common/dto/pagination.dto';
+
+const commentInclude = {
+  user: {
+    select: {
+      id: true,
+      username: true,
+      avatarUrl: true,
+    },
+  },
+  _count: {
+    select: {
+      likes: true,
+      replies: true,
+    },
+  },
+} satisfies Prisma.CommentInclude;
+
+export type CommentWithMeta = Prisma.CommentGetPayload<{ include: typeof commentInclude }>;
+
+@Injectable()
+export class CommentsRepository {
+  constructor(private readonly prisma: PrismaService) {}
+
+  async findByEpisode(
+    episodeId: number,
+    query: CommentQueryDto,
+  ): Promise<PaginatedResult<CommentWithMeta>> {
+    const { page, limit, rootOnly, parentId } = query;
+    const skip = (page - 1) * limit;
+
+    const where: Prisma.CommentWhereInput = {
+      episodeId,
+      deletedAt: null,
+      ...(rootOnly && { parentId: null }),
+      ...(parentId !== undefined && { parentId }),
+    };
+
+    const [data, total] = await this.prisma.$transaction([
+      this.prisma.comment.findMany({
+        where,
+        include: commentInclude,
+        orderBy: { createdAt: 'asc' },
+        skip,
+        take: limit,
+      }),
+      this.prisma.comment.count({ where }),
+    ]);
+
+    return paginate(data, total, page, limit);
+  }
+
+  async findById(id: number): Promise<CommentWithMeta | null> {
+    return this.prisma.comment.findFirst({
+      where: { id, deletedAt: null },
+      include: commentInclude,
+    });
+  }
+
+  async create(data: Prisma.CommentCreateInput): Promise<CommentWithMeta> {
+    return this.prisma.comment.create({ data, include: commentInclude });
+  }
+
+  async update(id: number, data: Prisma.CommentUpdateInput): Promise<CommentWithMeta> {
+    return this.prisma.comment.update({ where: { id }, data, include: commentInclude });
+  }
+
+  async softDelete(id: number): Promise<void> {
+    await this.prisma.comment.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    });
+  }
+
+  // ---------------------------------------------------------------------------
+  // Likes
+  // ---------------------------------------------------------------------------
+
+  async hasLiked(userId: number, commentId: number): Promise<boolean> {
+    const like = await this.prisma.commentLike.findUnique({
+      where: { userId_commentId: { userId, commentId } },
+    });
+    return like !== null;
+  }
+
+  async addLike(userId: number, commentId: number): Promise<void> {
+    await this.prisma.commentLike.upsert({
+      where: { userId_commentId: { userId, commentId } },
+      create: { userId, commentId },
+      update: {},
+    });
+  }
+
+  async removeLike(userId: number, commentId: number): Promise<void> {
+    await this.prisma.commentLike.deleteMany({ where: { userId, commentId } });
+  }
+
+  async getLikeCount(commentId: number): Promise<number> {
+    return this.prisma.commentLike.count({ where: { commentId } });
+  }
+}
