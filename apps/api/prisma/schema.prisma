@@ -1,5 +1,5 @@
-// This is the Prisma schema for AniHype
-// Full schema will be created in Etapa 3
+// AniHype â€” schema completo da V1 (Etapa 3)
+// Regras: PostgreSQL, snake_case no banco, PK inteira (sem UUID como PK principal)
 
 generator client {
   provider = "prisma-client-js"
@@ -10,7 +10,954 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Placeholder model — full schema created in Etapa 3
-model SetupCheck {
+// â€”â€”â€” Enums â€”â€”â€”
+
+enum RoleCode {
+  USER
+  PREMIUM
+  MODERATOR
+  ADMIN
+  SUPER_ADMIN
+
+  @@map("role_code")
+}
+
+enum AnimeStatus {
+  AIRING
+  FINISHED
+  NOT_YET_AIRED
+  CANCELLED
+  HIATUS
+
+  @@map("anime_status")
+}
+
+enum AnimeFormat {
+  TV
+  MOVIE
+  OVA
+  ONA
+  SPECIAL
+  MUSIC
+
+  @@map("anime_format")
+}
+
+enum AnimeSeason {
+  WINTER
+  SPRING
+  SUMMER
+  FALL
+
+  @@map("anime_season")
+}
+
+enum AnimeSourceKind {
+  MANGA
+  LIGHT_NOVEL
+  ORIGINAL
+  VISUAL_NOVEL
+  GAME
+  NOVEL
+  DOUJINSHI
+  ANIME
+  OTHER
+
+  @@map("anime_source_kind")
+}
+
+enum EpisodeStatus {
+  AIRED
+  UPCOMING
+  UNKNOWN
+
+  @@map("episode_status")
+}
+
+enum CommentPublicationStatus {
+  ACTIVE
+  REMOVED_BY_USER
+  REMOVED_BY_MOD
+  REMOVED_BY_ADMIN
+
+  @@map("comment_publication_status")
+}
+
+enum CommentModerationStatus {
+  PENDING_REVIEW
+  APPROVED
+  FLAGGED
+  REVIEWED_HIDDEN
+
+  @@map("comment_moderation_status")
+}
+
+enum OAuthProviderKind {
+  GOOGLE
+  DISCORD
+
+  @@map("oauth_provider_kind")
+}
+
+enum ReportTargetType {
+  COMMENT
+  USER
+  ANIME
+  EPISODE
+  OTHER
+
+  @@map("report_target_type")
+}
+
+enum ReportSubjectStatus {
+  OPEN
+  UNDER_REVIEW
+  RESOLVED
+  DISMISSED
+
+  @@map("report_subject_status")
+}
+
+enum ExternalProviderKind {
+  ANILIST
+  JIKAN
+  MYANIMELIST
+  ANIDB
+  KITSU
+  OTHER
+
+  @@map("external_provider_kind")
+}
+
+enum AnimeImageKind {
+  COVER_SMALL
+  COVER_MEDIUM
+  COVER_LARGE
+  BANNER
+  FANART
+
+  @@map("anime_image_kind")
+}
+
+enum UserActivityKind {
+  PAGE_VIEW
+  COMMENT_CREATE
+  COMMENT_LIKE
+  LOGIN
+  PROFILE_UPDATE
+  ANIME_VIEW
+  EPISODE_VIEW
+  FOLLOW_USER
+  FOLLOW_ANIME
+
+  @@map("user_activity_kind")
+}
+
+enum HypeTransactionReason {
+  COMMENT_POSTED
+  REPLY_POSTED
+  LIKE_RECEIVED
+  DAILY_LOGIN
+  BONUS_ADMIN
+  EVENT
+  PENALTY
+
+  @@map("hype_transaction_reason")
+}
+
+enum SubscriptionStatusKind {
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  CANCELLED
+  EXPIRED
+
+  @@map("subscription_status_kind")
+}
+
+enum NotificationChannelKind {
+  IN_APP
+  EMAIL
+  PUSH
+
+  @@map("notification_channel_kind")
+}
+
+// â€”â€”â€” Roles & usuÃ¡rios â€”â€”â€”
+
+model Role {
   id Int @id @default(autoincrement())
+
+  code RoleCode @unique
+
+  description String?
+
+  users UserRole[]
+
+  @@map("roles")
+}
+
+model User {
+  id Int @id @default(autoincrement())
+
+  email     String @unique @db.VarChar(320)
+  username  String @unique @db.VarChar(64)
+  passwordHash String? @map("password_hash") @db.VarChar(255)
+
+  emailVerified Boolean   @default(false) @map("email_verified")
+  emailVerifiedAt DateTime? @map("email_verified_at")
+
+  displayName String? @map("display_name") @db.VarChar(120)
+  avatarUrl   String? @map("avatar_url") @db.Text
+  bio         String? @db.VarChar(2000)
+
+  oauthProvider OAuthProviderKind? @map("oauth_provider")
+  oauthSubject  String?           @map("oauth_subject") @db.VarChar(255)
+
+  lastLoginAt DateTime? @map("last_login_at")
+
+  roles               UserRole[]
+  refreshTokens       RefreshToken[]
+  passwordResetTokens PasswordResetToken[]
+  emailVerifyTokens   EmailVerificationToken[]
+  spoilerSettings     SpoilerSetting[]
+  followerRows        UserFollow[]          @relation("FollowingUser")
+  followingRows       UserFollow[]          @relation("FollowerUser")
+  animeFollows        AnimeFollow[]
+  profile             UserProfile?
+  activities          UserActivity[]
+  badges              UserBadge[]
+  hypeTransactions    HypeTransaction[]
+  premiumSubscriptions PremiumSubscription[]
+  notifications       Notification[]
+  notificationPrefs   NotificationPreference[]
+
+  comments            Comment[]
+  commentLikes        CommentLike[]
+  commentReportsOwned CommentReport[] @relation("CommentReportReporter")
+
+  authoredReports Report[]           @relation("ReportAuthor")
+  reportsAssigned Report[]           @relation("AssignedModeratorReport")
+
+  adminLogs    AdminLog[]    @relation("AdminActor")
+  moderateLogs ModerationLog[] @relation("ModerationActor")
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@index([deletedAt])
+  @@index([oauthProvider, oauthSubject])
+  @@map("users")
+}
+
+model UserRole {
+  id Int @id @default(autoincrement())
+
+  userId Int @map("user_id")
+  roleId Int @map("role_id")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  assignedAt DateTime @default(now()) @map("assigned_at")
+
+  @@unique([userId, roleId])
+  @@index([roleId])
+  @@map("user_roles")
+}
+
+model RefreshToken {
+  id Int @id @default(autoincrement())
+
+  userId Int @map("user_id")
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  tokenHash String @map("token_hash") @db.VarChar(128)
+  expiresAt DateTime @map("expires_at")
+  revoked   Boolean  @default(false)
+  ipAddress String?  @map("ip_address") @db.VarChar(64)
+  userAgent String?  @map("user_agent") @db.VarChar(512)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@index([tokenHash])
+  @@map("refresh_tokens")
+}
+
+model PasswordResetToken {
+  id Int @id @default(autoincrement())
+
+  userId Int @map("user_id")
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  tokenHash String   @map("token_hash") @db.VarChar(128)
+  expiresAt DateTime @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@map("password_reset_tokens")
+}
+
+model EmailVerificationToken {
+  id Int @id @default(autoincrement())
+
+  userId Int @map("user_id")
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  tokenHash String   @map("token_hash") @db.VarChar(128)
+  expiresAt DateTime @map("expires_at")
+  consumed  Boolean @default(false)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@map("email_verification_tokens")
+}
+
+// â€”â€”â€” Anime & conteÃºdo â€”â€”â€”
+
+model Genre {
+  id Int @id @default(autoincrement())
+
+  name String @unique @db.VarChar(120)
+  slug String @unique @db.VarChar(160)
+
+  animes AnimeGenre[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("genres")
+}
+
+model Studio {
+  id Int @id @default(autoincrement())
+
+  name String @unique @db.VarChar(255)
+  slug String @unique @db.VarChar(160)
+
+  animes AnimeStudio[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("studios")
+}
+
+model Anime {
+  id Int @id @default(autoincrement())
+
+  slug String @unique @db.VarChar(280)
+
+  titleRomaji   String  @map("title_romaji") @db.VarChar(500)
+  titleEnglish  String? @map("title_english") @db.VarChar(500)
+  titleNative   String? @map("title_native") @db.VarChar(500)
+  synopsis      String? @db.Text
+
+  coverImageUrl  String? @map("cover_image_url") @db.Text
+  bannerImageUrl String? @map("banner_image_url") @db.Text
+
+  status AnimeStatus @default(NOT_YET_AIRED)
+  format AnimeFormat?
+  source AnimeSourceKind?
+
+  season     AnimeSeason?
+  seasonYear Int?      @map("season_year")
+
+  episodeCount     Int? @map("episode_count")
+  episodeDuration  Int? @map("episode_duration")
+  averageScore     Decimal? @map("average_score") @db.Decimal(5, 2)
+  popularityScore  Int?     @map("popularity_score")
+  trailerUrl       String?  @map("trailer_url") @db.Text
+
+  isAdult Boolean @default(false) @map("is_adult")
+  isLocked Boolean @default(false) @map("is_locked")
+
+  genres            AnimeGenre[]
+  studios           AnimeStudio[]
+  episodes          Episode[]
+  externalIds       AnimeExternalId[]
+  images            AnimeImage[]
+  streamingLinks    AnimeStreamingPlatform[]
+  seasonalHighlights SeasonalHighlight[]
+  follows           AnimeFollow[]
+  reports           Report[]
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@index([status, season, seasonYear])
+  @@index([deletedAt])
+  @@index([titleRomaji])
+  @@map("anime")
+}
+
+model Episode {
+  id Int @id @default(autoincrement())
+
+  animeId Int   @map("anime_id")
+  anime   Anime @relation(fields: [animeId], references: [id], onDelete: Cascade)
+
+  slug String @db.VarChar(320)
+
+  number      Int
+  title       String? @db.VarChar(500)
+  synopsis    String? @db.Text
+  thumbnailUrl String? @map("thumbnail_url") @db.Text
+
+  airDate    DateTime? @map("air_date")
+  airTimeUtc DateTime? @map("air_time_utc")
+
+  durationMinutes Int? @map("duration_minutes")
+  delayReason     String? @map("delay_reason") @db.VarChar(500)
+
+  status EpisodeStatus @default(UNKNOWN)
+
+  scoreAverage Decimal? @map("score_average") @db.Decimal(5, 2)
+
+  comments Comment[]
+  follows  AnimeFollow[]
+  reports  Report[]
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@unique([animeId, number])
+  @@unique([animeId, slug])
+  @@index([airDate])
+  @@index([airTimeUtc])
+  @@index([status])
+  @@index([deletedAt])
+  @@map("episodes")
+}
+
+model AnimeGenre {
+  id Int @id @default(autoincrement())
+
+  animeId Int   @map("anime_id")
+  genreId Int   @map("genre_id")
+
+  anime Anime @relation(fields: [animeId], references: [id], onDelete: Cascade)
+  genre Genre @relation(fields: [genreId], references: [id], onDelete: Cascade)
+
+  @@unique([animeId, genreId])
+  @@index([genreId])
+  @@map("anime_genres")
+}
+
+model AnimeStudio {
+  id Int @id @default(autoincrement())
+
+  animeId Int @map("anime_id")
+  studioId Int @map("studio_id")
+
+  role String? @db.VarChar(120)
+
+  anime  Anime @relation(fields: [animeId], references: [id], onDelete: Cascade)
+  studio Studio @relation(fields: [studioId], references: [id], onDelete: Cascade)
+
+  @@unique([animeId, studioId])
+  @@index([studioId])
+  @@map("anime_studios")
+}
+
+model SeasonalHighlight {
+  id Int @id @default(autoincrement())
+
+  animeId Int   @map("anime_id")
+  anime   Anime @relation(fields: [animeId], references: [id], onDelete: Cascade)
+
+  season AnimeSeason?
+  year   Int?
+
+  title       String? @db.VarChar(300)
+  subtitle    String? @db.VarChar(300)
+  imageUrl    String? @map("image_url") @db.Text
+  ctaLabel    String? @map("cta_label") @db.VarChar(120)
+  destination String? @db.VarChar(500)
+
+  heroPosition Int     @default(0) @map("hero_position")
+  isFeatured   Boolean @default(true) @map("is_featured")
+  spoilerSafe   Boolean @default(true) @map("spoiler_safe")
+
+  visibleFrom DateTime? @map("visible_from")
+  visibleUntil DateTime? @map("visible_until")
+
+  published Boolean @default(true)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([published, heroPosition])
+  @@index([season, year])
+  @@map("seasonal_highlights")
+}
+
+model AnimeExternalId {
+  id Int @id @default(autoincrement())
+
+  animeId Int   @map("anime_id")
+  anime   Anime @relation(fields: [animeId], references: [id], onDelete: Cascade)
+
+  provider ExternalProviderKind
+  externalId String @map("external_id") @db.VarChar(128)
+
+  lastSyncedAt DateTime? @map("last_synced_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([provider, externalId])
+  @@index([animeId])
+  @@map("anime_external_ids")
+}
+
+model AnimeImage {
+  id Int @id @default(autoincrement())
+
+  animeId Int   @map("anime_id")
+  anime   Anime @relation(fields: [animeId], references: [id], onDelete: Cascade)
+
+  url   String       @db.Text
+  kind  AnimeImageKind @default(FANART)
+  width Int?
+  height Int?
+  spoilerSafe Boolean @default(true) @map("spoiler_safe")
+
+  sortOrder Int @default(0) @map("sort_order")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([animeId, sortOrder])
+  @@map("anime_images")
+}
+
+model StreamingPlatform {
+  id Int @id @default(autoincrement())
+
+  slug String @unique @db.VarChar(160)
+  name String @unique @db.VarChar(255)
+  homepageUrl String? @map("homepage_url") @db.VarChar(500)
+
+  animeLinks AnimeStreamingPlatform[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("streaming_platforms")
+}
+
+model AnimeStreamingPlatform {
+  id Int @id @default(autoincrement())
+
+  animeId     Int @map("anime_id")
+  platformId Int @map("platform_id")
+
+  url        String @db.VarChar(1000)
+  regionCode String? @map("region_code") @db.VarChar(8)
+
+  anime    Anime               @relation(fields: [animeId], references: [id], onDelete: Cascade)
+  platform StreamingPlatform @relation(fields: [platformId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([animeId, platformId])
+  @@index([platformId])
+  @@map("anime_streaming_platforms")
+}
+
+// â€”â€”â€” Comunidade â€”â€”â€”
+
+model Comment {
+  id Int @id @default(autoincrement())
+
+  episodeId Int     @map("episode_id")
+  episode   Episode @relation(fields: [episodeId], references: [id], onDelete: Cascade)
+
+  userId Int  @map("user_id")
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  parentId Int? @map("parent_id")
+  parent   Comment? @relation("CommentThreads", fields: [parentId], references: [id], onDelete: SetNull)
+  replies  Comment[] @relation("CommentThreads")
+
+  content   String                    @db.Text
+  isSpoiler Boolean                   @default(false) @map("is_spoiler")
+  status    CommentPublicationStatus  @default(ACTIVE)
+
+  moderationStatus CommentModerationStatus @default(APPROVED) @map("moderation_status")
+
+  likes CommentLike[]
+  reports CommentReport[]
+
+  editedAt DateTime? @map("edited_at")
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@index([episodeId, parentId, createdAt])
+  @@index([userId])
+  @@index([deletedAt])
+  @@map("comments")
+}
+
+model CommentLike {
+  id Int @id @default(autoincrement())
+
+  userId Int @map("user_id")
+  commentId Int @map("comment_id")
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([userId, commentId])
+  @@index([commentId])
+  @@map("comment_likes")
+}
+
+model CommentReport {
+  id Int @id @default(autoincrement())
+
+  reporterId Int @map("reporter_id")
+  commentId Int @map("comment_id")
+
+  reason      String @db.VarChar(1000)
+
+  reporter User    @relation("CommentReportReporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  comment  Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([commentId])
+  @@map("comment_reports")
+}
+
+model Report {
+  id Int @id @default(autoincrement())
+
+  targetType ReportTargetType @map("target_type")
+  targetId   Int              @map("target_id")
+
+  subjectStatus ReportSubjectStatus @default(OPEN) @map("subject_status")
+
+  animeId Int? @map("anime_id")
+  episodeId Int? @map("episode_id")
+
+  anime   Anime?   @relation(fields: [animeId], references: [id], onDelete: SetNull)
+  episode Episode? @relation(fields: [episodeId], references: [id], onDelete: SetNull)
+
+  authorUserId Int? @map("author_user_id")
+  author User? @relation("ReportAuthor", fields: [authorUserId], references: [id], onDelete: SetNull)
+
+  assignedModeratorUserId Int? @map("assigned_moderator_user_id")
+  assignedModerator User? @relation("AssignedModeratorReport", fields: [assignedModeratorUserId], references: [id], onDelete: SetNull)
+
+  description String @db.Text
+  resolutionNotes String? @map("resolution_notes") @db.Text
+
+  resolvedAt DateTime? @map("resolved_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([targetType, targetId])
+  @@index([subjectStatus])
+  @@map("reports")
+}
+
+model SpoilerSetting {
+  id Int @id @default(autoincrement())
+
+  userId Int @unique @map("user_id")
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  autoBlurRecentEpisodes Boolean @default(true) @map("auto_blur_recent_episodes")
+  spoilerSafeMode        Boolean @default(false) @map("spoiler_safe_mode")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("spoiler_settings")
+}
+
+// â€”â€”â€” Social â€”â€”â€”
+
+model UserFollow {
+  id Int @id @default(autoincrement())
+
+  followerId  Int @map("follower_id")
+  followingId Int @map("following_id")
+
+  follower User @relation("FollowerUser", fields: [followerId], references: [id], onDelete: Cascade)
+  following User @relation("FollowingUser", fields: [followingId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([followerId, followingId])
+  @@index([followingId])
+  @@map("user_follows")
+}
+
+model AnimeFollow {
+  id Int @id @default(autoincrement())
+
+  userId Int @map("user_id")
+  animeId Int @map("anime_id")
+  episodeFocusId Int? @map("episode_focus_id")
+
+  notifyOnEpisode Boolean @default(true) @map("notify_on_episode")
+
+  user    User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  anime   Anime @relation(fields: [animeId], references: [id], onDelete: Cascade)
+  episode Episode? @relation(fields: [episodeFocusId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([userId, animeId])
+  @@index([animeId])
+  @@map("anime_follows")
+}
+
+model UserProfile {
+  id Int @id @default(autoincrement())
+
+  userId Int @unique @map("user_id")
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  hypeXp Int @default(0) @map("hype_xp")
+
+  hypeLevelId Int? @map("hype_level_id")
+  hypeLevel HypeLevel? @relation(fields: [hypeLevelId], references: [id], onDelete: SetNull)
+
+  equippedBadgeId Int? @map("equipped_badge_id")
+  equippedBadge Badge? @relation("EquippedBadge", fields: [equippedBadgeId], references: [id], onDelete: SetNull)
+
+  location String? @db.VarChar(120)
+  website  String? @db.VarChar(500)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([hypeXp(sort: Desc)])
+  @@map("user_profiles")
+}
+
+model UserActivity {
+  id Int @id @default(autoincrement())
+
+  userId Int @map("user_id")
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  activity UserActivityKind
+  meta     Json?
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId, createdAt])
+  @@map("user_activity")
+}
+// â€”â€”â€” GamificaÃ§Ã£o â€”â€”â€”
+
+model HypeLevel {
+  id Int @id @default(autoincrement())
+
+  tierOrder   Int @unique @map("tier_order")
+  minXp       Int @map("min_xp")
+  displayName String? @map("display_name") @db.VarChar(120)
+
+  profiles UserProfile[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("hype_levels")
+}
+
+model Badge {
+  id Int @id @default(autoincrement())
+
+  name        String @unique @db.VarChar(120)
+  slug        String @unique @db.VarChar(120)
+  description String? @db.Text
+  iconUrl     String? @map("icon_url") @db.VarChar(1000)
+
+  rarityColor String? @map("rarity_color") @db.VarChar(32)
+
+  userBadges       UserBadge[]
+  equippedProfiles UserProfile[] @relation("EquippedBadge")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("badges")
+}
+
+model UserBadge {
+  id Int @id @default(autoincrement())
+
+  userId  Int @map("user_id")
+  badgeId Int @map("badge_id")
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badge Badge @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+
+  acquiredAt DateTime @default(now()) @map("acquired_at")
+  isEquipped Boolean @default(false) @map("is_equipped")
+
+  @@unique([userId, badgeId])
+  @@index([badgeId])
+  @@map("user_badges")
+}
+
+model HypeTransaction {
+  id Int @id @default(autoincrement())
+
+  userId Int @map("user_id")
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  deltaPoints Int @map("delta_points")
+
+  reason      HypeTransactionReason
+  referenceId Int? @map("reference_id")
+
+  meta Json?
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId, createdAt])
+  @@map("hype_transactions")
+}
+
+// â€”â€”â€” Premium & ads â€”â€”â€”
+
+model PremiumSubscription {
+  id Int @id @default(autoincrement())
+
+  userId Int @map("user_id")
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  status SubscriptionStatusKind @default(ACTIVE)
+
+  planKey       String @map("plan_key") @db.VarChar(120)
+  provider      String @db.VarChar(64)
+  providerSubId String? @map("provider_sub_id") @db.VarChar(255)
+
+  currentPeriodEnd DateTime? @map("current_period_end")
+  cancelledAt      DateTime? @map("cancelled_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@index([status])
+  @@map("premium_subscriptions")
+}
+
+model AdSlot {
+  id Int @id @default(autoincrement())
+
+  slug   String  @unique @db.VarChar(120)
+  title  String? @db.VarChar(255)
+  width  Int?
+  height Int?
+
+  impressions Int @default(0)
+  clicks      Int @default(0)
+
+  active Boolean @default(true)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("ad_slots")
+}
+
+// â€”â€”â€” NotificaÃ§Ãµes â€”â€”â€”
+
+model Notification {
+  id Int @id @default(autoincrement())
+
+  userId Int @map("user_id")
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  channel NotificationChannelKind @default(IN_APP)
+  topic   String @db.VarChar(160)
+  body    String @db.Text
+
+  payload Json?
+
+  readAt DateTime? @map("read_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId, readAt])
+  @@map("notifications")
+}
+
+model NotificationPreference {
+  id Int @id @default(autoincrement())
+
+  userId Int @unique @map("user_id")
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  muteEmail    Boolean @default(false) @map("mute_email")
+  mutePush     Boolean @default(false) @map("mute_push")
+  muteEpisodes Boolean @default(false) @map("mute_episodes")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("notification_preferences")
+}
+
+// â€”â€”â€” AdministraÃ§Ã£o â€”â€”â€”
+
+model AdminLog {
+  id Int @id @default(autoincrement())
+
+  actorUserId Int? @map("actor_user_id")
+  actor       User? @relation("AdminActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  actionKey  String @map("action_key") @db.VarChar(160)
+  targetType String @map("target_type") @db.VarChar(80)
+  targetId   Int?   @map("target_id")
+
+  metadata Json?
+
+  ipAddress String? @map("ip_address") @db.VarChar(64)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([actorUserId, createdAt])
+  @@map("admin_logs")
+}
+
+model ModerationLog {
+  id Int @id @default(autoincrement())
+
+  moderatorUserId Int? @map("moderator_user_id")
+  moderator       User? @relation("ModerationActor", fields: [moderatorUserId], references: [id], onDelete: SetNull)
+
+  action String @db.VarChar(160)
+
+  targetType String @map("target_type") @db.VarChar(80)
+  targetId   Int    @map("target_id")
+
+  notes String? @db.Text
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([moderatorUserId, createdAt])
+  @@map("moderation_logs")
 }

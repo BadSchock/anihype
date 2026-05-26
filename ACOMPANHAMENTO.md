@@ -10,7 +10,8 @@ Este documento registra o que já foi implementado no projeto, referência ao gu
 |------|--------|
 | **Etapa 1** — Setup do Monorepo | Concluída |
 | **Etapa 2** — Setup do Backend | Concluída |
-| **Etapa 3** — Schema Prisma completo | Não iniciada |
+| **Etapa 3** — Schema Prisma completo | Concluída |
+| **Etapa 4** — Auth (register / login / logout / refresh / me) | Concluída |
 | Push para GitHub (`origin main`) | Commit e remote OK; push SSH falhou neste ambiente (ver § Git) |
 
 ---
@@ -46,7 +47,7 @@ Objetivo do guia: Turborepo, `apps/web`, `apps/api`, pacotes em `packages/`, ESL
 
 - Next.js atualizado para **v15** para compatibilidade com **ESLint 9** (`eslint-config-next@14` pedia ESLint 7/8).
 - `packages/tsconfig/nestjs.json` com `moduleResolution: "node"` para não conflitar com `commonjs` do Nest.
-- Prisma: schema **placeholder** (`SetupCheck`) só para gerar client até a Etapa 3.
+- Schema Prisma completo ficou para a **Etapa 3** (ver mais abaixo).
 
 ### Scripts úteis (raiz)
 
@@ -92,16 +93,63 @@ Objetivo do guia: NestJS, Prisma, PostgreSQL, Docker Compose, validação de env
   - `modules/health`: controller + service com `PrismaService.$queryRaw\`SELECT 1\`` — status `ok` / `degraded` conforme banco
   - Rota: `GET /api/v1/health`
 
-### Prisma nesta etapa
+### Prisma nesta etapa (Etapa 2)
 
-- `apps/api/prisma/schema.prisma` ainda é **mínimo** (model placeholder até a Etapa 3).
-- `npx prisma generate` foi usado para ter `@prisma/client` compilando.
+- Bootstrap com schema mínimo; o modelo de dados definitivo está na **Etapa 3**.
 
-### Onde paramos (limite da Etapa 2)
+### Onde paramos após Etapa 2 (histórico)
 
-- Não foi feito o **schema completo** nem **migrations** reais — isso é **Etapa 3**.
+- Antes da Etapa 3, faltava o **schema completo** — agora tratado na seção Etapa 3.
 - **Docker** no ambiente onde o assistente rodou: comando `docker` não estava disponível; o compose está pronto para uso local com Docker Desktop.
 - **Push GitHub**: `git push` via SSH retornou `Permission denied (publickey)`; commit em `main` e `origin` configurados localmente (resolver SSH ou usar HTTPS no seu PC).
+
+---
+
+## Etapa 3 — Schema Prisma completo (concluída)
+
+Objetivo do guia: schema com todas as tabelas principais, `snake_case` no banco, IDs inteiros, timestamps, soft delete onde cabe; migrations; seeds de roles e badges iniciais; índices e FKs.
+
+### O que foi feito
+
+- **`apps/api/prisma/schema.prisma`**
+  - Enums Postgres alinhados a status de anime, episódio, comentários, reports, hype, billing, etc.
+  - Tabelas: `users`, `roles`, `user_roles`, `refresh_tokens`, `password_reset_tokens`, `email_verification_tokens`, `anime`, `episodes`, `genres`, `studios`, junções (`anime_genres`, `anime_studios`, …), `seasonal_highlights`, IDs externos de anime, imagens extras, streaming, `comments`, `comment_likes`, `comment_reports`, `reports`, `spoiler_settings`, follows, `user_profiles`, `user_activity`, badges e hype, premium, ads, notificações, auditoria/moderação (`admin_logs`, `moderation_logs`).
+  - `username` / slugs com `VARCHAR` (sem extensão `citext`; case-sensitive no Postgres — normalizar lowercase na aplicação se quiser igual ao guia tipo citext).
+
+- **Migration inicial**
+  - Pasta `apps/api/prisma/migrations/20260526120000_init_full_schema/migration.sql` gerada via `prisma migrate diff --from-empty` (não precisa de DB só para gerar o SQL).
+
+- **Seeds (`apps/api/prisma/seed.ts`)**
+  - Roles: `USER`, `PREMIUM`, `MODERATOR`, `ADMIN`, `SUPER_ADMIN`.
+  - Badges iniciais: `beta-user`, `founder`, `admin`, `moderator`.
+  - Curva inicial de níveis hype (`hype_levels`).
+
+- **Scripts no `apps/api/package.json`**
+  - `db:generate`, `db:migrate`, `db:migrate-deploy`, `db:seed`, `db:studio`.
+  - `prisma.seed` apontando para `ts-node` → `prisma/seed.ts`.
+
+- **`.gitignore`**
+  - Removida regra incorreta que ignorava `prisma/migrations/**/migration.sql` (migrations devem ir para o Git).
+
+- **Observações**
+  - `schema.prisma` deve ser guardado **sem BOM** no início do arquivo para o CLI do Prisma validar direito (evitar `.ps1 Set-Content` com BOM sobre o schema).
+
+### Como aplicar migrations e seed na sua máquina
+
+(subir Postgres primeiro, por exemplo `docker compose up -d postgres`)
+
+```bash
+cd apps/api
+copy .env.example .env   # ou ajuste DATABASE_URL no .env já existente
+npx prisma migrate deploy    # ou: npx prisma migrate dev
+npm run db:seed
+```
+
+### Resultado esperado
+
+- Projeto valida (`prisma validate` com `DATABASE_URL` definido).
+- `prisma generate` e `npm run type-check` no `apps/api` sem erros.
+- Com DB ativo + migrate + seed: health check deve continuar `'ok'` no banco.
 
 ---
 
@@ -115,13 +163,30 @@ Objetivo do guia: NestJS, Prisma, PostgreSQL, Docker Compose, validação de env
 
 ---
 
-## Próximo passo sugerido (Etapa 3)
+## Etapa 4 — Auth (concluída)
 
-Conforme o guia:
+Objetivo do guia: register, login, logout, refresh, guards, roles, current user, hash de senha, refresh tokens persistidos.
 
-- Schema Prisma completo (tabelas principais: users, roles, anime, episodes, comments, etc.).
-- Migrations, seeds (roles, badges iniciais), índices e relações.
-- Ajustar `.gitignore` se necessário para não ignorar pastas de migration incorretamente (hoje há uma regra em `.gitignore` sobre `prisma/migrations/**/migration.sql` — revisar na Etapa 3).
+### O que foi criado
+
+- **`modules/users/`** — `UsersRepository` (Prisma), `UsersService` (create, findById/Email/Username, findWithRoles, updateLastLogin), `UsersModule`
+- **`modules/auth/dto/`** — `RegisterDto`, `LoginDto`, `RefreshTokenDto` (com class-validator)
+- **`modules/auth/auth.service.ts`** — register (bcrypt hash + role USER + cria perfil), login (email **ou** username), logout (revoga todos os refresh tokens), refresh (token rotation — revoga token usado e emite novo par), getMe, validateJwtPayload
+- **`modules/auth/strategies/jwt.strategy.ts`** — `PassportStrategy` que valida payload via `AuthService`
+- **`modules/auth/guards/jwt-auth.guard.ts`** — guarda que respeita `@Public()` (rota aberta) via `Reflector`
+- **`modules/auth/auth.controller.ts`** — `POST /auth/register`, `POST /auth/login`, `POST /auth/refresh`, `POST /auth/logout`, `GET /auth/me`; throttle em register (5/min) e login/refresh (10/min)
+- **`modules/auth/auth.module.ts`** — JwtModule async via ConfigService, PassportModule, exports de AuthService e JwtAuthGuard
+- **`app.module.ts`** — guards globais via `APP_GUARD`: `ThrottlerGuard` → `JwtAuthGuard` → `RolesGuard`; rota `/health` marcada com `@Public()`
+
+### Notas técnicas
+- Refresh token é um token **opaco** (hex 128 chars), armazenado com hash bcrypt no banco — não um JWT.
+- No endpoint `/auth/refresh` o cliente envia `{ userId, refreshToken }`.
+- Token rotation ativa: um refresh token só pode ser usado uma vez; tentativa dupla revoga todos os tokens do usuário.
+- `@Public()` desabilita o `JwtAuthGuard` para rotas públicas.
+
+## Próximo passo sugerido (Etapa 5)
+
+Conforme o guia: **AnimeModule** — AnimeService, AnimeRepository, endpoints públicos (listar, buscar, detalhe por ID+slug), paginação, filtros básicos, DTOs.
 
 ---
 
@@ -130,7 +195,8 @@ Conforme o guia:
 1. **Subir Postgres** (com Docker instalado):  
    `docker compose up -d postgres`
 
-2. **Configurar `apps/api/.env`** (copiar de `apps/api/.env.example` e preencher `DATABASE_URL`, secrets JWT, etc.).
+2. **Configurar `apps/api/.env`** (copiar de `apps/api/.env.example`). Com DB pronto:  
+   `npm run db:migrate-deploy` ou `npx prisma migrate dev` e `npm run db:seed` dentro de `apps/api`.
 
 3. **API em desenvolvimento:**  
    `cd apps/api` → `npx nest start --watch`  
@@ -147,7 +213,9 @@ Conforme o guia:
 | Data | Alteração |
 |------|-----------|
 | *Preencher ao atualizar* | Criação do documento com Etapas 1 e 2 concluídas e pendências (Etapa 3, push). |
+| Etapa seguinte ao guia | **Etapa 3** registrada como concluída (schema, migration inicial, seed, `.gitignore`). |
+| Sessão atual | **Etapa 4 — Auth** concluída (UsersModule, AuthService, strategies, guards globais, controller, token rotation). Próxima: **Etapa 5 — AnimeModule**. |
 
 ---
 
-*Última revisão do conteúdo: conforme sessão que documentou monorepo + backend base até antes da Etapa 3.*
+*Última revisão: Etapas 1–3 documentadas; próximo passo lógico Etapa 4 (Auth).*
