@@ -14,6 +14,7 @@ import { UsersModule } from './modules/users/users.module';
 import { AnimeModule } from './modules/anime/anime.module';
 import { EpisodesModule } from './modules/episodes/episodes.module';
 import { CommentsModule } from './modules/comments/comments.module';
+import { SyncModule } from './modules/sync/sync.module';
 import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
 
 @Module({
@@ -38,6 +39,7 @@ import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
     AnimeModule,
     EpisodesModule,
     CommentsModule,
+    SyncModule,
   ],
   providers: [
     // Exception filter global
