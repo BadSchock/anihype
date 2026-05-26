@@ -1,4 +1,4 @@
-# AniHype — Acompanhamento do desenvolvimento
+﻿# AniHype — Acompanhamento do desenvolvimento
 
 Este documento registra o que já foi implementado no projeto, referência ao guia oficial (`anihype_v1_cursor_implementation_guide.md`) e onde paramos. **Atualize este arquivo** a cada etapa concluída ou decisão relevante.
 
@@ -12,6 +12,7 @@ Este documento registra o que já foi implementado no projeto, referência ao gu
 | **Etapa 2** — Setup do Backend | Concluída |
 | **Etapa 3** — Schema Prisma completo | Concluída |
 | **Etapa 4** — Auth (register / login / logout / refresh / me) | Concluída |
+| **Etapa 5** — Anime Backend (listar, buscar, detalhe por ID/slug) | Concluu00EDda |
 | Push para GitHub (`origin main`) | Commit e remote OK; push SSH falhou neste ambiente (ver § Git) |
 
 ---
@@ -219,3 +220,37 @@ Conforme o guia: **AnimeModule** — AnimeService, AnimeRepository, endpoints p�
 ---
 
 *Última revisão: Etapas 1–3 documentadas; próximo passo lógico Etapa 4 (Auth).*
+
+## Etapa 5 — Anime Backend (concluída)
+
+Objetivo: AnimeModule com listagem, busca, detalhe por ID/slug, paginação, filtros e normalização de slug.
+
+### Arquivos criados
+
+- pps/api/src/modules/anime/anime.module.ts — módulo, providers e exports
+- pps/api/src/modules/anime/anime.repository.ts — queries Prisma (findMany paginado, findById, findBySlug, findByIdOrSlug)
+- pps/api/src/modules/anime/anime.service.ts — lógica de negócio + AnimeService.normalizeSlug() estático
+- pps/api/src/modules/anime/anime.controller.ts — endpoints públicos GET /anime e GET /anime/:idOrSlug
+- pps/api/src/modules/anime/dto/anime-query.dto.ts — filtros: search, status, format, season, seasonYear, genreId, orderBy
+- pps/api/src/modules/anime/dto/anime-response.dto.ts — AnimeListItemDto, AnimeDetailDto, GenreDto, StudioDto
+
+### Endpoints disponíveis
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| GET | /api/anime | Listar e buscar animes com paginação e filtros |
+| GET | /api/anime/:idOrSlug | Detalhe de um anime por ID numérico ou slug |
+
+Ambos são públicos (@Public()), sem necessidade de autenticação.
+
+### Técnicas aplicadas
+
+- satisfies Prisma.AnimeInclude para type-safety nos includes
+- Accepts both numeric ID and slug in a single param
+- Decimal do Prisma convertido para 
+umber no mapper
+- 
+ormalizeSlug() estático: remove acentos, lowercase, hifeniza
+
+---
+
