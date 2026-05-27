@@ -24,7 +24,7 @@ export function AnimeCard({ anime, className }: AnimeCardProps) {
     <Link
       href={`/anime/${anime.slug}`}
       className={cn(
-        'group flex flex-col overflow-hidden rounded-xl bg-white/5 transition-all duration-200 hover:bg-white/10 hover:scale-[1.02]',
+        'card card-hover group flex flex-col overflow-hidden',
         className,
       )}
     >
@@ -71,11 +71,11 @@ export function AnimeCard({ anime, className }: AnimeCardProps) {
 
 export function AnimeCardSkeleton({ className }: { className?: string }) {
   return (
-    <div className={cn('flex flex-col overflow-hidden rounded-xl bg-white/5', className)}>
-      <div className="aspect-[2/3] w-full animate-pulse bg-white/10" />
+    <div className={cn('flex flex-col overflow-hidden rounded-xl bg-white/5 border border-white/5', className)}>
+      <div className="aspect-[2/3] w-full shimmer" />
       <div className="flex flex-col gap-2 p-3">
-        <div className="h-4 w-3/4 animate-pulse rounded bg-white/10" />
-        <div className="h-3 w-1/2 animate-pulse rounded bg-white/10" />
+        <div className="h-4 w-3/4 rounded shimmer" />
+        <div className="h-3 w-1/2 rounded shimmer" />
       </div>
     </div>
   );

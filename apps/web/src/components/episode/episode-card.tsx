@@ -16,11 +16,8 @@ function formatAirDate(dateStr: string) {
 export function EpisodeCard({ episode, className }: EpisodeCardProps) {
   return (
     <Link
-      href={`/anime/${episode.anime.slug}`}
-      className={cn(
-        'group flex gap-3 rounded-xl bg-white/5 p-3 transition-all hover:bg-white/10',
-        className,
-      )}
+      href={`/anime/${episode.anime.slug}/ep/${episode.number}`}
+      className={cn('card card-hover group flex gap-3 p-3', className)}
     >
       {/* Thumbnail ou cover do anime */}
       <div className="relative h-16 w-28 flex-shrink-0 overflow-hidden rounded-lg bg-white/10">
@@ -56,11 +53,11 @@ export function EpisodeCard({ episode, className }: EpisodeCardProps) {
 
 export function EpisodeCardSkeleton({ className }: { className?: string }) {
   return (
-    <div className={cn('flex gap-3 rounded-xl bg-white/5 p-3', className)}>
-      <div className="h-16 w-28 flex-shrink-0 animate-pulse rounded-lg bg-white/10" />
+    <div className={cn('card flex gap-3 p-3', className)}>
+      <div className="h-16 w-28 flex-shrink-0 rounded-lg shimmer" />
       <div className="flex flex-1 flex-col justify-center gap-2">
-        <div className="h-3 w-1/2 animate-pulse rounded bg-white/10" />
-        <div className="h-4 w-3/4 animate-pulse rounded bg-white/10" />
+        <div className="h-3 w-1/2 rounded shimmer" />
+        <div className="h-4 w-3/4 rounded shimmer" />
       </div>
     </div>
   );
