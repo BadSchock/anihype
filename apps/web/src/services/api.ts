@@ -70,6 +70,10 @@ export function getAnimeEpisodes(animeId: number, page = 1, limit = 24) {
   );
 }
 
+export function getEpisodeByNumber(animeId: number, number: number) {
+  return request<EpisodeWithAnime>(`/anime/${animeId}/episodes/number/${number}`);
+}
+
 // ─── Comments ───────────────────────────────────────────────────────────────
 
 export function getEpisodeComments(episodeId: number, page = 1, limit = 20, token?: string) {
@@ -126,4 +130,19 @@ export function refreshTokens(userId: number, refreshToken: string) {
 
 export function logout(token: string) {
   return request<void>('/auth/logout', { method: 'POST', token });
+}
+
+// ─── Users (perfil público) ──────────────────────────────────────────────────
+
+export interface PublicProfile {
+  id: number;
+  username: string;
+  displayName: string | null;
+  avatarUrl: string | null;
+  bio: string | null;
+  createdAt: string;
+}
+
+export function getPublicProfile(username: string) {
+  return request<PublicProfile>(`/users/${username}`);
 }
