@@ -86,6 +86,8 @@ export class AnimeRepository {
     switch (orderBy) {
       case 'score':
         return { averageScore: 'desc' };
+      case 'rating':
+        return { ratingAverage: { sort: 'desc', nulls: 'last' } };
       case 'recent':
         return { createdAt: 'desc' };
       case 'title':

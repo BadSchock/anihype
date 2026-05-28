@@ -21,9 +21,9 @@ export default function LoginPage() {
 
   return (
     <div className="mx-auto mt-10 max-w-sm">
-      <div className="rounded-2xl bg-white/5 p-8">
-        <h1 className="mb-1 text-2xl font-bold text-white">Entrar</h1>
-        <p className="mb-6 text-sm text-white/40">
+      <div className="rounded-2xl bg-muted p-8">
+        <h1 className="mb-1 text-2xl font-bold text-foreground">Entrar</h1>
+        <p className="mb-6 text-sm text-muted-foreground">
           Não tem conta?{' '}
           <Link href="/register" className="text-purple-400 hover:underline">
             Cadastrar-se
@@ -32,7 +32,7 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div>
-            <label className="mb-1 block text-sm text-white/60">Email</label>
+            <label className="mb-1 block text-sm text-muted-foreground">Email</label>
             <input
               type="email"
               value={email}
@@ -44,7 +44,7 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <label className="mb-1 block text-sm text-white/60">Senha</label>
+            <label className="mb-1 block text-sm text-muted-foreground">Senha</label>
             <input
               type="password"
               value={password}

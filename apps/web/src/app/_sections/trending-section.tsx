@@ -11,7 +11,7 @@ export function TrendingSection() {
   return (
     <section>
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-xl font-bold text-white">Em Exibição</h2>
+        <h2 className="text-xl font-bold text-foreground">Em Exibição</h2>
         <Link href="/anime" className="text-sm text-purple-400 hover:text-purple-300 transition-colors">
           Ver todos →
         </Link>

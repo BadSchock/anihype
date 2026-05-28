@@ -17,10 +17,10 @@ export function CommentsSection({ episodeId }: CommentsSectionProps) {
 
   return (
     <div className="flex flex-col gap-6">
-      <h2 className="text-lg font-bold text-white">
+      <h2 className="text-lg font-bold text-foreground">
         Comentários
         {data?.meta.total ? (
-          <span className="ml-2 text-sm font-normal text-white/40">({data.meta.total})</span>
+          <span className="ml-2 text-sm font-normal text-muted-foreground">({data.meta.total})</span>
         ) : null}
       </h2>
 
@@ -44,7 +44,7 @@ export function CommentsSection({ episodeId }: CommentsSectionProps) {
       )}
 
       {!isLoading && data?.data && data.data.length > 0 && (
-        <div className="flex flex-col divide-y divide-white/5">
+        <div className="flex flex-col divide-y divide-border">
           {data.data.map((comment) => (
             <div key={comment.id} className="py-4">
               <CommentItem
@@ -72,15 +72,15 @@ export function CommentsSection({ episodeId }: CommentsSectionProps) {
           <button
             disabled={page === 1}
             onClick={() => setPage((p) => p - 1)}
-            className="rounded-lg bg-white/10 px-4 py-2 text-sm text-white disabled:opacity-30 hover:bg-white/20 transition-colors"
+            className="rounded-lg bg-muted px-4 py-2 text-sm text-foreground disabled:opacity-30 hover:bg-muted transition-colors"
           >
             ← Anterior
           </button>
-          <span className="text-sm text-white/50">{page} / {data.meta.totalPages}</span>
+          <span className="text-sm text-muted-foreground">{page} / {data.meta.totalPages}</span>
           <button
             disabled={page === data.meta.totalPages}
             onClick={() => setPage((p) => p + 1)}
-            className="rounded-lg bg-white/10 px-4 py-2 text-sm text-white disabled:opacity-30 hover:bg-white/20 transition-colors"
+            className="rounded-lg bg-muted px-4 py-2 text-sm text-foreground disabled:opacity-30 hover:bg-muted transition-colors"
           >
             Próximo →
           </button>

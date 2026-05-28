@@ -31,6 +31,14 @@ export class AnimeListItemDto {
   @ApiPropertyOptional() popularityScore?: number | null;
   @ApiProperty({ type: [GenreDto] }) genres!: GenreDto[];
   @ApiProperty({ type: [StudioDto] }) studios!: StudioDto[];
+  // Scores da comunidade AniHype
+  @ApiProperty() ratingCount!: number;
+  @ApiPropertyOptional() ratingAverage?: number | null;
+  @ApiPropertyOptional() ratingAnimation?: number | null;
+  @ApiPropertyOptional() ratingStory?: number | null;
+  @ApiPropertyOptional() ratingCharacters?: number | null;
+  @ApiPropertyOptional() ratingSound?: number | null;
+  @ApiPropertyOptional() ratingHype?: number | null;
   @ApiProperty() createdAt!: Date;
   @ApiProperty() updatedAt!: Date;
 }

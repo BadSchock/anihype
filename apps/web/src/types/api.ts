@@ -35,8 +35,80 @@ export interface AnimeListItem {
   popularityScore?: number | null;
   genres: Genre[];
   studios: Studio[];
+  // Scores da comunidade AniHype
+  ratingCount?: number;
+  ratingAverage?: number | null;
+  ratingAnimation?: number | null;
+  ratingStory?: number | null;
+  ratingCharacters?: number | null;
+  ratingSound?: number | null;
+  ratingHype?: number | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface RatingBadge {
+  label: string;
+  emoji: string;
+}
+
+export interface RatingDimensions {
+  animation: number;
+  story: number;
+  characters: number;
+  sound: number;
+  hype: number;
+}
+
+export interface RatingAggregate {
+  count: number;
+  average: number;
+  badge: RatingBadge | null;
+  qualifiesForRanking: boolean;
+  dimensions: RatingDimensions;
+}
+
+export interface ReviewUser {
+  id: number;
+  username: string;
+  displayName?: string | null;
+}
+
+export interface AnimeReview {
+  id: number;
+  userId: number;
+  animeId: number;
+  animation: number;
+  story: number;
+  characters: number;
+  sound: number;
+  hype: number;
+  finalScore: number;
+  reviewText?: string | null;
+  containsSpoiler: boolean;
+  badge: RatingBadge;
+  user: ReviewUser;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AnimeRatingResponse {
+  aggregate: RatingAggregate;
+  reviews: AnimeReview[];
+  meta: PaginationMeta;
+}
+
+export interface MyRating {
+  id: number;
+  animation: number;
+  story: number;
+  characters: number;
+  sound: number;
+  hype: number;
+  finalScore: number;
+  reviewText?: string | null;
+  containsSpoiler: boolean;
+  badge: RatingBadge;
 }
 
 export interface AnimeDetail extends AnimeListItem {
@@ -114,16 +186,21 @@ export interface Comment {
 export interface AuthTokens {
   accessToken: string;
   refreshToken: string;
-  userId: number;
-  expiresIn: number;
 }
 
 export interface AuthUser {
   id: number;
   username: string;
   email: string;
+  displayName?: string | null;
   avatarUrl?: string | null;
   roles: string[];
+}
+
+/** Resposta completa do POST /auth/login e /auth/register */
+export interface AuthLoginResponse {
+  user: AuthUser;
+  tokens: AuthTokens;
 }
 
 export interface ApiResponse<T> {

@@ -32,6 +32,18 @@ export class EpisodesController {
   }
 
   // --------------------------------------------------------------------------
+  // Últimos lançamentos  →  GET /episodes/recent?days=7
+  // --------------------------------------------------------------------------
+  @Public()
+  @Get('recent')
+  @ApiOperation({ summary: 'Episódios que já foram ao ar nos últimos N dias (BRT), agrupados por data' })
+  @ApiQuery({ name: 'days', required: false, type: Number, description: 'Número de dias (1-14)', example: 7 })
+  findRecent(@Query('days') days?: string) {
+    const numDays = days ? Math.min(14, Math.max(1, parseInt(days, 10) || 7)) : 7;
+    return this.episodesService.findRecentReleases(numDays);
+  }
+
+  // --------------------------------------------------------------------------
   // Episódio por ID  →  GET /episodes/:id
   // --------------------------------------------------------------------------
   @Public()

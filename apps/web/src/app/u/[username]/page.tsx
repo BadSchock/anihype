@@ -44,23 +44,23 @@ export default async function UserProfilePage({ params }: Props) {
         </div>
 
         <div className="flex flex-col gap-1">
-          <h1 className="text-2xl font-bold text-white">
+          <h1 className="text-2xl font-bold text-foreground">
             {user.displayName ?? user.username}
           </h1>
-          <p className="text-sm text-white/40">@{user.username}</p>
-          <p className="mt-1 text-xs text-white/30">Membro desde {joinedAt}</p>
+          <p className="text-sm text-muted-foreground">@{user.username}</p>
+          <p className="mt-1 text-xs text-muted-foreground">Membro desde {joinedAt}</p>
         </div>
       </div>
 
       {/* Bio */}
       {user.bio && (
-        <div className="rounded-xl bg-white/5 p-4">
-          <p className="text-sm leading-relaxed text-white/70">{user.bio}</p>
+        <div className="rounded-xl bg-muted p-4">
+          <p className="text-sm leading-relaxed text-foreground/80">{user.bio}</p>
         </div>
       )}
 
       {/* Placeholder para atividade futura */}
-      <div className="mt-8 rounded-xl border border-white/5 bg-white/5 p-6 text-center text-sm text-white/30">
+      <div className="mt-8 rounded-xl border border-border bg-muted p-6 text-center text-sm text-muted-foreground">
         Atividade recente do usuário em breve.
       </div>
     </div>

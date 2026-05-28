@@ -15,7 +15,7 @@ export default function EpisodeLoading() {
           <div className="h-4 w-full rounded shimmer" />
           <div className="h-4 w-5/6 rounded shimmer" />
         </div>
-        <div className="my-8 border-t border-white/6" />
+        <div className="my-8 border-t border-border" />
         <div className="mb-4 h-6 w-32 rounded shimmer" />
         <div className="flex flex-col gap-5">
           {Array.from({ length: 5 }).map((_, i) => <CommentItemSkeleton key={i} />)}

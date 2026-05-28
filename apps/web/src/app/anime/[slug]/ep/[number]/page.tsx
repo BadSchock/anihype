@@ -64,28 +64,28 @@ export default async function EpisodePage({ params }: Props) {
             sizes="100vw"
           />
         ) : (
-          <div className="h-full w-full bg-gradient-to-br from-purple-900/40 to-[#0F1115]" />
+          <div className="h-full w-full bg-gradient-to-br from-purple-200/60 to-background dark:from-purple-900/40" />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0F1115] via-[#0F1115]/30 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />
       </div>
 
       <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6">
         {/* Breadcrumb */}
-        <nav className="mb-4 flex items-center gap-2 text-sm text-white/40">
+        <nav className="mb-4 flex items-center gap-2 text-sm text-muted-foreground">
           <Link href={`/anime/${anime.slug}`} className="hover:text-purple-400 transition-colors">
             {anime.titleEnglish ?? anime.titleRomaji}
           </Link>
           <span>/</span>
-          <span className="text-white/70">Ep {episode.number}</span>
+          <span className="text-foreground/80">Ep {episode.number}</span>
         </nav>
 
         {/* Título */}
-        <h1 className="text-2xl font-extrabold text-white sm:text-3xl">
+        <h1 className="text-2xl font-extrabold text-foreground sm:text-3xl">
           {episode.title ?? `Episódio ${episode.number}`}
         </h1>
 
         {/* Meta */}
-        <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-white/50">
+        <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
           {airDate && <span>📅 {airDate}</span>}
           {episode.durationMinutes && <span>⏱ {episode.durationMinutes} min</span>}
           <Badge
@@ -100,7 +100,7 @@ export default async function EpisodePage({ params }: Props) {
 
         {/* Sinopse */}
         {episode.synopsis && (
-          <p className="mt-5 text-sm leading-relaxed text-white/70">{episode.synopsis}</p>
+          <p className="mt-5 text-sm leading-relaxed text-foreground/80">{episode.synopsis}</p>
         )}
 
         {/* Navegação entre episódios */}
@@ -108,7 +108,7 @@ export default async function EpisodePage({ params }: Props) {
           {epNumber > 1 && (
             <Link
               href={`/anime/${anime.slug}/ep/${epNumber - 1}`}
-              className="rounded-lg bg-white/10 px-4 py-2 text-sm text-white hover:bg-white/20 transition-colors"
+              className="rounded-lg bg-muted px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
             >
               ← Ep {epNumber - 1}
             </Link>
@@ -116,7 +116,7 @@ export default async function EpisodePage({ params }: Props) {
           {anime.episodeCount && epNumber < anime.episodeCount && (
             <Link
               href={`/anime/${anime.slug}/ep/${epNumber + 1}`}
-              className="ml-auto rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700 transition-colors"
+              className="ml-auto rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-purple-700 transition-colors"
             >
               Ep {epNumber + 1} →
             </Link>
@@ -124,7 +124,7 @@ export default async function EpisodePage({ params }: Props) {
         </div>
 
         {/* Separador */}
-        <div className="my-8 border-t border-white/10" />
+        <div className="my-8 border-t border-border" />
 
         {/* Área de comentários */}
         <CommentsSection episodeId={episode.id} />

@@ -29,7 +29,7 @@ export function AnimeCard({ anime, className }: AnimeCardProps) {
       )}
     >
       {/* Cover */}
-      <div className="relative aspect-[2/3] w-full overflow-hidden bg-white/5">
+      <div className="relative aspect-[2/3] w-full overflow-hidden bg-muted">
         {anime.coverImageUrl ? (
           <Image
             src={anime.coverImageUrl}
@@ -39,8 +39,8 @@ export function AnimeCard({ anime, className }: AnimeCardProps) {
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 200px"
           />
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center bg-white/5">
-            <span className="text-xs text-white/30">Sem imagem</span>
+          <div className="absolute inset-0 flex items-center justify-center bg-muted">
+            <span className="text-xs text-muted-foreground">Sem imagem</span>
           </div>
         )}
         <div className="absolute bottom-2 left-2">
@@ -50,20 +50,26 @@ export function AnimeCard({ anime, className }: AnimeCardProps) {
 
       {/* Info */}
       <div className="flex flex-1 flex-col gap-1 p-3">
-        <h3 className="line-clamp-2 text-sm font-semibold text-white leading-snug">
+        <h3 className="line-clamp-2 text-sm font-semibold text-foreground leading-snug">
           {anime.titleEnglish ?? anime.titleRomaji}
         </h3>
-        <p className="text-xs text-white/40">
+        <p className="text-xs text-muted-foreground">
           {anime.seasonYear && anime.season
             ? `${anime.season} ${anime.seasonYear}`
             : anime.seasonYear ?? '—'}
           {anime.episodeCount ? ` • ${anime.episodeCount} eps` : ''}
         </p>
-        {anime.averageScore ? (
-          <p className="mt-auto text-xs font-medium text-yellow-400">
-            ★ {(anime.averageScore / 10).toFixed(1)}
-          </p>
-        ) : null}
+        <div className="mt-auto flex items-center gap-2">
+          {anime.ratingAverage && anime.ratingCount && anime.ratingCount >= 1 ? (
+            <p className="text-xs font-bold text-purple-400" title={`${anime.ratingCount} avaliação(ões) AniHype`}>
+              ⚡ {Number(anime.ratingAverage).toFixed(1)}
+            </p>
+          ) : anime.averageScore ? (
+            <p className="text-xs font-medium text-yellow-400/60" title="Score AniList">
+              ★ {(anime.averageScore / 10).toFixed(1)}
+            </p>
+          ) : null}
+        </div>
       </div>
     </Link>
   );
@@ -71,7 +77,7 @@ export function AnimeCard({ anime, className }: AnimeCardProps) {
 
 export function AnimeCardSkeleton({ className }: { className?: string }) {
   return (
-    <div className={cn('flex flex-col overflow-hidden rounded-xl bg-white/5 border border-white/5', className)}>
+    <div className={cn('flex flex-col overflow-hidden rounded-xl bg-muted border border-border', className)}>
       <div className="aspect-[2/3] w-full shimmer" />
       <div className="flex flex-col gap-2 p-3">
         <div className="h-4 w-3/4 rounded shimmer" />

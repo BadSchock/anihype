@@ -11,17 +11,17 @@ export function useLogin() {
   return useMutation({
     mutationFn: ({ email, password }: { email: string; password: string }) =>
       login(email, password),
-    onSuccess: async (tokens) => {
-      // Busca dados do user depois do login
-      const { getMe } = await import('@/services/api');
-      const user = await getMe(tokens.accessToken);
-      setAuth(user, tokens.accessToken, tokens.refreshToken);
+    onSuccess: async (response) => {
+      setAuth(response.user, response.tokens.accessToken, response.tokens.refreshToken);
       await queryClient.invalidateQueries();
     },
   });
 }
 
 export function useRegister() {
+  const { setAuth } = useAuthStore();
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: ({
       username,
@@ -32,6 +32,10 @@ export function useRegister() {
       email: string;
       password: string;
     }) => register(username, email, password),
+    onSuccess: async (response) => {
+      setAuth(response.user, response.tokens.accessToken, response.tokens.refreshToken);
+      await queryClient.invalidateQueries();
+    },
   });
 }
 

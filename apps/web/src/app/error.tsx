@@ -16,12 +16,12 @@ export default function GlobalError({ error, reset }: Props) {
   return (
     <div className="flex min-h-[70vh] flex-col items-center justify-center text-center animate-fade-up">
       <p className="mb-4 text-6xl select-none">💥</p>
-      <h1 className="text-2xl font-bold text-white">Algo deu errado</h1>
-      <p className="mt-2 max-w-sm text-sm text-white/50">
+      <h1 className="text-2xl font-bold text-foreground">Algo deu errado</h1>
+      <p className="mt-2 max-w-sm text-sm text-muted-foreground">
         Ocorreu um erro inesperado. Nossa equipe foi notificada.
       </p>
       {error.digest && (
-        <p className="mt-1 font-mono text-xs text-white/25">ref: {error.digest}</p>
+        <p className="mt-1 font-mono text-xs text-muted-foreground/50">ref: {error.digest}</p>
       )}
       <div className="mt-8 flex gap-3">
         <button onClick={reset} className="btn-primary">

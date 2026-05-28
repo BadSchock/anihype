@@ -4,7 +4,7 @@
   "description": "Acompanhe os lançamentos de anime e discuta episódios com a comunidade brasileira.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0F1115",
+  "background_color": "#fafafa",
   "theme_color": "#7C3AED",
   "orientation": "portrait-primary",
   "icons": [

@@ -20,7 +20,7 @@ export function EpisodeCard({ episode, className }: EpisodeCardProps) {
       className={cn('card card-hover group flex gap-3 p-3', className)}
     >
       {/* Thumbnail ou cover do anime */}
-      <div className="relative h-16 w-28 flex-shrink-0 overflow-hidden rounded-lg bg-white/10">
+      <div className="relative h-16 w-28 flex-shrink-0 overflow-hidden rounded-lg bg-muted">
         {(episode.thumbnailUrl ?? episode.anime.coverImageUrl) ? (
           <Image
             src={(episode.thumbnailUrl ?? episode.anime.coverImageUrl)!}
@@ -31,7 +31,7 @@ export function EpisodeCard({ episode, className }: EpisodeCardProps) {
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-xs text-white/30">Ep {episode.number}</span>
+            <span className="text-xs text-muted-foreground">Ep {episode.number}</span>
           </div>
         )}
       </div>
@@ -40,11 +40,11 @@ export function EpisodeCard({ episode, className }: EpisodeCardProps) {
         <p className="truncate text-xs text-purple-400 font-medium">
           {episode.anime.titleEnglish ?? episode.anime.titleRomaji}
         </p>
-        <p className="truncate text-sm font-semibold text-white">
+        <p className="truncate text-sm font-semibold text-foreground">
           {episode.title ? episode.title : `Episódio ${episode.number}`}
         </p>
         {episode.airDate && (
-          <p className="text-xs text-white/40">{formatAirDate(episode.airDate)}</p>
+          <p className="text-xs text-muted-foreground">{formatAirDate(episode.airDate)}</p>
         )}
       </div>
     </Link>

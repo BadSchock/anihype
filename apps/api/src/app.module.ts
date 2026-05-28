@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_FILTER, APP_INTERCEPTOR, APP_GUARD } from '@nestjs/core';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { ScheduleModule } from '@nestjs/schedule';
 
 import { appConfig, databaseConfig, jwtConfig, providersConfig, validateEnv } from './config';
 import { PrismaModule } from './prisma/prisma.module';
@@ -15,6 +16,7 @@ import { AnimeModule } from './modules/anime/anime.module';
 import { EpisodesModule } from './modules/episodes/episodes.module';
 import { CommentsModule } from './modules/comments/comments.module';
 import { SyncModule } from './modules/sync/sync.module';
+import { RatingsModule } from './modules/ratings/ratings.module';
 import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
 
 @Module({
@@ -32,6 +34,7 @@ import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
         limit: 100,
       },
     ]),
+    ScheduleModule.forRoot(),
     PrismaModule,
     HealthModule,
     AuthModule,
@@ -40,6 +43,7 @@ import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
     EpisodesModule,
     CommentsModule,
     SyncModule,
+    RatingsModule,
   ],
   providers: [
     // Exception filter global

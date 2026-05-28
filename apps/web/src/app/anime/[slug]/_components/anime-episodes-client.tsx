@@ -15,17 +15,17 @@ const STATUS_COLOR: Record<string, 'green' | 'yellow' | 'default'> = {
   UNKNOWN: 'default',
 };
 
-function EpisodeRow({ ep }: { ep: EpisodeWithAnime }) {
+function EpisodeRow({ ep, animeSlug }: { ep: EpisodeWithAnime; animeSlug: string }) {
   return (
     <Link
-      href={`/anime/${ep.anime.slug}`}
-      className="group flex items-center gap-4 rounded-xl bg-white/5 p-3 transition-all hover:bg-white/10"
+      href={`/anime/${animeSlug}/ep/${ep.number}`}
+      className="group flex items-center gap-4 rounded-xl bg-muted p-3 transition-all hover:bg-muted"
     >
       {/* Thumbnail */}
-      <div className="relative h-14 w-24 flex-shrink-0 overflow-hidden rounded-lg bg-white/10">
-        {(ep.thumbnailUrl ?? ep.anime.coverImageUrl) && (
+      <div className="relative h-14 w-24 flex-shrink-0 overflow-hidden rounded-lg bg-muted">
+        {(ep.thumbnailUrl ?? ep.anime?.coverImageUrl) && (
           <Image
-            src={(ep.thumbnailUrl ?? ep.anime.coverImageUrl)!}
+            src={(ep.thumbnailUrl ?? ep.anime?.coverImageUrl)!}
             alt={ep.title ?? `Ep ${ep.number}`}
             fill
             className="object-cover"
@@ -33,17 +33,17 @@ function EpisodeRow({ ep }: { ep: EpisodeWithAnime }) {
           />
         )}
         <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-          <span className="text-xs font-bold text-white">{ep.number}</span>
+          <span className="text-xs font-bold text-foreground">{ep.number}</span>
         </div>
       </div>
 
       {/* Info */}
       <div className="flex min-w-0 flex-1 flex-col gap-1">
-        <p className="truncate text-sm font-semibold text-white">
+        <p className="truncate text-sm font-semibold text-foreground">
           {ep.title ?? `Episódio ${ep.number}`}
         </p>
         {ep.airDate && (
-          <p className="text-xs text-white/40">
+          <p className="text-xs text-muted-foreground">
             {new Date(ep.airDate).toLocaleDateString('pt-BR', {
               day: '2-digit',
               month: 'short',
@@ -62,9 +62,10 @@ function EpisodeRow({ ep }: { ep: EpisodeWithAnime }) {
 
 interface Props {
   animeId: number;
+  animeSlug: string;
 }
 
-export function AnimeEpisodesClient({ animeId }: Props) {
+export function AnimeEpisodesClient({ animeId, animeSlug }: Props) {
   const [page, setPage] = useState(1);
   const { data, isLoading } = useAnimeEpisodes(animeId, page);
 
@@ -91,7 +92,7 @@ export function AnimeEpisodesClient({ animeId }: Props) {
     <div className="flex flex-col gap-3">
       <div className="flex flex-col gap-2">
         {data.data.map((ep) => (
-          <EpisodeRow key={ep.id} ep={ep} />
+          <EpisodeRow key={ep.id} ep={ep} animeSlug={animeSlug} />
         ))}
       </div>
 
@@ -101,17 +102,17 @@ export function AnimeEpisodesClient({ animeId }: Props) {
           <button
             disabled={page === 1}
             onClick={() => setPage((p) => p - 1)}
-            className="rounded-lg bg-white/10 px-4 py-2 text-sm text-white disabled:opacity-30 hover:bg-white/20 transition-colors"
+            className="rounded-lg bg-muted px-4 py-2 text-sm text-foreground disabled:opacity-30 hover:bg-muted transition-colors"
           >
             ← Anterior
           </button>
-          <span className="text-sm text-white/50">
+          <span className="text-sm text-muted-foreground">
             {page} / {data.meta.totalPages}
           </span>
           <button
             disabled={page === data.meta.totalPages}
             onClick={() => setPage((p) => p + 1)}
-            className="rounded-lg bg-white/10 px-4 py-2 text-sm text-white disabled:opacity-30 hover:bg-white/20 transition-colors"
+            className="rounded-lg bg-muted px-4 py-2 text-sm text-foreground disabled:opacity-30 hover:bg-muted transition-colors"
           >
             Próximo →
           </button>

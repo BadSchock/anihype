@@ -15,7 +15,7 @@ export function ErrorState({
       {onRetry && (
         <button
           onClick={onRetry}
-          className="mt-4 rounded-lg bg-white/10 px-4 py-2 text-sm text-white hover:bg-white/20 transition-colors"
+          className="mt-4 rounded-lg bg-muted px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
         >
           Tentar novamente
         </button>

@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { getAnimeEpisodes, getTodayReleases, getWeeklyCalendar } from '@/services/api';
+import { getAnimeEpisodes, getRecentReleases, getTodayReleases, getWeeklyCalendar } from '@/services/api';
 
 export function useTodayReleases() {
   return useQuery({
@@ -13,6 +13,14 @@ export function useWeeklyCalendar(days = 7) {
   return useQuery({
     queryKey: ['episodes', 'calendar', days],
     queryFn: () => getWeeklyCalendar(days),
+    staleTime: 10 * 60 * 1000,
+  });
+}
+
+export function useRecentReleases(days = 7) {
+  return useQuery({
+    queryKey: ['episodes', 'recent', days],
+    queryFn: () => getRecentReleases(days),
     staleTime: 10 * 60 * 1000,
   });
 }

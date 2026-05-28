@@ -24,6 +24,7 @@ export interface NormalizedAnime {
   genres: string[];
   studios: Array<{ name: string; role: string | null }>;
   externalIds: Array<{ source: string; externalId: string }>;
+  streamingPlatforms: Array<{ site: string; url: string }>;
 }
 
 export interface NormalizedEpisode {

@@ -37,8 +37,8 @@ export function CommentItem({ comment, onReply }: CommentItemProps) {
 
       <div className="flex flex-1 flex-col gap-1">
         {/* Header */}
-        <div className="flex items-center gap-2 text-xs text-white/40">
-          <span className="font-medium text-white/70">{comment.author.username}</span>
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <span className="font-medium text-foreground/80">{comment.author.username}</span>
           <span>·</span>
           <span>{timeAgo(comment.createdAt)}</span>
           {comment.editedAt && <span>(editado)</span>}
@@ -58,14 +58,14 @@ export function CommentItem({ comment, onReply }: CommentItemProps) {
             Clique para revelar spoiler
           </button>
         ) : (
-          <p className="text-sm leading-relaxed text-white/80">{comment.content}</p>
+          <p className="text-sm leading-relaxed text-foreground/90">{comment.content}</p>
         )}
 
         {/* Actions */}
-        <div className="mt-1 flex items-center gap-4 text-xs text-white/40">
+        <div className="mt-1 flex items-center gap-4 text-xs text-muted-foreground">
           <button
             onClick={() => isAuthenticated && toggleLike(comment.id)}
-            className={`flex items-center gap-1 transition-colors hover:text-white ${
+            className={`flex items-center gap-1 transition-colors hover:text-foreground ${
               comment.likedByMe ? 'text-purple-400' : ''
             }`}
           >
@@ -75,7 +75,7 @@ export function CommentItem({ comment, onReply }: CommentItemProps) {
           {onReply && isAuthenticated && (
             <button
               onClick={() => onReply(comment.id)}
-              className="transition-colors hover:text-white"
+              className="transition-colors hover:text-foreground"
             >
               Responder
             </button>
@@ -93,11 +93,11 @@ export function CommentItem({ comment, onReply }: CommentItemProps) {
 export function CommentItemSkeleton() {
   return (
     <div className="flex gap-3">
-      <div className="h-8 w-8 flex-shrink-0 animate-pulse rounded-full bg-white/10" />
+      <div className="h-8 w-8 flex-shrink-0 animate-pulse rounded-full bg-muted" />
       <div className="flex flex-1 flex-col gap-2">
-        <div className="h-3 w-24 animate-pulse rounded bg-white/10" />
-        <div className="h-4 w-full animate-pulse rounded bg-white/10" />
-        <div className="h-4 w-2/3 animate-pulse rounded bg-white/10" />
+        <div className="h-3 w-24 animate-pulse rounded bg-muted" />
+        <div className="h-4 w-full animate-pulse rounded bg-muted" />
+        <div className="h-4 w-2/3 animate-pulse rounded bg-muted" />
       </div>
     </div>
   );

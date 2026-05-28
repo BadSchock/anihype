@@ -16,42 +16,40 @@ const config: Config = {
     },
     extend: {
       colors: {
-        background: {
-          DEFAULT: '#0F1115',
-          card: '#181C24',
-          elevated: '#1E2330',
-        },
-        accent: {
-          purple: '#7C5CFF',
-          blue: '#5B8CFF',
-        },
+        background: 'hsl(var(--background))',
+        foreground: 'hsl(var(--foreground))',
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
-        foreground: 'hsl(var(--foreground))',
         primary: {
-          DEFAULT: '#7C5CFF',
-          foreground: '#FFFFFF',
+          DEFAULT: 'hsl(var(--primary))',
+          foreground: 'hsl(var(--primary-foreground))',
         },
         secondary: {
-          DEFAULT: '#5B8CFF',
-          foreground: '#FFFFFF',
+          DEFAULT: 'hsl(var(--secondary))',
+          foreground: 'hsl(var(--secondary-foreground))',
         },
         muted: {
-          DEFAULT: '#1E2330',
-          foreground: '#8B9AB0',
+          DEFAULT: 'hsl(var(--muted))',
+          foreground: 'hsl(var(--muted-foreground))',
         },
         destructive: {
-          DEFAULT: '#EF4444',
-          foreground: '#FFFFFF',
+          DEFAULT: 'hsl(var(--destructive))',
+          foreground: 'hsl(var(--destructive-foreground))',
         },
         card: {
-          DEFAULT: '#181C24',
-          foreground: '#F0F4FF',
+          DEFAULT: 'hsl(var(--card))',
+          foreground: 'hsl(var(--card-foreground))',
         },
         popover: {
-          DEFAULT: '#181C24',
-          foreground: '#F0F4FF',
+          DEFAULT: 'hsl(var(--popover))',
+          foreground: 'hsl(var(--popover-foreground))',
+        },
+        accent: {
+          DEFAULT: 'hsl(var(--accent))',
+          foreground: 'hsl(var(--accent-foreground))',
+          purple: '#7C5CFF',
+          blue: '#5B8CFF',
         },
       },
       fontFamily: {

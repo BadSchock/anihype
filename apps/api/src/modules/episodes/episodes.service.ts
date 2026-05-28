@@ -8,10 +8,13 @@ import { PaginatedResult } from '../../common/dto/pagination.dto';
 export class EpisodesService {
   constructor(private readonly repo: EpisodesRepository) {}
 
-  async findByAnime(animeId: number, query: EpisodeQueryDto): Promise<PaginatedResult<EpisodeDto>> {
+  async findByAnime(
+    animeId: number,
+    query: EpisodeQueryDto,
+  ): Promise<PaginatedResult<EpisodeWithAnimeDto>> {
     const result = await this.repo.findByAnime(animeId, query);
     return {
-      data: result.data.map((e) => this.toDto(e)),
+      data: result.data.map((e) => this.toDtoWithAnime(e)),
       meta: result.meta,
     };
   }
@@ -43,7 +46,16 @@ export class EpisodesService {
 
   async findWeeklyCalendar(days: number = 7): Promise<CalendarDayDto[]> {
     const episodes = await this.repo.findWeeklyCalendar(days);
-    return this.groupByDate(episodes);
+    return this.groupByDate(episodes, 'asc');
+  }
+
+  async findRecentReleases(days: number = 7): Promise<CalendarDayDto[]> {
+    const now = Date.now();
+    const episodes = (await this.repo.findRecentReleases(days)).filter((ep) => {
+      const airedAt = ep.airTimeUtc ?? ep.airDate;
+      return airedAt !== null && airedAt.getTime() <= now;
+    });
+    return this.groupByDate(episodes, 'desc');
   }
 
   // ---------------------------------------------------------------------------
@@ -83,19 +95,28 @@ export class EpisodesService {
     };
   }
 
-  private groupByDate(episodes: EpisodeWithAnime[]): CalendarDayDto[] {
+  private groupByDate(
+    episodes: EpisodeWithAnime[],
+    order: 'asc' | 'desc' = 'asc',
+  ): CalendarDayDto[] {
     const map = new Map<string, EpisodeWithAnimeDto[]>();
+    const BRT_OFFSET_MS = 3 * 60 * 60 * 1000;
 
     for (const ep of episodes) {
-      const date: string = ep.airDate
-        ? (ep.airDate.toISOString().split('T')[0] ?? 'unknown')
-        : 'unknown';
+      let date: string;
+      const airedAt = ep.airTimeUtc ?? ep.airDate;
+      if (airedAt) {
+        const brtDate = new Date(airedAt.getTime() - BRT_OFFSET_MS);
+        date = brtDate.toISOString().split('T')[0] ?? 'unknown';
+      } else {
+        date = 'unknown';
+      }
       if (!map.has(date)) map.set(date, []);
       (map.get(date) as EpisodeWithAnimeDto[]).push(this.toDtoWithAnime(ep));
     }
 
     return Array.from(map.entries())
-      .sort(([a], [b]) => a.localeCompare(b))
+      .sort(([a], [b]) => (order === 'desc' ? b.localeCompare(a) : a.localeCompare(b)))
       .map(([date, epList]) => ({ date, episodes: epList }));
   }
 }

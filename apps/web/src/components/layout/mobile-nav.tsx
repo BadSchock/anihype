@@ -2,31 +2,39 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import { cn } from '@anihype/ui';
-import { useAuthStore } from '@/stores/auth.store';
+import { useAuthHydrated } from '@/hooks/use-auth-hydrated';
 
 const MOBILE_NAV = [
-  { href: '/',       label: 'Início',     icon: '⚡' },
-  { href: '/anime',  label: 'Animes',     icon: '🎬' },
-  { href: '/login',  label: 'Entrar',     icon: '👤', authHide: true },
-];
-
-const MOBILE_NAV_AUTH = [
-  { href: '/',       label: 'Início',    icon: '⚡' },
-  { href: '/anime',  label: 'Animes',    icon: '🎬' },
-];
+  { href: '/', label: 'Início', icon: '⚡' },
+  { href: '/anime', label: 'Animes', icon: '🎬' },
+  { href: '/calendar', label: 'Calendário', icon: '📅' },
+] as const;
 
 export function MobileNav() {
   const pathname = usePathname();
-  const { isAuthenticated, user } = useAuthStore();
-  const links = isAuthenticated ? MOBILE_NAV_AUTH : MOBILE_NAV.filter((l) => !l.authHide || !isAuthenticated);
+  const { hydrated, isAuthenticated, user } = useAuthHydrated();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
+
+  // Placeholder idêntico no SSR e no 1º paint — evita mismatch
+  if (!mounted) {
+    return (
+      <nav
+        className="fixed bottom-0 left-0 right-0 z-50 h-16 border-t border-border bg-background/95 sm:hidden"
+        aria-hidden
+      />
+    );
+  }
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-50 flex h-16 items-stretch border-t border-white/6 bg-[#0F1115]/95 backdrop-blur-md sm:hidden"
+      className="fixed bottom-0 left-0 right-0 z-50 flex h-16 items-stretch border-t border-border bg-background/95 backdrop-blur-md sm:hidden"
       aria-label="Navegação mobile"
     >
-      {links.map((l) => {
+      {MOBILE_NAV.map((l) => {
         const active = pathname === l.href || (l.href !== '/' && pathname.startsWith(l.href));
         return (
           <Link
@@ -34,7 +42,7 @@ export function MobileNav() {
             href={l.href}
             className={cn(
               'flex flex-1 flex-col items-center justify-center gap-1 text-[10px] font-medium transition-colors',
-              active ? 'text-purple-400' : 'text-white/40 hover:text-white/70',
+              active ? 'text-primary' : 'text-muted-foreground hover:text-foreground',
             )}
           >
             <span className="text-lg leading-none">{l.icon}</span>
@@ -42,30 +50,30 @@ export function MobileNav() {
           </Link>
         );
       })}
-      {/* Perfil ou Login */}
-      {isAuthenticated ? (
-        <Link
-          href={`/u/${user?.username}`}
-          className={cn(
-            'flex flex-1 flex-col items-center justify-center gap-1 text-[10px] font-medium transition-colors',
-            pathname.startsWith('/u/') ? 'text-purple-400' : 'text-white/40 hover:text-white/70',
-          )}
-        >
-          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-purple-500/30 text-xs font-bold text-purple-300">
-            {user?.username?.charAt(0).toUpperCase()}
-          </span>
-          Perfil
-        </Link>
-      ) : (
+
+      {!hydrated || !isAuthenticated ? (
         <Link
           href="/login"
           className={cn(
             'flex flex-1 flex-col items-center justify-center gap-1 text-[10px] font-medium transition-colors',
-            pathname === '/login' ? 'text-purple-400' : 'text-white/40 hover:text-white/70',
+            pathname === '/login' ? 'text-primary' : 'text-muted-foreground hover:text-foreground',
           )}
         >
           <span className="text-lg leading-none">👤</span>
           Entrar
+        </Link>
+      ) : (
+        <Link
+          href={`/u/${user?.username}`}
+          className={cn(
+            'flex flex-1 flex-col items-center justify-center gap-1 text-[10px] font-medium transition-colors',
+            pathname.startsWith('/u/') ? 'text-primary' : 'text-muted-foreground hover:text-foreground',
+          )}
+        >
+          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/20 text-xs font-bold text-primary">
+            {user?.username?.charAt(0).toUpperCase()}
+          </span>
+          Perfil
         </Link>
       )}
     </nav>

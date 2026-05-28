@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 
 import { Providers } from '@/providers/providers';
-import { Navbar } from '@/components/layout/navbar';
+import { SiteHeader } from '@/components/layout/site-header';
 import { MobileNav } from '@/components/layout/mobile-nav';
 import '@/styles/globals.css';
 
@@ -15,8 +15,10 @@ const inter = Inter({
 const APP_URL = process.env['NEXT_PUBLIC_APP_URL'] ?? 'http://localhost:3000';
 
 export const viewport: Viewport = {
-  themeColor: '#7C3AED',
-  colorScheme: 'dark',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#fafafa' },
+    { media: '(prefers-color-scheme: dark)', color: '#0F1115' },
+  ],
   width: 'device-width',
   initialScale: 1,
 };
@@ -71,17 +73,16 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR" suppressHydrationWarning className={inter.variable}>
-      <body className="min-h-screen bg-[#0F1115] text-white antialiased selection:bg-purple-500/30 selection:text-purple-100">
+      <body className="min-h-screen bg-background text-foreground antialiased">
         <Providers>
-          {/* Skip to content */}
           <a
             href="#main"
-            className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-purple-600 focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-white"
+            className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-primary-foreground"
           >
             Ir para o conteúdo
           </a>
 
-          <Navbar />
+          <SiteHeader />
 
           <main id="main" className="mx-auto max-w-7xl px-4 py-6 sm:px-6 pb-20 sm:pb-6">
             {children}

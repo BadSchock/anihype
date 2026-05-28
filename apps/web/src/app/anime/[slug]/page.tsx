@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { getAnimeBySlug } from '@/services/api';
 import { Badge } from '@/components/ui/badge';
 import { AnimeEpisodesClient } from './_components/anime-episodes-client';
+import { AnimeRatingSection } from '@/components/ratings/anime-rating-section';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -75,9 +76,9 @@ export default async function AnimePage({ params }: Props) {
             sizes="100vw"
           />
         ) : (
-          <div className="h-full w-full bg-gradient-to-br from-purple-900/40 to-[#0F1115]" />
+          <div className="h-full w-full bg-gradient-to-br from-purple-200/60 to-background dark:from-purple-900/40" />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0F1115] via-[#0F1115]/40 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
       </div>
 
       {/* Conteúdo principal */}
@@ -95,7 +96,7 @@ export default async function AnimePage({ params }: Props) {
                 priority
               />
             ) : (
-              <div className="h-full w-full bg-white/10" />
+              <div className="h-full w-full bg-muted" />
             )}
           </div>
 
@@ -116,15 +117,15 @@ export default async function AnimePage({ params }: Props) {
               {anime.isAdult && <Badge variant="red">18+</Badge>}
             </div>
 
-            <h1 className="text-2xl font-extrabold leading-tight text-white sm:text-3xl">
+            <h1 className="text-2xl font-extrabold leading-tight text-foreground sm:text-3xl">
               {anime.titleEnglish ?? anime.titleRomaji}
             </h1>
             {anime.titleEnglish && anime.titleRomaji !== anime.titleEnglish && (
-              <p className="text-sm text-white/50">{anime.titleRomaji}</p>
+              <p className="text-sm text-muted-foreground">{anime.titleRomaji}</p>
             )}
 
             {/* Metadata row */}
-            <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-white/50">
+            <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-muted-foreground">
               {anime.season && anime.seasonYear && (
                 <span>{SEASON_LABEL[anime.season] ?? anime.season} {anime.seasonYear}</span>
               )}
@@ -157,15 +158,20 @@ export default async function AnimePage({ params }: Props) {
         {/* Synopsis */}
         {anime.synopsis && (
           <section className="mt-8">
-            <h2 className="mb-2 text-lg font-bold text-white">Sinopse</h2>
-            <p className="leading-relaxed text-white/70 text-sm sm:text-base">{anime.synopsis}</p>
+            <h2 className="mb-2 text-lg font-bold text-foreground">Sinopse</h2>
+            <p className="leading-relaxed text-foreground/80 text-sm sm:text-base">{anime.synopsis}</p>
           </section>
         )}
 
+        {/* Avaliações */}
+        <section className="mt-10">
+          <AnimeRatingSection slug={slug} />
+        </section>
+
         {/* Episódios */}
         <section className="mt-10 mb-10">
-          <h2 className="mb-4 text-lg font-bold text-white">Episódios</h2>
-          <AnimeEpisodesClient animeId={anime.id} />
+          <h2 className="mb-4 text-lg font-bold text-foreground">Episódios</h2>
+          <AnimeEpisodesClient animeId={anime.id} animeSlug={slug} />
         </section>
       </div>
     </div>

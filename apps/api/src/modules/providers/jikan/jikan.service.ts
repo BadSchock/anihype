@@ -102,6 +102,7 @@ export class JikanService {
       genres: j.genres.map((g) => g.name),
       studios: j.studios.map((s) => ({ name: s.name, role: 'main' })),
       externalIds: [{ source: 'mal', externalId: String(j.mal_id) }],
+      streamingPlatforms: [],
     };
   }
 

@@ -1,11 +1,14 @@
 import type {
   AnimeDetail,
   AnimeListItem,
+  AnimeRatingResponse,
+  AuthLoginResponse,
   AuthTokens,
   AuthUser,
   CalendarDay,
   Comment,
   EpisodeWithAnime,
+  MyRating,
   PaginatedResponse,
 } from '@/types/api';
 
@@ -64,6 +67,10 @@ export function getWeeklyCalendar(days = 7) {
   return request<CalendarDay[]>(`/episodes/calendar?days=${days}`);
 }
 
+export function getRecentReleases(days = 7) {
+  return request<CalendarDay[]>(`/episodes/recent?days=${days}`);
+}
+
 export function getAnimeEpisodes(animeId: number, page = 1, limit = 24) {
   return request<PaginatedResponse<EpisodeWithAnime>>(
     `/anime/${animeId}/episodes?page=${page}&limit=${limit}`,
@@ -103,15 +110,15 @@ export function toggleCommentLike(commentId: number, token: string) {
 
 // ─── Auth ────────────────────────────────────────────────────────────────────
 
-export function login(email: string, password: string) {
-  return request<AuthTokens>('/auth/login', {
+export function login(identifier: string, password: string) {
+  return request<AuthLoginResponse>('/auth/login', {
     method: 'POST',
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ identifier, password }),
   });
 }
 
 export function register(username: string, email: string, password: string) {
-  return request<AuthTokens>('/auth/register', {
+  return request<AuthLoginResponse>('/auth/register', {
     method: 'POST',
     body: JSON.stringify({ username, email, password }),
   });
@@ -145,4 +152,39 @@ export interface PublicProfile {
 
 export function getPublicProfile(username: string) {
   return request<PublicProfile>(`/users/${username}`);
+}
+
+// ─── Ratings ─────────────────────────────────────────────────────────────────
+
+export interface CreateRatingPayload {
+  animation: number;
+  story: number;
+  characters: number;
+  sound: number;
+  hype: number;
+  reviewText?: string;
+  containsSpoiler?: boolean;
+}
+
+export function getAnimeRatings(slug: string, page = 1) {
+  return request<AnimeRatingResponse>(`/anime/${slug}/ratings?page=${page}`);
+}
+
+export function getMyAnimeRating(slug: string, token: string) {
+  return request<MyRating | null>(`/anime/${slug}/ratings/me`, { token });
+}
+
+export function upsertAnimeRating(slug: string, payload: CreateRatingPayload, token: string) {
+  return request<MyRating>(`/anime/${slug}/ratings`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+    token,
+  });
+}
+
+export function deleteAnimeRating(slug: string, token: string) {
+  return request<{ message: string }>(`/anime/${slug}/ratings/me`, {
+    method: 'DELETE',
+    token,
+  });
 }

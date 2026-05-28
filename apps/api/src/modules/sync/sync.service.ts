@@ -15,6 +15,35 @@ export interface SyncResult {
   created: boolean;
 }
 
+export interface SeasonSyncOptions {
+  season: AnimeSeason;
+  seasonYear: number;
+  /** Só animes em exibição (RELEASING no AniList) */
+  airingOnly?: boolean;
+  /** Pausa entre cada anime (ms) — evita rate limit */
+  delayMs?: number;
+  perPage?: number;
+}
+
+export interface SeasonSyncError {
+  anilistId: number;
+  title: string;
+  error: string;
+}
+
+export interface SeasonSyncResult {
+  season: AnimeSeason;
+  seasonYear: number;
+  airingOnly: boolean;
+  totalFound: number;
+  synced: number;
+  created: number;
+  updated: number;
+  failed: number;
+  results: SyncResult[];
+  errors: SeasonSyncError[];
+}
+
 @Injectable()
 export class SyncService {
   private readonly logger = new Logger(SyncService.name);
@@ -69,6 +98,127 @@ export class SyncService {
   }
 
   // ---------------------------------------------------------------------------
+  // Import em massa: temporada inteira (AniList)
+  // ---------------------------------------------------------------------------
+
+  async syncSeason(options: SeasonSyncOptions): Promise<SeasonSyncResult> {
+    const {
+      season,
+      seasonYear,
+      airingOnly = false,
+      delayMs = 800,
+      perPage = 50,
+    } = options;
+
+    const anilistSeason = season as 'WINTER' | 'SPRING' | 'SUMMER' | 'FALL';
+    const anilistStatus = airingOnly ? ('RELEASING' as const) : undefined;
+
+    this.logger.log(
+      `Iniciando sync temporada ${season} ${seasonYear}` +
+        (airingOnly ? ' (somente em exibição)' : ''),
+    );
+
+    const summary: SeasonSyncResult = {
+      season,
+      seasonYear,
+      airingOnly,
+      totalFound: 0,
+      synced: 0,
+      created: 0,
+      updated: 0,
+      failed: 0,
+      results: [],
+      errors: [],
+    };
+
+    let page = 1;
+    let hasNextPage = true;
+
+    while (hasNextPage) {
+      const browse = await this.anilist.browseSeason(
+        anilistSeason,
+        seasonYear,
+        page,
+        perPage,
+        anilistStatus,
+      );
+
+      if (page === 1) {
+        summary.totalFound = browse.pageInfo.total;
+      }
+
+      this.logger.log(
+        `Temporada ${season} ${seasonYear}: página ${browse.pageInfo.currentPage}/${browse.pageInfo.lastPage} ` +
+          `(${browse.media.length} animes)`,
+      );
+
+      for (const item of browse.media) {
+        const title = item.title.english ?? item.title.romaji;
+
+        try {
+          // Usa os dados já presentes no browse (evita 2ª request à API)
+          const normalized = this.anilist.normalizeAnime(item);
+          // Episódios: busca separada apenas se o anime está em exibição ou prestes a estrear
+          const needsSchedule = ['AIRING', 'NOT_YET_AIRED'].includes(normalized.status);
+          const episodes = needsSchedule
+            ? await this.anilist.getEpisodesPublic(item.id)
+            : [];
+
+          const result = await this.upsertAnimeWithEpisodes(
+            { anime: normalized, episodes },
+            'anilist',
+            String(item.id),
+          );
+
+          summary.synced++;
+          if (result.created) summary.created++;
+          else summary.updated++;
+          summary.results.push(result);
+          this.logger.log(`  ✓ ${title} → ${result.slug}`);
+        } catch (err) {
+          summary.failed++;
+          summary.errors.push({
+            anilistId: item.id,
+            title,
+            error: err instanceof Error ? err.message : String(err),
+          });
+          this.logger.error(`  ✗ ${title} (AniList ${item.id}): ${String(err)}`);
+        }
+
+        if (delayMs > 0) {
+          await this.sleep(delayMs);
+        }
+      }
+
+      hasNextPage = browse.pageInfo.hasNextPage;
+      page++;
+    }
+
+    this.logger.log(
+      `Sync temporada concluído: ${summary.synced}/${summary.totalFound} ok, ` +
+        `${summary.failed} falhas (${summary.created} criados, ${summary.updated} atualizados)`,
+    );
+
+    return summary;
+  }
+
+  /** Temporada anime atual conforme calendário AniList (WINTER=Jan–Mar, etc.) */
+  static getCurrentSeason(): { season: AnimeSeason; seasonYear: number } {
+    const now = new Date();
+    const month = now.getMonth() + 1;
+    const year = now.getFullYear();
+
+    if (month <= 3) return { season: AnimeSeason.WINTER, seasonYear: year };
+    if (month <= 6) return { season: AnimeSeason.SPRING, seasonYear: year };
+    if (month <= 9) return { season: AnimeSeason.SUMMER, seasonYear: year };
+    return { season: AnimeSeason.FALL, seasonYear: year };
+  }
+
+  private sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  // ---------------------------------------------------------------------------
   // Upsert core
   // ---------------------------------------------------------------------------
 
@@ -105,6 +255,7 @@ export class SyncService {
     }
 
     const episodesSynced = await this.upsertEpisodes(animeId, normalized.titleRomaji, episodes);
+    await this.upsertStreamingPlatforms(animeId, normalized.streamingPlatforms ?? []);
 
     return { animeId, slug: finalSlug, episodesSynced, created };
   }
@@ -204,6 +355,28 @@ export class SyncService {
     }
 
     return count;
+  }
+
+  private async upsertStreamingPlatforms(
+    animeId: number,
+    platforms: Array<{ site: string; url: string }>,
+  ): Promise<void> {
+    if (!platforms.length) return;
+
+    for (const p of platforms) {
+      const slug = AnimeService.normalizeSlug(p.site);
+      const platform = await this.prisma.streamingPlatform.upsert({
+        where: { slug },
+        create: { name: p.site, slug, homepageUrl: p.url },
+        update: { homepageUrl: p.url },
+      });
+
+      await this.prisma.animeStreamingPlatform.upsert({
+        where: { animeId_platformId: { animeId, platformId: platform.id } },
+        create: { animeId, platformId: platform.id, url: p.url },
+        update: { url: p.url },
+      });
+    }
   }
 
   // ---------------------------------------------------------------------------

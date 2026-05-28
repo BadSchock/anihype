@@ -34,6 +34,68 @@ query ($id: Int, $search: String, $page: Int, $perPage: Int) {
 }
 `;
 
+const SEASON_BROWSE_QUERY = `
+query ($page: Int, $perPage: Int, $season: MediaSeason, $seasonYear: Int) {
+  Page(page: $page, perPage: $perPage) {
+    pageInfo { total currentPage lastPage hasNextPage }
+    media(season: $season, seasonYear: $seasonYear, type: ANIME, sort: POPULARITY_DESC) {
+      id
+      title { romaji english native }
+      description(asHtml: false)
+      coverImage { extraLarge large }
+      bannerImage
+      status
+      format
+      source
+      season
+      seasonYear
+      episodes
+      duration
+      averageScore
+      popularity
+      trailer { id site }
+      isAdult
+      genres
+      studios(isMain: false) {
+        edges { isMain node { name } }
+      }
+      streamingEpisodes { site url }
+    }
+  }
+}
+`;
+
+const SEASON_BROWSE_AIRING_QUERY = `
+query ($page: Int, $perPage: Int, $season: MediaSeason, $seasonYear: Int) {
+  Page(page: $page, perPage: $perPage) {
+    pageInfo { total currentPage lastPage hasNextPage }
+    media(season: $season, seasonYear: $seasonYear, status: RELEASING, type: ANIME, sort: POPULARITY_DESC) {
+      id
+      title { romaji english native }
+      description(asHtml: false)
+      coverImage { extraLarge large }
+      bannerImage
+      status
+      format
+      source
+      season
+      seasonYear
+      episodes
+      duration
+      averageScore
+      popularity
+      trailer { id site }
+      isAdult
+      genres
+      studios(isMain: false) {
+        edges { isMain node { name } }
+      }
+      streamingEpisodes { site url }
+    }
+  }
+}
+`;
+
 const EPISODES_QUERY = `
 query ($id: Int!, $page: Int) {
   Media(id: $id, type: ANIME) {
@@ -69,12 +131,28 @@ interface AniListMedia {
       node: { name: string };
     }>;
   };
+  streamingEpisodes?: Array<{ site: string; url: string; title?: string; thumbnail?: string }>;
 }
 
 interface AniListAiringNode {
   episode: number;
   airingAt: number;
   timeUntilAiring: number;
+}
+
+export type AniListMediaSeason = 'WINTER' | 'SPRING' | 'SUMMER' | 'FALL';
+export type AniListMediaStatus = 'RELEASING' | 'FINISHED' | 'NOT_YET_RELEASED' | 'CANCELLED' | 'HIATUS';
+
+export interface AniListPageInfo {
+  total: number;
+  currentPage: number;
+  lastPage: number;
+  hasNextPage: boolean;
+}
+
+export interface AniListSeasonBrowseResult {
+  media: AniListMedia[];
+  pageInfo: AniListPageInfo;
 }
 
 @Injectable()
@@ -89,6 +167,36 @@ export class AniListService {
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
       timeout: 15000,
     });
+  }
+
+  async browseSeason(
+    season: AniListMediaSeason,
+    seasonYear: number,
+    page = 1,
+    perPage = 50,
+    status?: AniListMediaStatus,
+  ): Promise<AniListSeasonBrowseResult> {
+    const empty: AniListSeasonBrowseResult = {
+      media: [],
+      pageInfo: { total: 0, currentPage: page, lastPage: 0, hasNextPage: false },
+    };
+
+    try {
+      const query = status === 'RELEASING' ? SEASON_BROWSE_AIRING_QUERY : SEASON_BROWSE_QUERY;
+      const { data } = await this.client.post<{
+        data: { Page: AniListSeasonBrowseResult };
+      }>('', {
+        query,
+        variables: { season, seasonYear, page, perPage },
+      });
+
+      return data.data.Page ?? empty;
+    } catch (err) {
+      this.logger.error(
+        `AniList browseSeason(${season} ${seasonYear}, page=${page}) falhou: ${String(err)}`,
+      );
+      return empty;
+    }
   }
 
   async searchAnime(search: string, page = 1, perPage = 20): Promise<AniListMedia[]> {
@@ -122,6 +230,10 @@ export class AniListService {
       this.logger.error(`AniList getAnimeById(${id}) falhou: ${String(err)}`);
       return null;
     }
+  }
+
+  async getEpisodesPublic(anilistId: number): Promise<NormalizedEpisode[]> {
+    return this.getEpisodes(anilistId);
   }
 
   private async getEpisodes(anilistId: number): Promise<NormalizedEpisode[]> {
@@ -168,7 +280,28 @@ export class AniListService {
         role: e.isMain ? 'main' : null,
       })),
       externalIds: [{ source: 'anilist', externalId: String(media.id) }],
+      streamingPlatforms: this.extractStreamingPlatforms(media.streamingEpisodes),
     };
+  }
+
+  private extractStreamingPlatforms(
+    streamingEpisodes?: Array<{ site: string; url: string }>,
+  ): Array<{ site: string; url: string }> {
+    if (!streamingEpisodes?.length) return [];
+    const seen = new Map<string, string>();
+    for (const ep of streamingEpisodes) {
+      if (!ep.site || !ep.url) continue;
+      if (!seen.has(ep.site)) {
+        // Keep the base URL for the platform (strip episode-specific paths)
+        try {
+          const u = new URL(ep.url);
+          seen.set(ep.site, `${u.protocol}//${u.hostname}`);
+        } catch {
+          seen.set(ep.site, ep.url);
+        }
+      }
+    }
+    return Array.from(seen.entries()).map(([site, url]) => ({ site, url }));
   }
 
   private normalizeEpisode(node: AniListAiringNode): NormalizedEpisode {

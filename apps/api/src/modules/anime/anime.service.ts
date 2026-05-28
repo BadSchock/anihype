@@ -61,6 +61,13 @@ export class AnimeService {
       popularityScore: a.popularityScore ?? null,
       genres: this.mapGenres(a),
       studios: this.mapStudios(a),
+      ratingCount: a.ratingCount,
+      ratingAverage: a.ratingAverage ? Number(a.ratingAverage) : null,
+      ratingAnimation: a.ratingAnimation ? Number(a.ratingAnimation) : null,
+      ratingStory: a.ratingStory ? Number(a.ratingStory) : null,
+      ratingCharacters: a.ratingCharacters ? Number(a.ratingCharacters) : null,
+      ratingSound: a.ratingSound ? Number(a.ratingSound) : null,
+      ratingHype: a.ratingHype ? Number(a.ratingHype) : null,
       createdAt: a.createdAt,
       updatedAt: a.updatedAt,
     };

@@ -235,6 +235,7 @@ model User {
   comments            Comment[]
   commentLikes        CommentLike[]
   commentReportsOwned CommentReport[] @relation("CommentReportReporter")
+  animeRatings        AnimeRating[]
 
   authoredReports Report[]           @relation("ReportAuthor")
   reportsAssigned Report[]           @relation("AssignedModeratorReport")
@@ -386,6 +387,16 @@ model Anime {
   seasonalHighlights SeasonalHighlight[]
   follows           AnimeFollow[]
   reports           Report[]
+  ratings           AnimeRating[]
+
+  // Cache agregado das avaliações AniHype
+  ratingCount      Int      @default(0) @map("rating_count")
+  ratingAverage    Decimal? @map("rating_average")    @db.Decimal(4, 2)
+  ratingAnimation  Decimal? @map("rating_animation")  @db.Decimal(4, 2)
+  ratingStory      Decimal? @map("rating_story")      @db.Decimal(4, 2)
+  ratingCharacters Decimal? @map("rating_characters") @db.Decimal(4, 2)
+  ratingSound      Decimal? @map("rating_sound")      @db.Decimal(4, 2)
+  ratingHype       Decimal? @map("rating_hype")       @db.Decimal(4, 2)
 
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
@@ -394,6 +405,7 @@ model Anime {
   @@index([status, season, seasonYear])
   @@index([deletedAt])
   @@index([titleRomaji])
+  @@index([ratingAverage, ratingCount])
   @@map("anime")
 }
 
@@ -435,6 +447,39 @@ model Episode {
   @@index([status])
   @@index([deletedAt])
   @@map("episodes")
+}
+
+model AnimeRating {
+  id Int @id @default(autoincrement())
+
+  userId  Int @map("user_id")
+  animeId Int @map("anime_id")
+
+  // Critérios (1–10 cada)
+  animation  Int
+  story      Int
+  characters Int
+  sound      Int
+  hype       Int
+
+  // Nota final calculada: (animation + story + characters + sound + hype*2) / 6
+  finalScore Decimal @map("final_score") @db.Decimal(4, 2)
+
+  reviewText      String?  @map("review_text") @db.Text
+  containsSpoiler Boolean  @default(false) @map("contains_spoiler")
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  anime Anime @relation(fields: [animeId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@unique([userId, animeId])
+  @@index([animeId, deletedAt])
+  @@index([userId, deletedAt])
+  @@index([finalScore])
+  @@map("anime_ratings")
 }
 
 model AnimeGenre {

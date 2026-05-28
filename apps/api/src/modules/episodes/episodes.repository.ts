@@ -72,18 +72,15 @@ export class EpisodesRepository {
   }
 
   /**
-   * Retorna episódios que foram ao ar hoje (UTC).
+   * Retorna episódios que foram ao ar hoje no horário de Brasília (UTC-3).
    */
   async findTodayReleases(): Promise<EpisodeWithAnime[]> {
-    const now = new Date();
-    const startOfDay = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
-    const endOfDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000);
-
+    const { start, end } = this.brtDayRange(0, 1);
     return this.prisma.episode.findMany({
       where: {
         deletedAt: null,
         status: { not: EpisodeStatus.UNKNOWN },
-        airDate: { gte: startOfDay, lt: endOfDay },
+        airDate: { gte: start, lt: end },
       },
       include: episodeInclude,
       orderBy: [{ airTimeUtc: 'asc' }, { airDate: 'asc' }],
@@ -91,20 +88,68 @@ export class EpisodesRepository {
   }
 
   /**
-   * Retorna episódios dos próximos N dias (padrão: 7) agrupados por data.
+   * Retorna episódios dos próximos N dias (padrão: 7) no horário de Brasília.
    */
   async findWeeklyCalendar(days: number = 7): Promise<EpisodeWithAnime[]> {
-    const now = new Date();
-    const startOfDay = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
-    const endDate = new Date(startOfDay.getTime() + days * 24 * 60 * 60 * 1000);
+    const { start } = this.brtDayRange(0, 1);
+    const end = new Date(start.getTime() + days * 24 * 60 * 60 * 1000);
 
     return this.prisma.episode.findMany({
       where: {
         deletedAt: null,
-        airDate: { gte: startOfDay, lt: endDate },
+        airDate: { gte: start, lt: end },
       },
       include: episodeInclude,
       orderBy: [{ airDate: 'asc' }, { airTimeUtc: 'asc' }],
     });
+  }
+
+  /**
+   * Episódios que já foram ao ar nos últimos N dias (BRT), até o momento atual.
+   * Usa airTimeUtc para respeitar o horário exato de lançamento.
+   */
+  async findRecentReleases(days: number = 7): Promise<EpisodeWithAnime[]> {
+    const now = new Date();
+    const { start: rangeStart } = this.brtDayRange(-(days - 1), 1);
+
+    return this.prisma.episode.findMany({
+      where: {
+        deletedAt: null,
+        OR: [
+          {
+            airTimeUtc: { not: null, gte: rangeStart, lte: now },
+          },
+          {
+            airTimeUtc: null,
+            airDate: { not: null, gte: rangeStart, lte: now },
+            status: EpisodeStatus.AIRED,
+          },
+        ],
+      },
+      include: episodeInclude,
+      orderBy: [{ airTimeUtc: 'desc' }, { airDate: 'desc' }],
+    });
+  }
+
+  /**
+   * Calcula início e fim de um intervalo de dias no fuso de Brasília (UTC-3).
+   * offsetDays=0 = hoje BRT, durationDays=1 = só hoje.
+   */
+  private brtDayRange(offsetDays: number, durationDays: number): { start: Date; end: Date } {
+    const BRT_OFFSET_MS = 3 * 60 * 60 * 1000; // UTC-3
+    const nowUtc = Date.now();
+    const nowBrt = nowUtc - BRT_OFFSET_MS;
+    const brtDate = new Date(nowBrt);
+
+    // Meia-noite BRT de hoje (em UTC)
+    const brtMidnight = Date.UTC(
+      brtDate.getUTCFullYear(),
+      brtDate.getUTCMonth(),
+      brtDate.getUTCDate(),
+    ) + BRT_OFFSET_MS;
+
+    const start = new Date(brtMidnight + offsetDays * 24 * 60 * 60 * 1000);
+    const end = new Date(start.getTime() + durationDays * 24 * 60 * 60 * 1000);
+    return { start, end };
   }
 }
