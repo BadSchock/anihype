@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { useAuthHydrated } from '@/hooks/use-auth-hydrated';
 import { useAuthStore } from '@/stores/auth.store';
 import { EmptyState } from '@/components/ui/empty-state';
+import { HighlightsAdmin } from './_components/highlights-admin';
+import { AnimeAdminEditor } from './_components/anime-admin-editor';
 
 const API = process.env['NEXT_PUBLIC_API_URL'] ?? 'http://localhost:3001/api/v1';
 
@@ -43,7 +45,7 @@ function getCurrentSeason(): { season: AnimeSeason; seasonYear: number } {
 const SEASONS: AnimeSeason[] = ['WINTER', 'SPRING', 'SUMMER', 'FALL'];
 
 export default function AdminPage() {
-  const { hydrated, isAuthenticated, user } = useAuthHydrated();
+  const { authReady, isAuthenticated, user } = useAuthHydrated();
   const accessToken = useAuthStore((s) => s.accessToken);
   const router = useRouter();
   const [anilistId, setAnilistId] = useState('');
@@ -63,13 +65,13 @@ export default function AdminPage() {
   const isAdmin = user?.roles.includes('ADMIN');
 
   useEffect(() => {
-    if (!hydrated) return;
+    if (!authReady) return;
     if (!isAuthenticated || !isAdmin) {
       router.replace('/');
     }
-  }, [hydrated, isAuthenticated, isAdmin, router]);
+  }, [authReady, isAuthenticated, isAdmin, router]);
 
-  if (!hydrated || !isAuthenticated || !isAdmin) return null;
+  if (!authReady || !isAuthenticated || !isAdmin) return null;
 
   const headers = {
     'Content-Type': 'application/json',
@@ -163,6 +165,9 @@ export default function AdminPage() {
       </h1>
 
       <div className="flex flex-col gap-6">
+        <AnimeAdminEditor />
+        <HighlightsAdmin />
+
         {/* Cron automático */}
         <section className="rounded-xl border border-green-500/20 bg-muted p-5">
           <div className="mb-3 flex items-center gap-2">

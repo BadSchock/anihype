@@ -4,9 +4,14 @@ import Link from 'next/link';
 import { useAnimeList } from '@/hooks/use-anime';
 import { AnimeCard, AnimeCardSkeleton } from '@/components/anime/anime-card';
 import { EmptyState } from '@/components/ui/empty-state';
+import { ErrorState } from '@/components/ui/error-state';
 
 export function TrendingSection() {
-  const { data, isLoading } = useAnimeList({ orderBy: 'popular', limit: 12, status: 'AIRING' });
+  const { data, isLoading, isError, refetch } = useAnimeList({
+    orderBy: 'popular',
+    limit: 12,
+    status: 'AIRING',
+  });
 
   return (
     <section>
@@ -17,6 +22,10 @@ export function TrendingSection() {
         </Link>
       </div>
 
+      {isError && (
+        <ErrorState message="Não foi possível carregar os animes em exibição." onRetry={() => refetch()} />
+      )}
+
       {isLoading && (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
           {Array.from({ length: 12 }).map((_, i) => (
@@ -25,14 +34,14 @@ export function TrendingSection() {
         </div>
       )}
 
-      {!isLoading && (!data?.data || data.data.length === 0) && (
+      {!isLoading && !isError && (!data?.data || data.data.length === 0) && (
         <EmptyState
           title="Nenhum anime em exibição"
           description="Use o sync para importar animes da temporada."
         />
       )}
 
-      {!isLoading && data?.data && data.data.length > 0 && (
+      {!isLoading && !isError && data?.data && data.data.length > 0 && (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
           {data.data.map((anime) => (
             <AnimeCard key={anime.id} anime={anime} />

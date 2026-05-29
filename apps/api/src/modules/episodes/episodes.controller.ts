@@ -44,6 +44,20 @@ export class EpisodesController {
   }
 
   // --------------------------------------------------------------------------
+  // Episódios em alta  →  GET /episodes/trending?days=7&limit=12
+  // --------------------------------------------------------------------------
+  @Public()
+  @Get('trending')
+  @ApiOperation({ summary: 'Episódios com mais comentários recentes' })
+  @ApiQuery({ name: 'days', required: false, type: Number, example: 7 })
+  @ApiQuery({ name: 'limit', required: false, type: Number, example: 12 })
+  findTrending(@Query('days') days?: string, @Query('limit') limit?: string) {
+    const numDays = days ? Math.min(14, Math.max(1, parseInt(days, 10) || 7)) : 7;
+    const numLimit = limit ? Math.min(24, Math.max(1, parseInt(limit, 10) || 12)) : 12;
+    return this.episodesService.findTrending(numDays, numLimit);
+  }
+
+  // --------------------------------------------------------------------------
   // Episódio por ID  →  GET /episodes/:id
   // --------------------------------------------------------------------------
   @Public()

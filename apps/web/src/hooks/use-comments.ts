@@ -5,23 +5,50 @@ import { createComment, getEpisodeComments, toggleCommentLike } from '@/services
 import { useAuthStore } from '@/stores/auth.store';
 
 export function useEpisodeComments(episodeId: number, page = 1) {
-  const { accessToken } = useAuthStore();
+  const authReady = useAuthStore((s) => s.authReady);
+  const accessToken = useAuthStore((s) => s.accessToken);
   return useQuery({
-    queryKey: ['comments', 'episode', episodeId, page],
-    queryFn: () => getEpisodeComments(episodeId, page, 20, accessToken ?? undefined),
-    enabled: episodeId > 0,
+    queryKey: ['comments', 'episode', episodeId, page, accessToken ?? 'guest'],
+    queryFn: () =>
+      getEpisodeComments(episodeId, page, 20, {
+        token: accessToken ?? undefined,
+        rootOnly: true,
+      }),
+    enabled: authReady && episodeId > 0,
+  });
+}
+
+export function useCommentReplies(episodeId: number, parentId: number | null) {
+  const authReady = useAuthStore((s) => s.authReady);
+  const accessToken = useAuthStore((s) => s.accessToken);
+  return useQuery({
+    queryKey: ['comments', 'replies', episodeId, parentId, accessToken ?? 'guest'],
+    queryFn: () =>
+      getEpisodeComments(episodeId, 1, 50, {
+        token: accessToken ?? undefined,
+        parentId: parentId!,
+      }),
+    enabled: authReady && episodeId > 0 && parentId !== null,
   });
 }
 
 export function useCreateComment(episodeId: number) {
-  const { accessToken } = useAuthStore();
+  const { accessToken, user } = useAuthStore();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (body: { content: string; parentId?: number; isSpoiler?: boolean }) =>
       createComment({ episodeId, ...body }, accessToken ?? ''),
-    onSuccess: async () => {
+    onSuccess: async (_data, variables) => {
       await queryClient.invalidateQueries({ queryKey: ['comments', 'episode', episodeId] });
+      if (variables.parentId) {
+        await queryClient.invalidateQueries({
+          queryKey: ['comments', 'replies', episodeId, variables.parentId],
+        });
+      }
+      if (user?.username) {
+        void queryClient.invalidateQueries({ queryKey: ['hype', user.username] });
+      }
     },
   });
 }

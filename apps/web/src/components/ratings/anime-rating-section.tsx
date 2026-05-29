@@ -1,11 +1,41 @@
 'use client';
 
 import { useState } from 'react';
+
+function SpoilerReview({ text }: { text: string }) {
+  const [revealed, setRevealed] = useState(false);
+  return (
+    <div className="relative">
+      <p
+        className="text-sm text-foreground/80 transition-all duration-300"
+        style={{
+          filter: revealed ? 'none' : 'blur(6px)',
+          userSelect: revealed ? 'text' : 'none',
+        }}
+      >
+        {text}
+      </p>
+      {!revealed && (
+        <button
+          type="button"
+          onClick={() => setRevealed(true)}
+          className="absolute inset-0 flex items-center justify-center gap-2 rounded-lg bg-yellow-500/10 text-sm font-medium text-yellow-400 transition-colors hover:bg-yellow-500/20"
+        >
+          <span>⚠️</span>
+          <span>Spoiler — clique para revelar</span>
+        </button>
+      )}
+    </div>
+  );
+}
+import { usePathname } from 'next/navigation';
+import Link from 'next/link';
 import { useAnimeRatings, useMyRating } from '@/hooks/use-ratings';
 import { useAuthHydrated } from '@/hooks/use-auth-hydrated';
 import { CommunityScore } from './community-score';
 import { RatingForm } from './rating-form';
-import Link from 'next/link';
+import { buildLoginUrl } from '@/lib/auth-url';
+import { ErrorState } from '@/components/ui/error-state';
 
 function getBadgeColor(label: string) {
   const map: Record<string, string> = {
@@ -19,11 +49,18 @@ function getBadgeColor(label: string) {
 }
 
 export function AnimeRatingSection({ slug }: { slug: string }) {
-  const { isAuthenticated, hydrated } = useAuthHydrated();
+  const pathname = usePathname();
+  const { isAuthenticated, authReady } = useAuthHydrated();
   const [showForm, setShowForm] = useState(false);
 
-  const { data: ratingsData, isLoading: loadingRatings } = useAnimeRatings(slug);
-  const { data: myRating, isLoading: loadingMine } = useMyRating(slug);
+  const { data: ratingsData, isLoading: loadingRatings, isError: ratingsError, refetch: refetchRatings } =
+    useAnimeRatings(slug);
+  const {
+    data: myRating,
+    isLoading: loadingMine,
+    isError: myRatingError,
+    refetch: refetchMyRating,
+  } = useMyRating(slug);
 
   const aggregate = ratingsData?.aggregate;
   const reviews = ratingsData?.reviews ?? [];
@@ -32,7 +69,7 @@ export function AnimeRatingSection({ slug }: { slug: string }) {
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-bold text-foreground">Avaliações da comunidade</h2>
-        {hydrated && isAuthenticated && !showForm && (
+        {authReady && isAuthenticated && !showForm && (
           <button
             onClick={() => setShowForm(true)}
             className="rounded-lg bg-purple-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-purple-700 transition-colors"
@@ -40,11 +77,8 @@ export function AnimeRatingSection({ slug }: { slug: string }) {
             {myRating ? '✏️ Editar avaliação' : '⭐ Avaliar'}
           </button>
         )}
-        {hydrated && !isAuthenticated && (
-          <Link
-            href="/login"
-            className="text-sm text-purple-400 hover:underline"
-          >
+        {authReady && !isAuthenticated && (
+          <Link href={buildLoginUrl(pathname)} className="text-sm text-purple-400 hover:underline">
             Faça login para avaliar
           </Link>
         )}
@@ -67,9 +101,23 @@ export function AnimeRatingSection({ slug }: { slug: string }) {
       )}
 
       {/* Score da comunidade */}
-      {loadingRatings ? (
+      {ratingsError && (
+        <ErrorState
+          message="Não foi possível carregar as avaliações."
+          onRetry={() => refetchRatings()}
+        />
+      )}
+
+      {myRatingError && isAuthenticated && (
+        <ErrorState
+          message="Não foi possível carregar sua avaliação."
+          onRetry={() => refetchMyRating()}
+        />
+      )}
+
+      {!ratingsError && loadingRatings ? (
         <div className="h-32 animate-pulse rounded-xl bg-muted" />
-      ) : aggregate ? (
+      ) : !ratingsError && aggregate ? (
         <CommunityScore aggregate={aggregate} />
       ) : null}
 
@@ -119,12 +167,7 @@ export function AnimeRatingSection({ slug }: { slug: string }) {
                 </span>
               </div>
               {review.containsSpoiler ? (
-                <details className="text-sm text-muted-foreground">
-                  <summary className="cursor-pointer text-yellow-500 text-xs">
-                    ⚠️ Contém spoiler — clique para ver
-                  </summary>
-                  <p className="mt-2 text-foreground">{review.reviewText}</p>
-                </details>
+                <SpoilerReview text={review.reviewText ?? ''} />
               ) : (
                 <p className="text-sm text-foreground/80">{review.reviewText}</p>
               )}

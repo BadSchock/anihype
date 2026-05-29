@@ -17,6 +17,14 @@ import { EpisodesModule } from './modules/episodes/episodes.module';
 import { CommentsModule } from './modules/comments/comments.module';
 import { SyncModule } from './modules/sync/sync.module';
 import { RatingsModule } from './modules/ratings/ratings.module';
+import { HighlightsModule } from './modules/highlights/highlights.module';
+import { TopAnimeModule } from './modules/top-anime/top-anime.module';
+import { AnimeFollowModule } from './modules/anime-follow/anime-follow.module';
+import { HypeModule } from './modules/hype/hype.module';
+import { AnimeAdminModule } from './modules/anime-admin/anime-admin.module';
+import { UserFollowModule } from './modules/user-follow/user-follow.module';
+import { FeedModule } from './modules/feed/feed.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
 import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
 
 @Module({
@@ -44,6 +52,14 @@ import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
     CommentsModule,
     SyncModule,
     RatingsModule,
+    HighlightsModule,
+    TopAnimeModule,
+    AnimeFollowModule,
+    HypeModule,
+    AnimeAdminModule,
+    UserFollowModule,
+    FeedModule,
+    NotificationsModule,
   ],
   providers: [
     // Exception filter global

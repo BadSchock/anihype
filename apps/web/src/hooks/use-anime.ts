@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { useEffect, useState } from 'react';
 import { getAnimeBySlug, getAnimeList } from '@/services/api';
 
 export function useAnimeList(params: Record<string, string | number | undefined> = {}) {
@@ -13,5 +14,22 @@ export function useAnime(slug: string) {
     queryKey: ['anime', slug],
     queryFn: () => getAnimeBySlug(slug),
     enabled: !!slug,
+  });
+}
+
+export function useAnimeSearch(q: string, debounceMs = 350) {
+  const [debouncedQ, setDebouncedQ] = useState(q);
+
+  useEffect(() => {
+    const id = setTimeout(() => setDebouncedQ(q), debounceMs);
+    return () => clearTimeout(id);
+  }, [q, debounceMs]);
+
+  return useQuery({
+    queryKey: ['anime', 'search', debouncedQ],
+    queryFn: () => getAnimeList({ search: debouncedQ, limit: 20 }),
+    enabled: debouncedQ.length >= 2,
+    select: (res) => res.data,
+    staleTime: 1000 * 30,
   });
 }

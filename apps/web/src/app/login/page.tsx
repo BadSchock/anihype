@@ -1,21 +1,24 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useLogin } from '@/hooks/use-auth';
+import { getSafeReturnUrl } from '@/lib/auth-url';
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const returnUrl = getSafeReturnUrl(searchParams.get('returnUrl'));
   const { mutate: doLogin, isPending, error } = useLogin();
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     doLogin(
-      { email, password },
-      { onSuccess: () => router.push('/') },
+      { email: identifier, password },
+      { onSuccess: () => router.push(returnUrl) },
     );
   };
 
@@ -32,14 +35,15 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div>
-            <label className="mb-1 block text-sm text-muted-foreground">Email</label>
+            <label className="mb-1 block text-sm text-muted-foreground">Email ou username</label>
             <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              type="text"
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value)}
               required
+              autoComplete="username"
               className="input-base"
-              placeholder="seu@email.com"
+              placeholder="seu@email.com ou username"
             />
           </div>
 
@@ -50,6 +54,7 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              autoComplete="current-password"
               className="input-base"
               placeholder="••••••••"
             />
@@ -61,15 +66,23 @@ export default function LoginPage() {
             </p>
           )}
 
-          <button
-            type="submit"
-            disabled={isPending}
-            className="btn-primary mt-2 w-full py-2.5"
-          >
+          <button type="submit" disabled={isPending} className="btn-primary mt-2 w-full py-2.5">
             {isPending ? 'Entrando...' : 'Entrar'}
           </button>
         </form>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="mx-auto mt-10 max-w-sm animate-pulse rounded-2xl bg-muted p-8 h-80" />
+      }
+    >
+      <LoginForm />
+    </Suspense>
   );
 }

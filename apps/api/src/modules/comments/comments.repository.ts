@@ -87,12 +87,13 @@ export class CommentsRepository {
     return like !== null;
   }
 
-  async addLike(userId: number, commentId: number): Promise<void> {
-    await this.prisma.commentLike.upsert({
+  async addLike(userId: number, commentId: number): Promise<{ id: number }> {
+    const like = await this.prisma.commentLike.upsert({
       where: { userId_commentId: { userId, commentId } },
       create: { userId, commentId },
       update: {},
     });
+    return { id: like.id };
   }
 
   async removeLike(userId: number, commentId: number): Promise<void> {
@@ -101,5 +102,43 @@ export class CommentsRepository {
 
   async getLikeCount(commentId: number): Promise<number> {
     return this.prisma.commentLike.count({ where: { commentId } });
+  }
+
+  async findHot(limit: number, days: number) {
+    const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+
+    const comments = await this.prisma.comment.findMany({
+      where: {
+        deletedAt: null,
+        parentId: null,
+        createdAt: { gte: since },
+      },
+      include: {
+        user: { select: { id: true, username: true, avatarUrl: true } },
+        episode: {
+          include: {
+            anime: {
+              select: {
+                id: true,
+                slug: true,
+                titleRomaji: true,
+                titleEnglish: true,
+                coverImageUrl: true,
+              },
+            },
+          },
+        },
+        _count: { select: { likes: true, replies: true } },
+      },
+      take: 60,
+    });
+
+    return comments
+      .sort((a, b) => {
+        const scoreA = a._count.likes * 3 + a._count.replies;
+        const scoreB = b._count.likes * 3 + b._count.replies;
+        return scoreB - scoreA || b.createdAt.getTime() - a.createdAt.getTime();
+      })
+      .slice(0, limit);
   }
 }

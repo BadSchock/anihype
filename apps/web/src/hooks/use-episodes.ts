@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { getAnimeEpisodes, getRecentReleases, getTodayReleases, getWeeklyCalendar } from '@/services/api';
+import { getAnimeEpisodes, getHotComments, getRecentReleases, getTodayReleases, getTrendingEpisodes, getWeeklyCalendar } from '@/services/api';
 
 export function useTodayReleases() {
   return useQuery({
@@ -30,5 +30,21 @@ export function useAnimeEpisodes(animeId: number, page = 1) {
     queryKey: ['anime', animeId, 'episodes', page],
     queryFn: () => getAnimeEpisodes(animeId, page),
     enabled: animeId > 0,
+  });
+}
+
+export function useTrendingEpisodes(days = 7, limit = 12) {
+  return useQuery({
+    queryKey: ['episodes', 'trending', days, limit],
+    queryFn: () => getTrendingEpisodes(days, limit),
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function useHotComments(limit = 8, days = 7) {
+  return useQuery({
+    queryKey: ['comments', 'hot', limit, days],
+    queryFn: () => getHotComments(limit, days),
+    staleTime: 3 * 60 * 1000,
   });
 }

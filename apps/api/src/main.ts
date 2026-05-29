@@ -16,7 +16,7 @@ async function bootstrap() {
   app.useLogger(logger);
 
   const port = process.env['PORT'] ?? '3001';
-  const corsOrigin = process.env['CORS_ORIGIN'] ?? 'http://localhost:3000';
+  const corsOrigin = process.env['CORS_ORIGIN'] ?? 'http://localhost:3002';
   const nodeEnv = process.env['NODE_ENV'] ?? 'development';
 
   app.enableCors({

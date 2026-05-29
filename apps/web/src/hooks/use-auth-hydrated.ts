@@ -6,15 +6,19 @@ import type { AuthUser } from '@/types/api';
 
 /**
  * Auth persistido no localStorage só existe no cliente.
- * Até hidratar, devolve estado "deslogado" igual ao SSR — evita hydration mismatch.
+ * Aguarda hidratação do Zustand + refresh no boot antes de expor sessão.
  */
 export function useAuthHydrated(): {
   hydrated: boolean;
+  authReady: boolean;
   isAuthenticated: boolean;
   user: AuthUser | null;
+  accessToken: string | null;
 } {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const user = useAuthStore((s) => s.user);
+  const accessToken = useAuthStore((s) => s.accessToken);
+  const authReady = useAuthStore((s) => s.authReady);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
@@ -28,9 +32,13 @@ export function useAuthHydrated(): {
     return useAuthStore.persist.onFinishHydration(finish);
   }, []);
 
+  const ready = hydrated && authReady;
+
   return {
     hydrated,
-    isAuthenticated: hydrated && isAuthenticated,
-    user: hydrated ? user : null,
+    authReady: ready,
+    isAuthenticated: ready && isAuthenticated,
+    user: ready ? user : null,
+    accessToken: ready ? accessToken : null,
   };
 }

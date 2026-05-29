@@ -53,6 +53,18 @@ export class CommentsController {
   }
 
   // --------------------------------------------------------------------------
+  // Comentários em alta  →  GET /comments/hot?limit=8&days=7
+  // --------------------------------------------------------------------------
+  @Public()
+  @Get('hot')
+  @ApiOperation({ summary: 'Comentários em alta nos últimos dias' })
+  findHot(@Query('limit') limit?: string, @Query('days') days?: string) {
+    const numLimit = limit ? Math.min(20, Math.max(1, parseInt(limit, 10) || 8)) : 8;
+    const numDays = days ? Math.min(14, Math.max(1, parseInt(days, 10) || 7)) : 7;
+    return this.commentsService.findHot(numLimit, numDays);
+  }
+
+  // --------------------------------------------------------------------------
   // Detalhe de comentário (público)
   // --------------------------------------------------------------------------
   @Public()

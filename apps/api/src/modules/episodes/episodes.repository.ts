@@ -104,10 +104,6 @@ export class EpisodesRepository {
     });
   }
 
-  /**
-   * Episódios que já foram ao ar nos últimos N dias (BRT), até o momento atual.
-   * Usa airTimeUtc para respeitar o horário exato de lançamento.
-   */
   async findRecentReleases(days: number = 7): Promise<EpisodeWithAnime[]> {
     const now = new Date();
     const { start: rangeStart } = this.brtDayRange(-(days - 1), 1);
@@ -151,5 +147,40 @@ export class EpisodesRepository {
     const start = new Date(brtMidnight + offsetDays * 24 * 60 * 60 * 1000);
     const end = new Date(start.getTime() + durationDays * 24 * 60 * 60 * 1000);
     return { start, end };
+  }
+
+  /** Episódios com mais comentários nos últimos N dias. */
+  async findTrending(days: number, limit: number): Promise<Array<EpisodeWithAnime & { commentCount: number }>> {
+    const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+
+    const grouped = await this.prisma.comment.groupBy({
+      by: ['episodeId'],
+      where: {
+        deletedAt: null,
+        createdAt: { gte: since },
+      },
+      _count: { id: true },
+      orderBy: { _count: { id: 'desc' } },
+      take: limit * 3,
+    });
+
+    if (!grouped.length) return [];
+
+    const countMap = new Map(grouped.map((g) => [g.episodeId, g._count.id]));
+    const episodes = await this.prisma.episode.findMany({
+      where: { id: { in: grouped.map((g) => g.episodeId) }, deletedAt: null },
+      include: episodeInclude,
+    });
+
+    return episodes
+      .map((ep) => ({ ...ep, commentCount: countMap.get(ep.id) ?? 0 }))
+      .sort((a, b) => b.commentCount - a.commentCount)
+      .slice(0, limit);
+  }
+
+  async countComments(episodeId: number): Promise<number> {
+    return this.prisma.comment.count({
+      where: { episodeId, deletedAt: null },
+    });
   }
 }

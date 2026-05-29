@@ -1,7 +1,7 @@
 'use client';
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { login, logout, register } from '@/services/api';
+import { login, logout, refreshTokens, register } from '@/services/api';
 import { useAuthStore } from '@/stores/auth.store';
 
 export function useLogin() {
@@ -13,6 +13,7 @@ export function useLogin() {
       login(email, password),
     onSuccess: async (response) => {
       setAuth(response.user, response.tokens.accessToken, response.tokens.refreshToken);
+      useAuthStore.getState().setAuthReady(true);
       await queryClient.invalidateQueries();
     },
   });
@@ -34,19 +35,32 @@ export function useRegister() {
     }) => register(username, email, password),
     onSuccess: async (response) => {
       setAuth(response.user, response.tokens.accessToken, response.tokens.refreshToken);
+      useAuthStore.getState().setAuthReady(true);
       await queryClient.invalidateQueries();
     },
   });
 }
 
 export function useLogout() {
-  const { accessToken, logout: storeLogout } = useAuthStore();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: () => logout(accessToken ?? ''),
+    mutationFn: async () => {
+      const state = useAuthStore.getState();
+      let accessToken = state.accessToken;
+
+      if (!accessToken && state.refreshToken && state.user) {
+        const tokens = await refreshTokens(state.user.id, state.refreshToken);
+        state.setAuth(state.user, tokens.accessToken, tokens.refreshToken);
+        accessToken = tokens.accessToken;
+      }
+
+      if (accessToken && state.refreshToken) {
+        await logout(accessToken, state.refreshToken);
+      }
+    },
     onSettled: async () => {
-      storeLogout();
+      useAuthStore.getState().logout();
       await queryClient.clear();
     },
   });

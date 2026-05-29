@@ -157,6 +157,8 @@ enum HypeTransactionReason {
   COMMENT_POSTED
   REPLY_POSTED
   LIKE_RECEIVED
+  RATING_POSTED
+  ANIME_FOLLOWED
   DAILY_LOGIN
   BONUS_ADMIN
   EVENT
@@ -236,6 +238,7 @@ model User {
   commentLikes        CommentLike[]
   commentReportsOwned CommentReport[] @relation("CommentReportReporter")
   animeRatings        AnimeRating[]
+  topAnime            UserTopAnime[]
 
   authoredReports Report[]           @relation("ReportAuthor")
   reportsAssigned Report[]           @relation("AssignedModeratorReport")
@@ -388,6 +391,7 @@ model Anime {
   follows           AnimeFollow[]
   reports           Report[]
   ratings           AnimeRating[]
+  topAnimeSlots     UserTopAnime[]
 
   // Cache agregado das avaliações AniHype
   ratingCount      Int      @default(0) @map("rating_count")
@@ -737,6 +741,26 @@ model SpoilerSetting {
 }
 
 // â€”â€”â€” Social â€”â€”â€”
+
+model UserTopAnime {
+  id Int @id @default(autoincrement())
+
+  userId  Int @map("user_id")
+  animeId Int @map("anime_id")
+
+  position Int
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  anime Anime @relation(fields: [animeId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, position])
+  @@unique([userId, animeId])
+  @@index([userId])
+  @@map("user_top_anime")
+}
 
 model UserFollow {
   id Int @id @default(autoincrement())

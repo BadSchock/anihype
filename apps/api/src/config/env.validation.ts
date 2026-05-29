@@ -13,7 +13,7 @@ const envSchema = z.object({
     .min(16, { message: 'REFRESH_TOKEN_SECRET must be at least 16 characters' }),
   REFRESH_TOKEN_EXPIRES_IN: z.string().default('7d'),
 
-  CORS_ORIGIN: z.string().default('http://localhost:3000'),
+  CORS_ORIGIN: z.string().default('http://localhost:3002'),
 
   ANILIST_API_URL: z.string().url().default('https://graphql.anilist.co'),
   JIKAN_API_URL: z.string().url().default('https://api.jikan.moe/v4'),

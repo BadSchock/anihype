@@ -5,6 +5,26 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useRegister } from '@/hooks/use-auth';
 
+const USERNAME_RE = /^[a-z0-9_-]+$/i;
+
+function validateRegisterForm(form: {
+  username: string;
+  email: string;
+  password: string;
+  confirm: string;
+}): string | null {
+  const username = form.username.trim();
+  if (username.length < 3) return 'Username deve ter no mínimo 3 caracteres';
+  if (username.length > 32) return 'Username deve ter no máximo 32 caracteres';
+  if (!USERNAME_RE.test(username)) {
+    return 'Username só pode conter letras, números, _ e -';
+  }
+  if (form.password.length < 8) return 'A senha deve ter no mínimo 8 caracteres';
+  if (form.password.length > 128) return 'A senha deve ter no máximo 128 caracteres';
+  if (form.password !== form.confirm) return 'As senhas não coincidem';
+  return null;
+}
+
 export default function RegisterPage() {
   const router = useRouter();
   const { mutate: doRegister, isPending } = useRegister();
@@ -14,17 +34,19 @@ export default function RegisterPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    if (form.password !== form.confirm) {
-      setError('As senhas não coincidem');
-      return;
-    }
-    if (form.password.length < 8) {
-      setError('A senha deve ter no mínimo 8 caracteres');
+
+    const validationError = validateRegisterForm(form);
+    if (validationError) {
+      setError(validationError);
       return;
     }
 
     doRegister(
-      { username: form.username, email: form.email, password: form.password },
+      {
+        username: form.username.trim().toLowerCase(),
+        email: form.email.trim().toLowerCase(),
+        password: form.password,
+      },
       {
         onSuccess: () => router.push('/'),
         onError: (err) => setError(err.message),
@@ -37,7 +59,7 @@ export default function RegisterPage() {
 
   return (
     <div className="mx-auto mt-10 max-w-sm">
-      <div className="rounded-2xl bg-muted p-8">
+      <div className="rounded-2xl border border-border bg-card p-8">
         <h1 className="mb-1 text-2xl font-bold text-foreground">Criar conta</h1>
         <p className="mb-6 text-sm text-muted-foreground">
           Já tem conta?{' '}
@@ -54,10 +76,14 @@ export default function RegisterPage() {
               onChange={set('username')}
               required
               minLength={3}
-              maxLength={30}
+              maxLength={32}
+              autoComplete="username"
               placeholder="seunick"
-              className="w-full rounded-lg bg-muted px-3 py-2.5 text-sm text-foreground placeholder-white/30 outline-none focus:ring-1 focus:ring-purple-500"
+              className="input-base"
             />
+            <p className="mt-1 text-xs text-muted-foreground/70">
+              3–32 caracteres · letras, números, _ e -
+            </p>
           </div>
 
           <div>
@@ -67,8 +93,9 @@ export default function RegisterPage() {
               value={form.email}
               onChange={set('email')}
               required
+              autoComplete="email"
               placeholder="seu@email.com"
-              className="w-full rounded-lg bg-muted px-3 py-2.5 text-sm text-foreground placeholder-white/30 outline-none focus:ring-1 focus:ring-purple-500"
+              className="input-base"
             />
           </div>
 
@@ -80,8 +107,10 @@ export default function RegisterPage() {
               onChange={set('password')}
               required
               minLength={8}
+              maxLength={128}
+              autoComplete="new-password"
               placeholder="Mín. 8 caracteres"
-              className="w-full rounded-lg bg-muted px-3 py-2.5 text-sm text-foreground placeholder-white/30 outline-none focus:ring-1 focus:ring-purple-500"
+              className="input-base"
             />
           </div>
 
@@ -92,8 +121,9 @@ export default function RegisterPage() {
               value={form.confirm}
               onChange={set('confirm')}
               required
+              autoComplete="new-password"
               placeholder="Repita a senha"
-              className="w-full rounded-lg bg-muted px-3 py-2.5 text-sm text-foreground placeholder-white/30 outline-none focus:ring-1 focus:ring-purple-500"
+              className="input-base"
             />
           </div>
 
@@ -101,11 +131,7 @@ export default function RegisterPage() {
             <p className="rounded-lg bg-red-500/10 px-3 py-2 text-sm text-red-400">{error}</p>
           )}
 
-          <button
-            type="submit"
-            disabled={isPending}
-            className="mt-2 w-full rounded-lg bg-purple-600 py-2.5 text-sm font-semibold text-foreground hover:bg-purple-700 disabled:opacity-50 transition-colors"
-          >
+          <button type="submit" disabled={isPending} className="btn-primary mt-2 w-full py-2.5">
             {isPending ? 'Criando conta...' : 'Cadastrar'}
           </button>
         </form>

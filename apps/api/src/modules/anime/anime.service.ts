@@ -1,7 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { AnimeRepository, AnimeWithRelations } from './anime.repository';
 import { AnimeQueryDto } from './dto/anime-query.dto';
-import { AnimeDetailDto, AnimeListItemDto, GenreDto, StudioDto } from './dto/anime-response.dto';
+import {
+  AnimeDetailDto,
+  AnimeListItemDto,
+  GenreDto,
+  StreamingLinkDto,
+  StudioDto,
+} from './dto/anime-response.dto';
 import { PaginatedResult } from '../../common/dto/pagination.dto';
 
 @Injectable()
@@ -79,7 +85,22 @@ export class AnimeService {
       trailerUrl: a.trailerUrl ?? null,
       episodeDuration: a.episodeDuration ?? null,
       isAdult: a.isAdult,
+      streamingLinks: this.mapStreamingLinks(a),
     };
+  }
+
+  private mapStreamingLinks(a: AnimeWithRelations): StreamingLinkDto[] {
+    return a.streamingLinks.map((link) => ({
+      id: link.id,
+      url: link.url,
+      regionCode: link.regionCode ?? null,
+      platform: {
+        id: link.platform.id,
+        name: link.platform.name,
+        slug: link.platform.slug,
+        homepageUrl: link.platform.homepageUrl ?? null,
+      },
+    }));
   }
 
   private mapGenres(a: AnimeWithRelations): GenreDto[] {

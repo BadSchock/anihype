@@ -18,7 +18,7 @@ export default function GlobalError({ error, reset }: Props) {
       <p className="mb-4 text-6xl select-none">💥</p>
       <h1 className="text-2xl font-bold text-foreground">Algo deu errado</h1>
       <p className="mt-2 max-w-sm text-sm text-muted-foreground">
-        Ocorreu um erro inesperado. Nossa equipe foi notificada.
+        Ocorreu um erro inesperado. Tente novamente ou volte ao início.
       </p>
       {error.digest && (
         <p className="mt-1 font-mono text-xs text-muted-foreground/50">ref: {error.digest}</p>

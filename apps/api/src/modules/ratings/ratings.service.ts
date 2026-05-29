@@ -1,13 +1,17 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { HypeTransactionReason, Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateRatingDto } from './dto/rating.dto';
+import { HypeService } from '../hype/hype.service';
 
 const MIN_RATINGS_FOR_RANKING = 10;
 
 @Injectable()
 export class RatingsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly hypeService: HypeService,
+  ) {}
 
   /** Nota final: (animation + story + characters + sound + hype*2) / 6 */
   static computeFinalScore(dto: Pick<CreateRatingDto, 'animation' | 'story' | 'characters' | 'sound' | 'hype'>): number {
@@ -28,6 +32,10 @@ export class RatingsService {
       select: { id: true },
     });
     if (!anime) throw new NotFoundException('Anime não encontrado');
+
+    const existing = await this.prisma.animeRating.findFirst({
+      where: { userId, animeId: anime.id, deletedAt: null },
+    });
 
     const finalScore = new Prisma.Decimal(
       RatingsService.computeFinalScore(dto).toFixed(2),
@@ -61,6 +69,14 @@ export class RatingsService {
     });
 
     await this.recalculateAnimeAggregates(anime.id);
+
+    if (!existing) {
+      void this.hypeService.awardXp({
+        userId,
+        reason: HypeTransactionReason.RATING_POSTED,
+        referenceId: rating.id,
+      });
+    }
 
     return { ...rating, badge: RatingsService.getBadge(Number(finalScore)) };
   }
@@ -155,6 +171,42 @@ export class RatingsService {
         limit,
         totalPages: Math.ceil(total / limit),
       },
+    };
+  }
+
+  async getFeaturedReview() {
+    const rating = await this.prisma.animeRating.findFirst({
+      where: {
+        deletedAt: null,
+        reviewText: { not: null },
+        NOT: { reviewText: '' },
+        finalScore: { gte: new Prisma.Decimal('7.0') },
+      },
+      orderBy: [{ finalScore: 'desc' }, { createdAt: 'desc' }],
+      include: {
+        user: { select: { id: true, username: true, displayName: true, avatarUrl: true } },
+        anime: {
+          select: {
+            slug: true,
+            titleRomaji: true,
+            titleEnglish: true,
+            coverImageUrl: true,
+          },
+        },
+      },
+    });
+
+    if (!rating) return null;
+
+    return {
+      id: rating.id,
+      finalScore: Number(rating.finalScore),
+      reviewText: rating.reviewText,
+      containsSpoiler: rating.containsSpoiler,
+      badge: RatingsService.getBadge(Number(rating.finalScore)),
+      user: rating.user,
+      anime: rating.anime,
+      createdAt: rating.createdAt.toISOString(),
     };
   }
 

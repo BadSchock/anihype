@@ -2,10 +2,11 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAnimeEpisodes } from '@/hooks/use-episodes';
 import { EpisodeCardSkeleton } from '@/components/episode/episode-card';
 import { EmptyState } from '@/components/ui/empty-state';
+import { ErrorState } from '@/components/ui/error-state';
 import { Badge } from '@/components/ui/badge';
 import type { EpisodeWithAnime } from '@/types/api';
 
@@ -19,16 +20,15 @@ function EpisodeRow({ ep, animeSlug }: { ep: EpisodeWithAnime; animeSlug: string
   return (
     <Link
       href={`/anime/${animeSlug}/ep/${ep.number}`}
-      className="group flex items-center gap-4 rounded-xl bg-muted p-3 transition-all hover:bg-muted"
+      className="group flex items-center gap-4 rounded-xl border border-transparent bg-muted p-3 transition-all hover:border-purple-500/30 hover:bg-muted/80"
     >
-      {/* Thumbnail */}
       <div className="relative h-14 w-24 flex-shrink-0 overflow-hidden rounded-lg bg-muted">
         {(ep.thumbnailUrl ?? ep.anime?.coverImageUrl) && (
           <Image
             src={(ep.thumbnailUrl ?? ep.anime?.coverImageUrl)!}
             alt={ep.title ?? `Ep ${ep.number}`}
             fill
-            className="object-cover"
+            className="object-cover transition-transform duration-200 group-hover:scale-105"
             sizes="96px"
           />
         )}
@@ -37,7 +37,6 @@ function EpisodeRow({ ep, animeSlug }: { ep: EpisodeWithAnime; animeSlug: string
         </div>
       </div>
 
-      {/* Info */}
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <p className="truncate text-sm font-semibold text-foreground">
           {ep.title ?? `Episódio ${ep.number}`}
@@ -54,7 +53,7 @@ function EpisodeRow({ ep, animeSlug }: { ep: EpisodeWithAnime; animeSlug: string
       </div>
 
       <Badge variant={STATUS_COLOR[ep.status] ?? 'default'}>
-        {ep.status === 'AIRED' ? 'Assistido' : ep.status === 'UPCOMING' ? 'Em breve' : '—'}
+        {ep.status === 'AIRED' ? 'Exibido' : ep.status === 'UPCOMING' ? 'Em breve' : '—'}
       </Badge>
     </Link>
   );
@@ -67,7 +66,17 @@ interface Props {
 
 export function AnimeEpisodesClient({ animeId, animeSlug }: Props) {
   const [page, setPage] = useState(1);
-  const { data, isLoading } = useAnimeEpisodes(animeId, page);
+  const { data, isLoading, isError, refetch } = useAnimeEpisodes(animeId, page);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [page]);
+
+  if (isError) {
+    return (
+      <ErrorState message="Não foi possível carregar os episódios." onRetry={() => refetch()} />
+    );
+  }
 
   if (isLoading) {
     return (
@@ -96,13 +105,12 @@ export function AnimeEpisodesClient({ animeId, animeSlug }: Props) {
         ))}
       </div>
 
-      {/* Paginação */}
       {data.meta.totalPages > 1 && (
         <div className="mt-4 flex items-center justify-center gap-3">
           <button
             disabled={page === 1}
             onClick={() => setPage((p) => p - 1)}
-            className="rounded-lg bg-muted px-4 py-2 text-sm text-foreground disabled:opacity-30 hover:bg-muted transition-colors"
+            className="rounded-lg bg-muted px-4 py-2 text-sm text-foreground transition-colors hover:bg-muted/80 disabled:opacity-30"
           >
             ← Anterior
           </button>
@@ -112,7 +120,7 @@ export function AnimeEpisodesClient({ animeId, animeSlug }: Props) {
           <button
             disabled={page === data.meta.totalPages}
             onClick={() => setPage((p) => p + 1)}
-            className="rounded-lg bg-muted px-4 py-2 text-sm text-foreground disabled:opacity-30 hover:bg-muted transition-colors"
+            className="rounded-lg bg-muted px-4 py-2 text-sm text-foreground transition-colors hover:bg-muted/80 disabled:opacity-30"
           >
             Próximo →
           </button>

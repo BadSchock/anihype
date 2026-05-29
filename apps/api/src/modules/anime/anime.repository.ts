@@ -15,6 +15,11 @@ const animeInclude = {
       studio: { select: { id: true, name: true } },
     },
   },
+  streamingLinks: {
+    include: {
+      platform: { select: { id: true, name: true, slug: true, homepageUrl: true } },
+    },
+  },
 } satisfies Prisma.AnimeInclude;
 
 type AnimeWithRelations = Prisma.AnimeGetPayload<{ include: typeof animeInclude }>;

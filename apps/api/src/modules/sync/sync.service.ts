@@ -4,6 +4,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { AniListService } from '../providers/anilist/anilist.service';
 import { JikanService } from '../providers/jikan/jikan.service';
 import { AnimeService } from '../anime/anime.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { AnimeProviderResult, NormalizedAnime, NormalizedEpisode } from '../providers/provider.types';
 
 export type SyncProvider = 'anilist' | 'jikan';
@@ -52,6 +53,7 @@ export class SyncService {
     private readonly prisma: PrismaService,
     private readonly anilist: AniListService,
     private readonly jikan: JikanService,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   // ---------------------------------------------------------------------------
@@ -300,21 +302,28 @@ export class SyncService {
   }
 
   private async updateAnime(id: number, n: NormalizedAnime) {
-    await this.prisma.anime.update({
+    const current = await this.prisma.anime.findUnique({
       where: { id },
-      data: {
-        titleEnglish: n.titleEnglish,
-        titleNative: n.titleNative,
-        synopsis: n.synopsis,
-        coverImageUrl: n.coverImageUrl,
-        bannerImageUrl: n.bannerImageUrl,
-        status: this.mapAnimeStatus(n.status),
-        episodeCount: n.episodeCount,
-        averageScore: n.averageScore ? new Prisma.Decimal(n.averageScore) : null,
-        popularityScore: n.popularityScore,
-        trailerUrl: n.trailerUrl,
-      },
+      select: { isLocked: true },
     });
+
+    const data: Prisma.AnimeUpdateInput = {
+      titleEnglish: n.titleEnglish,
+      titleNative: n.titleNative,
+      synopsis: n.synopsis,
+      status: this.mapAnimeStatus(n.status),
+      episodeCount: n.episodeCount,
+      averageScore: n.averageScore ? new Prisma.Decimal(n.averageScore) : null,
+      popularityScore: n.popularityScore,
+    };
+
+    if (!current?.isLocked) {
+      data.coverImageUrl = n.coverImageUrl;
+      data.bannerImageUrl = n.bannerImageUrl;
+      data.trailerUrl = n.trailerUrl;
+    }
+
+    await this.prisma.anime.update({ where: { id }, data });
   }
 
   private async upsertEpisodes(
@@ -322,46 +331,105 @@ export class SyncService {
     animeTitleRomaji: string,
     episodes: NormalizedEpisode[],
   ): Promise<number> {
+    const anime = await this.prisma.anime.findUnique({
+      where: { id: animeId },
+      select: { isLocked: true },
+    });
+    const locked = anime?.isLocked ?? false;
+
     let count = 0;
+    const episodeIdsToNotify: number[] = [];
 
     for (const ep of episodes) {
       const slug = AnimeService.normalizeSlug(`${animeTitleRomaji}-episode-${ep.number}`);
 
-      await this.prisma.episode.upsert({
+      const existing = await this.prisma.episode.findUnique({
+        where: { animeId_number: { animeId, number: ep.number } },
+        select: { id: true, status: true, airTimeUtc: true, airDate: true },
+      });
+
+      const scheduleFields = {
+        thumbnailUrl: ep.thumbnailUrl,
+        airDate: ep.airDate,
+        airTimeUtc: ep.airTimeUtc,
+        status: this.mapEpisodeStatus(ep.status),
+      };
+
+      const sharedFields = {
+        title: ep.title,
+        synopsis: ep.synopsis,
+        durationMinutes: ep.durationMinutes,
+      };
+
+      const row = await this.prisma.episode.upsert({
         where: { animeId_number: { animeId, number: ep.number } },
         create: {
           animeId,
           slug,
           number: ep.number,
-          title: ep.title,
-          synopsis: ep.synopsis,
-          thumbnailUrl: ep.thumbnailUrl,
-          airDate: ep.airDate,
-          airTimeUtc: ep.airTimeUtc,
-          durationMinutes: ep.durationMinutes,
-          status: this.mapEpisodeStatus(ep.status),
+          ...sharedFields,
+          ...scheduleFields,
         },
-        update: {
-          title: ep.title,
-          synopsis: ep.synopsis,
-          thumbnailUrl: ep.thumbnailUrl,
-          airDate: ep.airDate,
-          airTimeUtc: ep.airTimeUtc,
-          durationMinutes: ep.durationMinutes,
-          status: this.mapEpisodeStatus(ep.status),
-        },
+        update: locked ? sharedFields : { ...sharedFields, ...scheduleFields },
       });
+
+      if (this.shouldNotifyEpisodeRelease(existing, row, ep)) {
+        episodeIdsToNotify.push(row.id);
+      }
+
       count++;
     }
 
+    for (const episodeId of episodeIdsToNotify) {
+      void this.notificationsService.notifyEpisodeAired(episodeId);
+    }
+
     return count;
+  }
+
+  /**
+   * Só notifica quando o episódio acaba de ir ao ar — evita spam no import de temporada.
+   */
+  private shouldNotifyEpisodeRelease(
+    before: {
+      status: EpisodeStatus;
+      airTimeUtc: Date | null;
+      airDate: Date | null;
+    } | null,
+    after: { status: EpisodeStatus; airTimeUtc: Date | null; airDate: Date | null },
+    incoming: NormalizedEpisode,
+  ): boolean {
+    if (after.status !== EpisodeStatus.AIRED) return false;
+
+    const airedAt = after.airTimeUtc ?? after.airDate ?? incoming.airTimeUtc ?? incoming.airDate;
+    if (!airedAt) return false;
+
+    const now = Date.now();
+    const airedMs = airedAt.getTime();
+    const maxAgeMs = 48 * 60 * 60 * 1000;
+
+    // Ignora episódios antigos (ex.: import de temporada inteira)
+    if (airedMs < now - maxAgeMs) return false;
+    // Ignora episódios ainda no futuro
+    if (airedMs > now) return false;
+
+    if (before) {
+      return before.status !== EpisodeStatus.AIRED;
+    }
+
+    // Episódio novo: só se estreou recentemente (últimas 48h)
+    return airedMs >= now - maxAgeMs;
   }
 
   private async upsertStreamingPlatforms(
     animeId: number,
     platforms: Array<{ site: string; url: string }>,
   ): Promise<void> {
-    if (!platforms.length) return;
+    const anime = await this.prisma.anime.findUnique({
+      where: { id: animeId },
+      select: { isLocked: true },
+    });
+    if (anime?.isLocked || !platforms.length) return;
 
     for (const p of platforms) {
       const slug = AnimeService.normalizeSlug(p.site);

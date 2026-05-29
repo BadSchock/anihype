@@ -1,23 +1,54 @@
 import type { NextConfig } from 'next';
 
+const API_URL = process.env['NEXT_PUBLIC_API_URL'] ?? 'http://localhost:3001/api/v1';
+const APP_URL = process.env['NEXT_PUBLIC_APP_URL'] ?? 'http://localhost:3002';
+
+function getApiOrigin(): string {
+  try {
+    return new URL(API_URL).origin;
+  } catch {
+    return 'http://localhost:3001';
+  }
+}
+
+function getWebOrigin(): string {
+  try {
+    return new URL(APP_URL).origin;
+  } catch {
+    return 'http://localhost:3002';
+  }
+}
+
+const API_ORIGIN = getApiOrigin();
+const WEB_ORIGIN = getWebOrigin();
+
+const isDev = process.env.NODE_ENV === 'development';
+
+/** CSP mais permissiva em dev (HMR, fonts, YouTube trailer). Produção mantém regras estritas. */
+function buildCsp(): string {
+  const connectSrc = isDev
+    ? `'self' ${API_ORIGIN} ${WEB_ORIGIN} ws://${new URL(WEB_ORIGIN).host} wss://${new URL(WEB_ORIGIN).host}`
+    : `'self' ${API_ORIGIN}`;
+
+  return [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "font-src 'self' https://fonts.gstatic.com data:",
+    "img-src 'self' data: blob: https://s4.anilist.co https://img.anili.st https://cdn.myanimelist.net https://media.kitsu.app https://img.youtube.com https://i.ytimg.com",
+    `connect-src ${connectSrc}`,
+    "frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com",
+    "frame-ancestors 'none'",
+  ].join('; ');
+}
+
 const securityHeaders = [
-  { key: 'X-DNS-Prefetch-Control',         value: 'on' },
-  { key: 'X-Frame-Options',                value: 'SAMEORIGIN' },
-  { key: 'X-Content-Type-Options',         value: 'nosniff' },
-  { key: 'Referrer-Policy',                value: 'strict-origin-when-cross-origin' },
-  { key: 'Permissions-Policy',             value: 'camera=(), microphone=(), geolocation=()' },
-  {
-    key: 'Content-Security-Policy',
-    value: [
-      "default-src 'self'",
-      "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
-      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-      "font-src 'self' https://fonts.gstatic.com",
-      "img-src 'self' data: blob: https://s4.anilist.co https://img.anili.st https://cdn.myanimelist.net https://media.kitsu.app",
-      "connect-src 'self' http://localhost:3001",
-      "frame-ancestors 'none'",
-    ].join('; '),
-  },
+  { key: 'X-DNS-Prefetch-Control', value: 'on' },
+  { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+  { key: 'X-Content-Type-Options', value: 'nosniff' },
+  { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+  { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+  { key: 'Content-Security-Policy', value: buildCsp() },
 ];
 
 const nextConfig: NextConfig = {

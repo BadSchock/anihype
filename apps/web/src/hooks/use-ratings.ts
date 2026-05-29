@@ -17,33 +17,33 @@ export function useAnimeRatings(slug: string) {
 }
 
 export function useMyRating(slug: string) {
-  const accessToken = useAuthStore((s) => s.accessToken);
+  const authReady = useAuthStore((s) => s.authReady);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   return useQuery({
     queryKey: ['ratings', slug, 'me'],
-    queryFn: () => getMyAnimeRating(slug, accessToken!),
-    enabled: !!slug && !!accessToken,
+    queryFn: () => getMyAnimeRating(slug),
+    enabled: authReady && !!slug && isAuthenticated,
   });
 }
 
 export function useUpsertRating(slug: string) {
   const qc = useQueryClient();
-  const accessToken = useAuthStore((s) => s.accessToken);
+  const username = useAuthStore((s) => s.user?.username);
 
   return useMutation({
-    mutationFn: (payload: CreateRatingPayload) =>
-      upsertAnimeRating(slug, payload, accessToken!),
+    mutationFn: (payload: CreateRatingPayload) => upsertAnimeRating(slug, payload),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ['ratings', slug] });
+      if (username) void qc.invalidateQueries({ queryKey: ['hype', username] });
     },
   });
 }
 
 export function useDeleteRating(slug: string) {
   const qc = useQueryClient();
-  const accessToken = useAuthStore((s) => s.accessToken);
 
   return useMutation({
-    mutationFn: () => deleteAnimeRating(slug, accessToken!),
+    mutationFn: () => deleteAnimeRating(slug),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ['ratings', slug] });
     },

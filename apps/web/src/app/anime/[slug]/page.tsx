@@ -5,6 +5,10 @@ import { getAnimeBySlug } from '@/services/api';
 import { Badge } from '@/components/ui/badge';
 import { AnimeEpisodesClient } from './_components/anime-episodes-client';
 import { AnimeRatingSection } from '@/components/ratings/anime-rating-section';
+import { TrailerEmbed } from '@/components/anime/trailer-embed';
+import { FollowAnimeButton } from '@/components/anime/follow-anime-button';
+import { WhereToWatch } from '@/components/anime/where-to-watch';
+import { AnimeScheduleBanner } from '@/components/anime/anime-schedule-banner';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -152,8 +156,17 @@ export default async function AnimePage({ params }: Props) {
                 ))}
               </div>
             )}
+
+            <FollowAnimeButton slug={slug} className="mt-1 w-fit" />
+
+            {anime.status === 'AIRING' && (
+              <AnimeScheduleBanner animeId={anime.id} animeSlug={slug} />
+            )}
           </div>
         </div>
+
+        {/* Onde assistir */}
+        <WhereToWatch links={anime.streamingLinks} />
 
         {/* Synopsis */}
         {anime.synopsis && (
@@ -161,6 +174,14 @@ export default async function AnimePage({ params }: Props) {
             <h2 className="mb-2 text-lg font-bold text-foreground">Sinopse</h2>
             <p className="leading-relaxed text-foreground/80 text-sm sm:text-base">{anime.synopsis}</p>
           </section>
+        )}
+
+        {/* Trailer */}
+        {anime.trailerUrl && (
+          <TrailerEmbed
+            trailerUrl={anime.trailerUrl}
+            title={anime.titleEnglish ?? anime.titleRomaji}
+          />
         )}
 
         {/* Avaliações */}

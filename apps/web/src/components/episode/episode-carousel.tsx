@@ -40,11 +40,14 @@ export function EpisodeGridCard({ episode }: { episode: EpisodeWithAnime }) {
           </div>
         )}
       </div>
-      <div className="flex flex-col gap-0.5 p-3">
-        <p className="truncate text-[11px] font-semibold text-purple-400">
+      <div className="flex min-h-[2.5rem] flex-col gap-0.5 p-3">
+        <p
+          className="line-clamp-2 text-[11px] font-semibold leading-snug text-purple-400"
+          title={episode.anime.titleEnglish ?? episode.anime.titleRomaji}
+        >
           {episode.anime.titleEnglish ?? episode.anime.titleRomaji}
         </p>
-        <p className="truncate text-xs font-medium text-foreground">
+        <p className="line-clamp-1 text-xs font-medium text-foreground">
           {episode.title ? episode.title : `Episódio ${episode.number}`}
         </p>
       </div>
@@ -64,7 +67,13 @@ export function EpisodeGridCardSkeleton() {
   );
 }
 
-function EpisodeCarouselCard({ episode }: { episode: EpisodeWithAnime }) {
+function EpisodeCarouselCard({
+  episode,
+  renderBadge,
+}: {
+  episode: EpisodeWithAnime;
+  renderBadge?: (episode: EpisodeWithAnime) => React.ReactNode;
+}) {
   const cover = episode.thumbnailUrl ?? episode.anime.coverImageUrl;
   const airedAt = getEpisodeAiredAt(episode);
 
@@ -92,6 +101,8 @@ function EpisodeCarouselCard({ episode }: { episode: EpisodeWithAnime }) {
         {/* Gradiente sobre a imagem */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
+        {renderBadge?.(episode)}
+
         {/* Badge de episódio */}
         <div className="absolute bottom-2 left-2 rounded-md bg-black/70 px-1.5 py-0.5 text-[10px] font-bold text-white backdrop-blur-sm">
           EP {episode.number}
@@ -106,11 +117,14 @@ function EpisodeCarouselCard({ episode }: { episode: EpisodeWithAnime }) {
       </div>
 
       {/* Info */}
-      <div className="flex flex-col gap-0.5 p-3">
-        <p className="truncate text-[11px] font-semibold text-purple-400">
+      <div className="flex min-h-[2.5rem] flex-col gap-0.5 p-3">
+        <p
+          className="line-clamp-2 text-[11px] font-semibold leading-snug text-purple-400"
+          title={episode.anime.titleEnglish ?? episode.anime.titleRomaji}
+        >
           {episode.anime.titleEnglish ?? episode.anime.titleRomaji}
         </p>
-        <p className="truncate text-xs font-medium text-foreground">
+        <p className="line-clamp-1 text-xs font-medium text-foreground">
           {episode.title ? episode.title : `Episódio ${episode.number}`}
         </p>
       </div>
@@ -133,9 +147,10 @@ export function EpisodeCarouselSkeleton() {
 interface EpisodeCarouselProps {
   episodes: EpisodeWithAnime[];
   className?: string;
+  renderBadge?: (episode: EpisodeWithAnime) => React.ReactNode;
 }
 
-export function EpisodeCarousel({ episodes, className }: EpisodeCarouselProps) {
+export function EpisodeCarousel({ episodes, className, renderBadge }: EpisodeCarouselProps) {
   return (
     <div
       className={cn(
@@ -146,7 +161,7 @@ export function EpisodeCarousel({ episodes, className }: EpisodeCarouselProps) {
       )}
     >
       {episodes.map((ep) => (
-        <EpisodeCarouselCard key={ep.id} episode={ep} />
+        <EpisodeCarouselCard key={ep.id} episode={ep} renderBadge={renderBadge} />
       ))}
     </div>
   );

@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { EpisodesRepository, EpisodeWithAnime } from './episodes.repository';
 import { EpisodeQueryDto } from './dto/episode-query.dto';
-import { CalendarDayDto, EpisodeDto, EpisodeWithAnimeDto } from './dto/episode-response.dto';
+import { CalendarDayDto, EpisodeDto, EpisodeWithAnimeDto, TrendingEpisodeDto } from './dto/episode-response.dto';
 import { PaginatedResult } from '../../common/dto/pagination.dto';
 
 @Injectable()
@@ -29,7 +29,8 @@ export class EpisodesService {
     const episode = await this.repo.findByAnimeAndNumber(animeId, number);
     if (!episode)
       throw new NotFoundException(`Episódio ${number} do anime ${animeId} não encontrado.`);
-    return this.toDtoWithAnime(episode);
+    const commentCount = await this.repo.countComments(episode.id);
+    return { ...this.toDtoWithAnime(episode), commentCount };
   }
 
   async findByAnimeAndSlug(animeId: number, slug: string): Promise<EpisodeWithAnimeDto> {
@@ -56,6 +57,14 @@ export class EpisodesService {
       return airedAt !== null && airedAt.getTime() <= now;
     });
     return this.groupByDate(episodes, 'desc');
+  }
+
+  async findTrending(days: number = 7, limit: number = 12): Promise<TrendingEpisodeDto[]> {
+    const episodes = await this.repo.findTrending(days, limit);
+    return episodes.map((e) => ({
+      ...this.toDtoWithAnime(e),
+      recentCommentCount: e.commentCount,
+    }));
   }
 
   // ---------------------------------------------------------------------------

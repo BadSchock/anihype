@@ -1,14 +1,21 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { HypeTransactionReason } from '@prisma/client';
 import { CommentsRepository, CommentWithMeta } from './comments.repository';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { CommentQueryDto } from './dto/comment-query.dto';
-import { CommentDto, CommentWithLikedDto } from './dto/comment-response.dto';
+import { CommentDto, CommentWithLikedDto, HotCommentDto } from './dto/comment-response.dto';
 import { PaginatedResult } from '../../common/dto/pagination.dto';
+import { HypeService } from '../hype/hype.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class CommentsService {
-  constructor(private readonly repo: CommentsRepository) {}
+  constructor(
+    private readonly repo: CommentsRepository,
+    private readonly hypeService: HypeService,
+    private readonly notificationsService: NotificationsService,
+  ) {}
 
   async findByEpisode(
     episodeId: number,
@@ -22,6 +29,25 @@ export class CommentsService {
     );
 
     return { data: dtos, meta: result.meta };
+  }
+
+  async findHot(limit: number = 8, days: number = 7): Promise<HotCommentDto[]> {
+    const comments = await this.repo.findHot(limit, days);
+    return comments.map((c) => ({
+      ...this.toDto(c),
+      episode: {
+        id: c.episode.id,
+        number: c.episode.number,
+        title: c.episode.title ?? null,
+        anime: {
+          id: c.episode.anime.id,
+          slug: c.episode.anime.slug,
+          titleRomaji: c.episode.anime.titleRomaji,
+          titleEnglish: c.episode.anime.titleEnglish ?? null,
+          coverImageUrl: c.episode.anime.coverImageUrl ?? null,
+        },
+      },
+    }));
   }
 
   async findById(id: number, currentUserId?: number): Promise<CommentWithLikedDto> {
@@ -38,6 +64,17 @@ export class CommentsService {
       isSpoiler: dto.isSpoiler ?? false,
       ...(dto.parentId && { parent: { connect: { id: dto.parentId } } }),
     });
+
+    void this.hypeService.awardXp({
+      userId,
+      reason: dto.parentId ? HypeTransactionReason.REPLY_POSTED : HypeTransactionReason.COMMENT_POSTED,
+      referenceId: comment.id,
+    });
+
+    if (dto.parentId) {
+      void this.notificationsService.notifyCommentReply(dto.parentId, userId, comment.id);
+    }
+
     return this.toDto(comment);
   }
 
@@ -60,27 +97,27 @@ export class CommentsService {
     await this.repo.softDelete(id);
   }
 
-  // ---------------------------------------------------------------------------
-  // Likes
-  // ---------------------------------------------------------------------------
-
   async toggleLike(commentId: number, userId: number): Promise<{ liked: boolean; likeCount: number }> {
-    await this.findRaw(commentId);
+    const comment = await this.findRaw(commentId);
 
     const alreadyLiked = await this.repo.hasLiked(userId, commentId);
     if (alreadyLiked) {
       await this.repo.removeLike(userId, commentId);
     } else {
-      await this.repo.addLike(userId, commentId);
+      const like = await this.repo.addLike(userId, commentId);
+      if (comment.userId !== userId) {
+        void this.hypeService.awardXp({
+          userId: comment.userId,
+          reason: HypeTransactionReason.LIKE_RECEIVED,
+          referenceId: like.id,
+        });
+        void this.notificationsService.notifyCommentLiked(commentId, userId);
+      }
     }
 
     const likeCount = await this.repo.getLikeCount(commentId);
     return { liked: !alreadyLiked, likeCount };
   }
-
-  // ---------------------------------------------------------------------------
-  // Helpers
-  // ---------------------------------------------------------------------------
 
   private async findRaw(id: number): Promise<CommentWithMeta> {
     const comment = await this.repo.findById(id);

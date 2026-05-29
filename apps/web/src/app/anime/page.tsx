@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useAnimeList } from '@/hooks/use-anime';
+import { useDebouncedValue } from '@/hooks/use-debounced-value';
 import { AnimeCard, AnimeCardSkeleton } from '@/components/anime/anime-card';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ErrorState } from '@/components/ui/error-state';
@@ -78,6 +79,7 @@ function ChipGroup<T extends string>({
 
 export default function AnimeListPage() {
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebouncedValue(search, 400);
   const [orderBy, setOrderBy] = useState<'popular' | 'rating' | 'score' | 'recent' | 'title'>('popular');
   const [status, setStatus] = useState('');
   const [format, setFormat] = useState('');
@@ -90,7 +92,7 @@ export default function AnimeListPage() {
   const activeFilters = [status, format, season, seasonYear].filter(Boolean).length;
 
   const { data, isLoading, isError, refetch } = useAnimeList({
-    search: search || undefined,
+    search: debouncedSearch || undefined,
     orderBy,
     status: status || undefined,
     format: format || undefined,
@@ -99,6 +101,10 @@ export default function AnimeListPage() {
     page,
     limit: 24,
   });
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [page]);
 
   function clearFilters() {
     setStatus('');
@@ -125,9 +131,12 @@ export default function AnimeListPage() {
         <div className="flex items-center gap-2">
           <input
             value={search}
-            onChange={(e) => { setSearch(e.target.value); resetPage(); }}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              resetPage();
+            }}
             placeholder="Buscar anime..."
-            className="rounded-lg bg-muted px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-1 focus:ring-purple-500 w-48"
+            className="input-base w-48"
           />
           <select
             value={orderBy}
@@ -194,8 +203,14 @@ export default function AnimeListPage() {
 
       {isLoading && (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-          {Array.from({ length: 24 }).map((_, i) => <AnimeCardSkeleton key={i} />)}
+          {Array.from({ length: 24 }).map((_, i) => (
+            <AnimeCardSkeleton key={i} />
+          ))}
         </div>
+      )}
+
+      {!isLoading && search !== debouncedSearch && (
+        <p className="text-center text-xs text-muted-foreground">Buscando...</p>
       )}
 
       {!isLoading && !isError && (!data?.data || data.data.length === 0) && (

@@ -37,16 +37,18 @@ function ScoreSlider({
   value: number;
   onChange: (v: number) => void;
 }) {
-  const pct = ((value - 1) / 9) * 100;
-
   return (
     <div className="flex flex-col gap-1.5">
-      <div className="flex items-center justify-between">
-        <span className="flex items-center gap-1.5 text-sm font-medium text-foreground">
-          <span>{icon}</span> {label}
-          <span className="text-xs text-muted-foreground">— {description}</span>
+      <div className="flex flex-col gap-0.5 sm:flex-row sm:items-center sm:justify-between">
+        <span className="flex flex-col gap-0.5 text-sm font-medium text-foreground sm:flex-row sm:items-center sm:gap-1.5">
+          <span className="flex items-center gap-1.5">
+            <span>{icon}</span> {label}
+          </span>
+          <span className="text-xs font-normal text-muted-foreground">{description}</span>
         </span>
-        <span className="min-w-[2rem] text-right text-sm font-bold text-purple-400">{value}</span>
+        <span className="min-w-[2rem] text-left text-sm font-bold text-purple-400 sm:text-right">
+          {value}
+        </span>
       </div>
       <div className="relative">
         <input
@@ -56,10 +58,10 @@ function ScoreSlider({
           step={1}
           value={value}
           onChange={(e) => onChange(Number(e.target.value))}
-          className="w-full accent-purple-500 cursor-pointer"
+          className="w-full cursor-pointer accent-purple-500"
         />
         <div className="mt-0.5 flex justify-between px-0.5 text-[10px] text-muted-foreground/50">
-          {[1,2,3,4,5,6,7,8,9,10].map((n) => (
+          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
             <span
               key={n}
               className={n <= value ? 'text-purple-400' : ''}
@@ -91,6 +93,7 @@ export function RatingForm({ slug, myRating, onClose }: RatingFormProps) {
   const [reviewText, setReviewText] = useState(myRating?.reviewText ?? '');
   const [containsSpoiler, setContainsSpoiler] = useState(myRating?.containsSpoiler ?? false);
   const [showReview, setShowReview] = useState(!!myRating?.reviewText);
+  const [formError, setFormError] = useState<string | null>(null);
 
   useEffect(() => {
     if (myRating) {
@@ -118,17 +121,27 @@ export function RatingForm({ slug, myRating, onClose }: RatingFormProps) {
   }
 
   async function handleSubmit() {
-    await upsert.mutateAsync({
-      ...scores,
-      reviewText: reviewText.trim() || undefined,
-      containsSpoiler,
-    });
-    onClose?.();
+    setFormError(null);
+    try {
+      await upsert.mutateAsync({
+        ...scores,
+        reviewText: reviewText.trim() || undefined,
+        containsSpoiler,
+      });
+      onClose?.();
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : 'Não foi possível salvar a avaliação.');
+    }
   }
 
   async function handleDelete() {
-    await remove.mutateAsync();
-    onClose?.();
+    setFormError(null);
+    try {
+      await remove.mutateAsync();
+      onClose?.();
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : 'Não foi possível remover a avaliação.');
+    }
   }
 
   const isLoading = upsert.isPending || remove.isPending;
@@ -196,6 +209,10 @@ export function RatingForm({ slug, myRating, onClose }: RatingFormProps) {
       </div>
 
       {/* Ações */}
+      {formError && (
+        <p className="rounded-lg bg-red-500/10 px-3 py-2 text-sm text-red-400">{formError}</p>
+      )}
+
       <div className="flex items-center gap-2">
         <button
           onClick={handleSubmit}

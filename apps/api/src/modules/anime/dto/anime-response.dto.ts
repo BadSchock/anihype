@@ -13,6 +13,20 @@ export class StudioDto {
   @ApiPropertyOptional() role?: string | null;
 }
 
+export class StreamingPlatformDto {
+  @ApiProperty() id!: number;
+  @ApiProperty() name!: string;
+  @ApiProperty() slug!: string;
+  @ApiPropertyOptional() homepageUrl?: string | null;
+}
+
+export class StreamingLinkDto {
+  @ApiProperty() id!: number;
+  @ApiProperty() url!: string;
+  @ApiPropertyOptional() regionCode?: string | null;
+  @ApiProperty({ type: StreamingPlatformDto }) platform!: StreamingPlatformDto;
+}
+
 export class AnimeListItemDto {
   @ApiProperty() id!: number;
   @ApiProperty() slug!: string;
@@ -47,4 +61,5 @@ export class AnimeDetailDto extends AnimeListItemDto {
   @ApiPropertyOptional() trailerUrl?: string | null;
   @ApiPropertyOptional() episodeDuration?: number | null;
   @ApiProperty() isAdult!: boolean;
+  @ApiProperty({ type: [StreamingLinkDto] }) streamingLinks!: StreamingLinkDto[];
 }

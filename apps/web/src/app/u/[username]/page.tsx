@@ -1,6 +1,10 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getPublicProfile } from '@/services/api';
+import { UserAvatar } from '@/components/user/user-avatar';
+import { ProfileClient } from './_components/profile-client';
+import { ProfileHeaderActions } from './_components/profile-header-actions';
+import { ProfileSocialStats } from '@/components/profile/profile-social-stats';
 
 interface Props {
   params: Promise<{ username: string }>;
@@ -29,6 +33,7 @@ export default async function UserProfilePage({ params }: Props) {
     notFound();
   }
 
+  const displayName = user.displayName ?? user.username;
   const joinedAt = new Date(user.createdAt).toLocaleDateString('pt-BR', {
     month: 'long',
     year: 'numeric',
@@ -36,33 +41,38 @@ export default async function UserProfilePage({ params }: Props) {
 
   return (
     <div className="mx-auto max-w-2xl">
-      {/* Header do perfil */}
-      <div className="flex flex-col items-center gap-4 py-10 text-center sm:flex-row sm:text-left">
-        {/* Avatar */}
-        <div className="flex h-24 w-24 flex-shrink-0 items-center justify-center rounded-full bg-purple-500/30 text-3xl font-bold text-purple-300">
-          {(user.displayName ?? user.username).charAt(0).toUpperCase()}
+      <div className="overflow-hidden rounded-2xl border border-border bg-card">
+        <div className="relative h-28 bg-gradient-to-br from-purple-600/30 via-purple-900/20 to-background">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(124,58,237,0.25),transparent_55%)]" />
         </div>
 
-        <div className="flex flex-col gap-1">
-          <h1 className="text-2xl font-bold text-foreground">
-            {user.displayName ?? user.username}
-          </h1>
-          <p className="text-sm text-muted-foreground">@{user.username}</p>
-          <p className="mt-1 text-xs text-muted-foreground">Membro desde {joinedAt}</p>
+        <div className="relative px-6 pb-6">
+          <div className="-mt-12 flex flex-col items-center gap-4 sm:flex-row sm:items-end sm:justify-between sm:text-left">
+            <UserAvatar
+              name={displayName}
+              avatarUrl={user.avatarUrl}
+              size="xl"
+              className="ring-4 ring-card"
+            />
+
+            <div className="flex flex-1 flex-col gap-1 pb-1 text-center sm:text-left">
+              <h1 className="text-2xl font-bold text-foreground">{displayName}</h1>
+              <p className="text-sm text-muted-foreground">@{user.username}</p>
+              <p className="text-xs text-muted-foreground">Membro desde {joinedAt}</p>
+              <ProfileSocialStats username={user.username} />
+            </div>
+
+            <ProfileHeaderActions username={user.username} userId={user.id} />
+          </div>
+
+          {user.bio && (
+            <p className="mt-5 text-sm leading-relaxed text-foreground/80">{user.bio}</p>
+          )}
         </div>
       </div>
 
-      {/* Bio */}
-      {user.bio && (
-        <div className="rounded-xl bg-muted p-4">
-          <p className="text-sm leading-relaxed text-foreground/80">{user.bio}</p>
-        </div>
-      )}
-
-      {/* Placeholder para atividade futura */}
-      <div className="mt-8 rounded-xl border border-border bg-muted p-6 text-center text-sm text-muted-foreground">
-        Atividade recente do usuário em breve.
-      </div>
+      {/* Top 4 + atividade futura — client porque precisa saber se é o dono */}
+      <ProfileClient username={user.username} userId={user.id} />
     </div>
   );
 }

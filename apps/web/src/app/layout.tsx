@@ -12,7 +12,7 @@ const inter = Inter({
   display: 'swap',
 });
 
-const APP_URL = process.env['NEXT_PUBLIC_APP_URL'] ?? 'http://localhost:3000';
+const APP_URL = process.env['NEXT_PUBLIC_APP_URL'] ?? 'http://localhost:3002';
 
 export const viewport: Viewport = {
   themeColor: [
@@ -34,6 +34,11 @@ export const metadata: Metadata = {
   keywords: ['anime', 'temporada', 'lançamentos', 'episódios', 'comunidade', 'brasil'],
   authors: [{ name: 'AniHype' }],
   creator: 'AniHype',
+  manifest: '/manifest.json',
+  icons: {
+    icon: [{ url: '/icon.svg', type: 'image/svg+xml' }],
+    apple: [{ url: '/icon.svg', type: 'image/svg+xml' }],
+  },
   openGraph: {
     type: 'website',
     locale: 'pt_BR',
@@ -44,7 +49,7 @@ export const metadata: Metadata = {
       'Acompanhe os lançamentos de anime, discuta episódios e viva o hype semanal com a comunidade brasileira.',
     images: [
       {
-        url: `${APP_URL}/og-default.png`,
+        url: `${APP_URL}/og-default.svg`,
         width: 1200,
         height: 630,
         alt: 'AniHype',
@@ -55,7 +60,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'AniHype — Anime da Temporada',
     description: 'Acompanhe lançamentos, discuta episódios e viva o hype semanal.',
-    images: [`${APP_URL}/og-default.png`],
+    images: [`${APP_URL}/og-default.svg`],
   },
   robots: {
     index: true,
@@ -67,7 +72,6 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
-  manifest: '/manifest.json',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -84,7 +88,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
           <SiteHeader />
 
-          <main id="main" className="mx-auto max-w-7xl px-4 py-6 sm:px-6 pb-20 sm:pb-6">
+          <main
+            id="main"
+            className="mx-auto max-w-7xl px-4 py-6 sm:px-6 pb-[calc(5rem+env(safe-area-inset-bottom,0px))] sm:pb-6"
+          >
             {children}
           </main>
 

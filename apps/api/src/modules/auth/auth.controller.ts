@@ -79,14 +79,16 @@ export class AuthController {
   // ─── Logout ──────────────────────────────────────────────────────────────
 
   @Post('logout')
-  @HttpCode(HttpStatus.NO_CONTENT)
+  @HttpCode(HttpStatus.OK)
   @ApiBearerAuth('access-token')
   @ApiOperation({ summary: 'Revogar todos os refresh tokens da sessão' })
+  @ApiOkResponse({ description: 'Logout realizado' })
   async logout(
     @CurrentUser() user: CurrentUserPayload,
     @Body() dto: Pick<RefreshTokenDto, 'refreshToken'>,
-  ): Promise<void> {
+  ) {
     await this.authService.logout(user.sub, dto.refreshToken);
+    return { message: 'Logout realizado' };
   }
 
   // ─── Me ──────────────────────────────────────────────────────────────────

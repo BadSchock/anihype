@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next';
 
-const BASE = process.env['NEXT_PUBLIC_APP_URL'] ?? 'http://localhost:3000';
+const BASE = process.env['NEXT_PUBLIC_APP_URL'] ?? 'http://localhost:3002';
 const API = process.env['NEXT_PUBLIC_API_URL'] ?? 'http://localhost:3001/api/v1';
 
 interface AnimeEntry {
@@ -43,6 +43,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: BASE, lastModified: new Date(), changeFrequency: 'daily', priority: 1.0 },
     { url: `${BASE}/anime`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.9 },
+    { url: `${BASE}/calendar`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.85 },
+    { url: `${BASE}/feed`, lastModified: new Date(), changeFrequency: 'hourly', priority: 0.8 },
   ];
 
   const animeRoutes: MetadataRoute.Sitemap = animes.map((a) => ({

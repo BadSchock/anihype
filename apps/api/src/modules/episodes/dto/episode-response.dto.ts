@@ -20,6 +20,9 @@ export class EpisodeDto {
 }
 
 export class EpisodeWithAnimeDto extends EpisodeDto {
+  @ApiPropertyOptional({ description: 'Total de comentários no episódio' })
+  commentCount?: number;
+
   @ApiProperty({
     description: 'Dados básicos do anime ao qual o episódio pertence',
     type: 'object',
@@ -46,4 +49,9 @@ export class CalendarDayDto {
 
   @ApiProperty({ type: [EpisodeWithAnimeDto] })
   episodes!: EpisodeWithAnimeDto[];
+}
+
+export class TrendingEpisodeDto extends EpisodeWithAnimeDto {
+  @ApiProperty({ description: 'Comentários nos últimos N dias' })
+  recentCommentCount!: number;
 }
