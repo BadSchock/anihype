@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AniHype — Tarefas por Dev</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --d: #dc2626; --d-l: #fff1f1; --d-m: #fca5a5; --d-d: #7f1d1d;
+      --w: #ea580c; --w-l: #fff4ed; --w-m: #fdba74; --w-d: #7c2d12;
+      --p: #2563eb; --p-l: #eff6ff; --p-m: #93c5fd; --p-d: #1e3a8a;
+      --g50:#f9fafb; --g100:#f3f4f6; --g200:#e5e7eb;
+      --g400:#9ca3af; --g500:#6b7280; --g700:#374151; --g900:#111827;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: #f1f3f6;
+      color: var(--g900);
+      font-size: 13.5px;
+      line-height: 1.6;
+    }
+
+    /* ─── HEADER ─── */
+    .hdr {
+      background: linear-gradient(140deg, #0f0c29 0%, #1a1040 50%, #0d1117 100%);
+      padding: 56px 64px 48px;
+      position: relative; overflow: hidden;
+    }
+    .hdr-orb { position: absolute; border-radius: 50%; pointer-events: none; }
+    .hdr-orb1 { width:500px;height:500px; top:-150px;right:-100px; background:radial-gradient(circle,rgba(220,38,38,.2) 0%,transparent 65%); }
+    .hdr-orb2 { width:350px;height:350px; bottom:-80px;left:25%; background:radial-gradient(circle,rgba(234,88,12,.15) 0%,transparent 65%); }
+    .hdr-orb3 { width:300px;height:300px; top:30%;left:50%; background:radial-gradient(circle,rgba(37,99,235,.15) 0%,transparent 65%); }
+
+    .hdr-inner { position:relative;z-index:2; max-width:1100px;margin:0 auto; }
+    .hdr-pill {
+      display:inline-flex;align-items:center;gap:6px;
+      background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);
+      color:rgba(255,255,255,.7);padding:4px 14px;border-radius:99px;
+      font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:16px;
+    }
+    .hdr h1 { font-size:52px;font-weight:900;color:#fff;line-height:1.05;margin-bottom:8px; }
+    .hdr h1 em { color:#fbbf24;font-style:normal; }
+    .hdr-sub { font-size:16px;color:rgba(255,255,255,.5);margin-bottom:36px;font-weight:300; }
+
+    .dev-pills { display:flex;gap:10px;flex-wrap:wrap; }
+    .dev-pill {
+      display:flex;align-items:center;gap:10px;
+      padding:10px 20px;border-radius:12px;border:1px solid rgba(255,255,255,.1);
+    }
+    .dp-d{background:rgba(220,38,38,.15);} .dp-w{background:rgba(234,88,12,.15);} .dp-p{background:rgba(37,99,235,.15);}
+    .dp-dot{width:10px;height:10px;border-radius:50%;}
+    .dp-d .dp-dot{background:#ef4444;} .dp-w .dp-dot{background:#f97316;} .dp-p .dp-dot{background:#60a5fa;}
+    .dp-name{font-size:16px;font-weight:800;color:#fff;}
+    .dp-role{font-size:11px;color:rgba(255,255,255,.45);display:block;}
+
+    .hdr-date{position:absolute;top:56px;right:64px;z-index:2;text-align:right;font-size:11px;color:rgba(255,255,255,.25);line-height:1.8;}
+
+    /* ─── LAYOUT ─── */
+    .wrap { max-width:1100px;margin:0 auto;padding:40px 32px 80px; }
+
+    /* ─── DEV SECTION ─── */
+    .dev-sec { margin-bottom:56px; }
+
+    .dev-head {
+      display:flex;align-items:center;gap:18px;
+      padding:22px 28px;border-radius:16px 16px 0 0;
+      position:relative;overflow:hidden;
+    }
+    .dh-d{background:linear-gradient(135deg,#7f1d1d,#dc2626);}
+    .dh-w{background:linear-gradient(135deg,#7c2d12,#ea580c);}
+    .dh-p{background:linear-gradient(135deg,#1e3a8a,#2563eb);}
+
+    .dev-head::after {
+      content:attr(data-name);
+      position:absolute;right:28px;top:50%;transform:translateY(-50%);
+      font-size:80px;font-weight:900;opacity:.07;color:#fff;letter-spacing:-.03em;
+    }
+    .dev-av {
+      width:52px;height:52px;border-radius:14px;flex-shrink:0;
+      display:flex;align-items:center;justify-content:center;
+      font-size:24px;font-weight:900;color:#fff;
+      background:rgba(255,255,255,.15);border:2px solid rgba(255,255,255,.2);
+    }
+    .dev-info .dn { font-size:22px;font-weight:900;color:#fff; }
+    .dev-info .dr { font-size:12.5px;color:rgba(255,255,255,.55);margin-top:2px; }
+    .dev-info .dc {
+      display:inline-block;margin-top:6px;
+      background:rgba(255,255,255,.15);border-radius:99px;
+      padding:2px 10px;font-size:11px;font-weight:700;color:#fff;
+    }
+
+    .dev-grid {
+      display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
+      gap:14px;padding:20px;
+      background:#fff;border:1px solid var(--g200);border-top:none;
+      border-radius:0 0 16px 16px;
+    }
+
+    /* ─── TASK CARD ─── */
+    .card {
+      border-radius:14px;border:1.5px solid var(--g200);
+      background:#fff;overflow:hidden;
+      transition:box-shadow .15s,transform .15s;
+    }
+    .card:hover { box-shadow:0 6px 28px rgba(0,0,0,.1);transform:translateY(-1px); }
+
+    /* card top banner */
+    .card-banner {
+      height:6px;
+    }
+    .tc-d .card-banner{background:linear-gradient(90deg,var(--d),#f87171);}
+    .tc-w .card-banner{background:linear-gradient(90deg,var(--w),#fb923c);}
+    .tc-p .card-banner{background:linear-gradient(90deg,var(--p),#60a5fa);}
+
+    .card-head {
+      padding:16px 18px 12px;
+      border-bottom:1px solid var(--g100);
+      display:flex;align-items:flex-start;gap:12px;
+    }
+
+    .card-icon {
+      width:42px;height:42px;border-radius:12px;
+      display:flex;align-items:center;justify-content:center;
+      font-size:20px;flex-shrink:0;
+    }
+    .tc-d .card-icon{background:var(--d-l);}
+    .tc-w .card-icon{background:var(--w-l);}
+    .tc-p .card-icon{background:var(--p-l);}
+
+    .card-meta { flex:1;min-width:0; }
+    .card-title { font-size:15px;font-weight:800;color:var(--g900);line-height:1.25;margin-bottom:4px; }
+    .card-desc  { font-size:12.5px;color:var(--g500);line-height:1.5; }
+
+    .pri {
+      flex-shrink:0;font-size:10px;font-weight:800;
+      padding:3px 9px;border-radius:99px;align-self:flex-start;
+    }
+    .pri-crit{background:#fee2e2;color:#991b1b;}
+    .pri-high{background:#ede9fe;color:#6d28d9;}
+    .pri-med {background:#dbeafe;color:#1e40af;}
+    .pri-low {background:var(--g100);color:var(--g500);}
+
+    .card-tags { display:flex;gap:4px;flex-wrap:wrap;margin-top:6px; }
+    .tag {
+      font-size:10px;font-weight:700;padding:1px 8px;border-radius:99px;
+    }
+    .t-api{background:#ede9fe;color:#6d28d9;}
+    .t-ui {background:#dbeafe;color:#1d4ed8;}
+    .t-db {background:#d1fae5;color:#065f46;}
+    .t-inf{background:#fef3c7;color:#92400e;}
+
+    /* card body */
+    .card-body { padding:16px 18px;display:flex;flex-direction:column;gap:12px; }
+
+    /* bloco de visão da tela */
+    .screen-block {
+      border-radius:10px;
+      border:1.5px solid var(--g200);
+      overflow:hidden;
+    }
+    .screen-label {
+      padding:7px 12px;
+      font-size:10.5px;font-weight:800;
+      text-transform:uppercase;letter-spacing:.1em;
+      display:flex;align-items:center;gap:6px;
+    }
+    .tc-d .screen-label { background:var(--d-l);color:var(--d); }
+    .tc-w .screen-label { background:var(--w-l);color:var(--w); }
+    .tc-p .screen-label { background:var(--p-l);color:var(--p); }
+
+    .screen-body { padding:10px 12px;background:#fff; }
+
+    /* checklist de elementos */
+    .elem-list { list-style:none;display:flex;flex-direction:column;gap:5px; }
+    .elem-list li {
+      display:flex;align-items:flex-start;gap:8px;
+      font-size:12.5px;color:var(--g700);
+    }
+    .elem-list li::before {
+      content:'';width:6px;height:6px;border-radius:50%;
+      flex-shrink:0;margin-top:6px;
+    }
+    .tc-d .elem-list li::before { background:var(--d); }
+    .tc-w .elem-list li::before { background:var(--w); }
+    .tc-p .elem-list li::before { background:var(--p); }
+
+    /* bloco de ideia */
+    .idea-block {
+      border-radius:10px;padding:11px 13px;
+      border-left:3px solid;
+    }
+    .tc-d .idea-block { background:var(--d-l);border-color:var(--d);  }
+    .tc-w .idea-block { background:var(--w-l);border-color:var(--w);  }
+    .tc-p .idea-block { background:var(--p-l);border-color:var(--p);  }
+
+    .idea-label {
+      font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;
+      margin-bottom:5px;display:flex;align-items:center;gap:5px;
+    }
+    .tc-d .idea-label{color:var(--d);}
+    .tc-w .idea-label{color:var(--w);}
+    .tc-p .idea-label{color:var(--p);}
+
+    .idea-block p { font-size:12.5px;color:var(--g700);line-height:1.55; }
+    .idea-block strong { color:var(--g900); }
+
+    /* mockup de UI */
+    .mockup {
+      border-radius:10px;
+      background:var(--g900);
+      padding:14px 16px;
+    }
+    .mockup-bar {
+      display:flex;gap:6px;align-items:center;margin-bottom:10px;
+    }
+    .mockup-dot { width:9px;height:9px;border-radius:50%; }
+    .md1{background:#ef4444;} .md2{background:#f59e0b;} .md3{background:#10b981;}
+    .mockup-url {
+      flex:1;background:rgba(255,255,255,.08);border-radius:6px;
+      padding:3px 10px;font-size:10px;color:rgba(255,255,255,.35);
+      font-family:monospace;
+    }
+    .mockup-content { display:flex;flex-direction:column;gap:6px; }
+    .mock-row {
+      background:rgba(255,255,255,.06);border-radius:7px;
+      padding:7px 10px;display:flex;align-items:center;gap:8px;
+    }
+    .mock-avatar { width:28px;height:28px;border-radius:50%;flex-shrink:0; }
+    .mock-text { display:flex;flex-direction:column;gap:3px;flex:1; }
+    .mock-line { height:8px;border-radius:4px;background:rgba(255,255,255,.15); }
+    .mock-line-sm { height:6px;border-radius:3px;background:rgba(255,255,255,.08); width:60%; }
+    .mock-badge-row { display:flex;gap:5px;margin-top:2px; }
+    .mock-badge { height:14px;border-radius:4px;background:rgba(255,255,255,.2); }
+
+    /* alerta */
+    .alert {
+      background:#fffbeb;border:1px solid #fcd34d;
+      border-radius:10px;padding:10px 12px;
+    }
+    .alert-lbl { font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:#92400e;margin-bottom:4px; }
+    .alert p   { font-size:12px;color:#78350f; }
+
+    /* divider */
+    hr { border:none;border-top:1px solid var(--g100); }
+
+    /* ─── PRINT ─── */
+    @media print {
+      body{background:#fff;}
+      .hdr{padding:36px 44px 30px;}
+      .wrap{padding:24px 20px 48px;}
+      .dev-grid{grid-template-columns:repeat(2,1fr);}
+      .card{break-inside:avoid;}
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════ HEADER ══════════ -->
+<div class="hdr">
+  <div class="hdr-orb hdr-orb1"></div>
+  <div class="hdr-orb hdr-orb2"></div>
+  <div class="hdr-orb hdr-orb3"></div>
+  <div class="hdr-date">21 Jun 2026<br>Sprint Planning</div>
+  <div class="hdr-inner">
+    <div class="hdr-pill">📋 Divisão de Tarefas · Time AniHype</div>
+    <h1>Ani<em>Hype</em></h1>
+    <p class="hdr-sub">O que cada dev vai construir — com visão de produto, não só código.</p>
+    <div class="dev-pills">
+      <div class="dev-pill dp-d">
+        <div class="dp-dot"></div>
+        <div><span class="dp-name">Douglas</span><span class="dp-role">Perfil · Conta · Moderação · Deploy</span></div>
+      </div>
+      <div class="dev-pill dp-w">
+        <div class="dp-dot"></div>
+        <div><span class="dp-name">Weder</span><span class="dp-role">Ranking · Busca · Mobile · Feed · CI/CD</span></div>
+      </div>
+      <div class="dev-pill dp-p">
+        <div class="dp-dot"></div>
+        <div><span class="dp-name">Pedro</span><span class="dp-role">Reviews · Badges · Usuários · Gêneros · Testes</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+<!-- ╔══════════════════════════════╗
+     ║   DOUGLAS — VERMELHO        ║
+     ╚══════════════════════════════╝ -->
+<div class="dev-sec">
+  <div class="dev-head dh-d" data-name="DOUGLAS">
+    <div class="dev-av">D</div>
+    <div class="dev-info">
+      <div class="dn">Douglas</div>
+      <div class="dr">Perfil do usuário · Conta · Moderação · Deploy</div>
+      <span class="dc">5 features</span>
+    </div>
+  </div>
+  <div class="dev-grid">
+
+    <!-- ── Editar Perfil ── -->
+    <div class="card tc-d">
+      <div class="card-banner"></div>
+      <div class="card-head">
+        <div class="card-icon">✏️</div>
+        <div class="card-meta">
+          <div class="card-title">Editar Perfil + Avatar</div>
+          <div class="card-desc">A identidade do usuário dentro do AniHype. Hoje não tem como editar nada depois de criar a conta.</div>
+          <div class="card-tags"><span class="tag t-api">API</span><span class="tag t-ui">UI</span></div>
+        </div>
+        <span class="pri pri-crit">Crítico</span>
+      </div>
+      <div class="card-body">
+        <div class="screen-block">
+          <div class="screen-label">🖥️ Como vai ser a tela</div>
+          <div class="screen-body">
+            <ul class="elem-list">
+              <li>Página própria em <strong>/configuracoes</strong> — não um modal, uma página completa</li>
+              <li>Foto de perfil circular no topo, com botão de câmera para trocar</li>
+              <li>Preview da imagem antes de confirmar o upload</li>
+              <li>Campos: Nome de exibição, Bio (máx 300 caracteres com contador), Website, Localização</li>
+              <li>Seção "Aparência do perfil" — escolher qual badge vai aparecer no perfil e nos comentários</li>
+              <li>Botão salvar com feedback visual — spinner enquanto salva, depois mensagem "Perfil atualizado!"</li>
+              <li>Link direto "Ver meu perfil" após salvar</li>
+            </ul>
+          </div>
+        </div>
+        <div class="idea-block">
+          <div class="idea-label">💡 Ideia de melhoria</div>
+          <p>Além do avatar, considerar um <strong>banner de perfil</strong> (imagem de capa, como Twitter). O usuário poderia colocar um anime favorito como banner — muito mais personalizado e bonito.</p>
+        </div>
+        <div class="mockup">
+          <div class="mockup-bar">
+            <div class="mockup-dot md1"></div><div class="mockup-dot md2"></div><div class="mockup-dot md3"></div>
+            <div class="mockup-url">anihype.com/configuracoes</div>
+          </div>
+          <div class="mockup-content">
+            <div class="mock-row" style="background:rgba(220,38,38,.1);">
+              <div class="mock-avatar" style="background:linear-gradient(135deg,#dc2626,#f87171)"></div>
+              <div class="mock-text">
+                <div class="mock-line" style="width:45%"></div>
+                <div class="mock-line-sm"></div>
+              </div>
+              <div class="mock-badge-row">
+                <div class="mock-badge" style="width:60px"></div>
+                <div class="mock-badge" style="width:40px;background:rgba(220,38,38,.3)"></div>
+              </div>
+            </div>
+            <div class="mock-row"><div class="mock-text"><div class="mock-line" style="width:80%"></div><div class="mock-line-sm"></div></div></div>
+            <div class="mock-row"><div class="mock-text"><div class="mock-line" style="width:65%"></div><div class="mock-line-sm"></div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Recuperar Senha ── -->
+    <div class="card tc-d">
+      <div class="card-banner"></div>
+      <div class="card-head">
+        <div class="card-icon">🔑</div>
+        <div class="card-meta">
+          <div class="card-title">Recuperar Senha</div>
+          <div class="card-desc">Fluxo completo de "Esqueci minha senha". Hoje não existe — usuário que perde a senha não consegue entrar.</div>
+          <div class="card-tags"><span class="tag t-api">API</span><span class="tag t-ui">UI</span></div>
+        </div>
+        <span class="pri pri-high">Alta</span>
+      </div>
+      <div class="card-body">
+        <div class="screen-block">
+          <div class="screen-label">🖥️ Como vai funcionar</div>
+          <div class="screen-body">
+            <ul class="elem-list">
+              <li>Link "Esqueci minha senha" na tela de login, bem discreto abaixo do botão</li>
+              <li>Tela <strong>/esqueci-senha</strong>: só um campo de e-mail + botão. Mensagem neutra: "Se esse e-mail existir na nossa base, você receberá um link em instantes"</li>
+              <li>E-mail com visual bonito do AniHype — não o e-mail genérico padrão</li>
+              <li>Tela <strong>/nova-senha?token=XYZ</strong>: dois campos (nova senha + confirmar) com indicador de força da senha</li>
+              <li>Após redefinir: redirecionar para login com mensagem "Senha redefinida com sucesso!"</li>
+              <li>Link expira em 1 hora por segurança</li>
+            </ul>
+          </div>
+        </div>
+        <div class="idea-block">
+          <div class="idea-label">💡 Ideia de melhoria</div>
+          <p>O <strong>e-mail de recuperação</strong> pode ser a primeira impressão do AniHype para alguém que sumiu por um tempo. Vale a pena caprichar no visual com o logo e uma mensagem de boas-vindas de volta.</p>
+        </div>
+        <div class="idea-block">
+          <div class="idea-label">🎨 Indicador de força da senha</div>
+          <p>Barra colorida abaixo do campo: <strong>Fraca</strong> (vermelho) → <strong>Boa</strong> (amarelo) → <strong>Forte</strong> (verde). Simples de implementar e melhora muito a experiência.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Docker + Deploy ── -->
+    <div class="card tc-d">
+      <div class="card-banner"></div>
+      <div class="card-head">
+        <div class="card-icon">🚀</div>
+        <div class="card-meta">
+          <div class="card-title">Docker Compose + Deploy</div>
+          <div class="card-desc">Colocar o AniHype em um endereço real na internet. Sem isso, só funciona na máquina de quem desenvolveu.</div>
+          <div class="card-tags"><span class="tag t-inf">INFRA</span></div>
+        </div>
+        <span class="pri pri-crit">Crítico</span>
+      </div>
+      <div class="card-body">
+        <div class="screen-block">
+          <div class="screen-label">🌐 O que precisa existir</div>
+          <div class="screen-body">
+            <ul class="elem-list">
+              <li>Um endereço real: <strong>anihype.com.br</strong> ou subdomínio de teste</li>
+              <li>HTTPS — sem isso o navegador bloqueia o site hoje em dia</li>
+              <li>Ambiente de <strong>staging</strong> (teste) separado de <strong>produção</strong></li>
+              <li>Deploy fácil: idealmente subir com um comando só</li>
+              <li>Banco de dados persistente — não perder os dados ao reiniciar</li>
+              <li>Logs acessíveis para ver erros quando algo quebrar em produção</li>
+            </ul>
+          </div>
+        </div>
+        <div class="idea-block">
+          <div class="idea-label">💡 Recomendação de serviço</div>
+          <p>Para começar rápido: <strong>Railway.app</strong> — conecta no GitHub e faz deploy automático, não precisa saber de servidor. Para reduzir custo depois de crescer: <strong>VPS na Hetzner</strong> (~R$25/mês).</p>
+        </div>
+        <div class="alert">
+          <div class="alert-lbl">⚠️ Prioridade máxima</div>
+          <p>Sem deploy, o time não consegue testar com usuários reais. Todas as outras tarefas dependem disso estar funcionando.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Denúncia + Moderação ── -->
+    <div class="card tc-d">
+      <div class="card-banner"></div>
+      <div class="card-head">
+        <div class="card-icon">🛡️</div>
+        <div class="card-meta">
+          <div class="card-title">Denúncia + Moderação de Comentários</div>
+          <div class="card-desc">Forma de manter a comunidade saudável. Usuários denunciam, admins revisam.</div>
+          <div class="card-tags"><span class="tag t-api">API</span><span class="tag t-ui">UI</span></div>
+        </div>
+        <span class="pri pri-med">Média</span>
+      </div>
+      <div class="card-body">
+        <div class="screen-block">
+          <div class="screen-label">🖥️ Como vai funcionar</div>
+          <div class="screen-body">
+            <ul class="elem-list">
+              <li>Botão de 3 pontinhos (...) em cada comentário — ao clicar aparece opção "Denunciar"</li>
+              <li>Modal simples com opções de motivo: "Spoiler sem aviso", "Conteúdo inadequado", "Spam", "Outros"</li>
+              <li>Confirmação: "Obrigado! Sua denúncia foi registrada."</li>
+              <li>No painel admin: aba <strong>Moderação</strong> com lista de comentários denunciados</li>
+              <li>Cada item mostra: o comentário, quem denunciou, o motivo e quando</li>
+              <li>Ações do admin: Ignorar (falso positivo) · Remover comentário · Avisar usuário</li>
+              <li>Comentário removido por mod aparece como "[Comentário removido pela moderação]" — não some</li>
+            </ul>
+          </div>
+        </div>
+        <div class="idea-block">
+          <div class="idea-label">💡 Melhoria futura</div>
+          <p>Auto-moderação: se um comentário receber <strong>5 denúncias</strong> fica automaticamente oculto até revisão. Evita que conteúdo ruim fique visível enquanto o admin está ocupado.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Polish Visual ── -->
+    <div class="card tc-d">
+      <div class="card-banner"></div>
+      <div class="card-head">
+        <div class="card-icon">✨</div>
+        <div class="card-meta">
+          <div class="card-title">Polish Visual Geral</div>
+          <div class="card-desc">A diferença entre um site que parece profissional e um que parece protótipo. Detalhes que o usuário sente sem saber nomear.</div>
+          <div class="card-tags"><span class="tag t-ui">UI</span></div>
+        </div>
+        <span class="pri pri-med">Média</span>
+      </div>
+      <div class="card-body">
+        <div class="screen-block">
+          <div class="screen-label">🎨 O que melhorar</div>
+          <div class="screen-body">
+            <ul class="elem-list">
+              <li><strong>Skeleton loading</strong> em todas as páginas — ao invés de tela em branco, mostrar "fantasmas" cinzas do layout enquanto carrega</li>
+              <li><strong>Estados vazios com personalidade</strong> — ao invés de texto seco "Sem resultados", uma ilustração simples com mensagem divertida estilo anime</li>
+              <li><strong>Animação de like</strong> — coração que "explode" ao curtir um comentário (como Instagram)</li>
+              <li><strong>Transição suave entre páginas</strong> — fade-in ao trocar de rota</li>
+              <li><strong>Toast de confirmação</strong> — notificação discreta no canto ao completar ações (salvar perfil, seguir alguém, etc.)</li>
+              <li><strong>Scroll suave</strong> ao navegar para seções da página</li>
+              <li>Revisar espaçamentos e tipografia em mobile — muitas vezes textos ficam pequenos demais</li>
+            </ul>
+          </div>
+        </div>
+        <div class="idea-block">
+          <div class="idea-label">💡 Impacto alto, esforço baixo</div>
+          <p>Skeleton loading + toast de confirmação são as melhorias com maior retorno. O usuário percebe imediatamente que o site é mais rápido e responsivo, mesmo sem nada ter mudado na velocidade real.</p>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /dev-grid Douglas -->
+</div><!-- /dev-sec Douglas -->
+
+
+<!-- ╔══════════════════════════════╗
+     ║   WEDER — LARANJA           ║
+     ╚══════════════════════════════╝ -->
+<div class="dev-sec">
+  <div class="dev-head dh-w" data-name="WEDER">
+    <div class="dev-av">W</div>
+    <div class="dev-info">
+      <div class="dn">Weder</div>
+      <div class="dr">Ranking de animes · Busca global · Mobile · Feed · CI/CD</div>
+      <span class="dc">5 features</span>
+    </div>
+  </div>
+  <div class="dev-grid">
+
+    <!-- ── Ranking de Animes ── -->
+    <div class="card tc-w">
+      <div class="card-banner"></div>
+      <div class="card-head">
+        <div class="card-icon">🏆</div>
+        <div class="card-meta">
+          <div class="card-title">Ranking de Animes</div>
+          <div class="card-desc">A página mais visível do site depois da home. Os animes mais bem avaliados pela comunidade AniHype.</div>
+          <div class="card-tags"><span class="tag t-api">API</span><span class="tag t-ui">UI</span></div>
+        </div>
+        <span class="pri pri-high">Alta</span>
+      </div>
+      <div class="card-body">
+        <div class="screen-block">
+          <div class="screen-label">🖥️ Como vai ser a página /ranking</div>
+          <div class="screen-body">
+            <ul class="elem-list">
+              <li>Top 3 em destaque no topo com efeito especial — 🥇 ouro, 🥈 prata, 🥉 bronze — posters maiores</li>
+              <li>Lista do #4 em diante em formato de tabela elegante com número da posição em destaque</li>
+              <li>Cada item: poster pequeno, título, nota média do Pentagon Score, quantidade de avaliações</li>
+              <li>Abas de filtro: <strong>Temporada atual</strong> · <strong>Todos os tempos</strong> · <strong>Por gênero</strong></li>
+              <li>Badge visual da nota (👑 Obra-Prima, 🔥 Excelente, etc.) ao lado de cada anime</li>
+              <li>Ao clicar vai para a página do anime</li>
+            </ul>
+          </div>
+        </div>
+        <div class="idea-block">
+          <div class="idea-label">💡 Ideia de engajamento</div>
+          <p>Adicionar um indicador de <strong>tendência</strong> — setinha verde ↑ se o anime subiu no ranking na última semana, vermelha ↓ se caiu. Incentiva o usuário a voltar e conferir mudanças.</p>
+        </div>
+        <div class="mockup">
+          <div class="mockup-bar">
+            <div class="mockup-dot md1"></div><div class="mockup-dot md2"></div><div class="mockup-dot md3"></div>
+            <div class="mockup-url">anihype.com/ranking</div>
+          </div>
+          <div class="mockup-content">
+            <div style="display:flex;gap:8px;margin-bottom:4px;">
+              <div class="mock-row" style="flex:1;flex-direction:column;background:rgba(234,88,12,.15);">
+                <div style="font-size:18px;text-align:center;margin-bottom:4px">🥇</div>
+                <div class="mock-avatar" style="background:linear-gradient(135deg,#ea580c,#fb923c);margin:0 auto 6px;"></div>
+                <div class="mock-line" style="width:80%;margin:0 auto"></div>
+              </div>
+              <div class="mock-row" style="flex:1;flex-direction:column;">
+                <div style="font-size:18px;text-align:center;margin-bottom:4px">🥈</div>
+                <div class="mock-avatar" style="background:rgba(255,255,255,.2);margin:0 auto 6px;"></div>
+                <div class="mock-line" style="width:80%;margin:0 auto"></div>
+              </div>
+              <div class="mock-row" style="flex:1;flex-direction:column;">
+                <div style="font-size:18px;text-align:center;margin-bottom:4px">🥉</div>
+                <div class="mock-avatar" style="background:rgba(255,255,255,.1);margin:0 auto 6px;"></div>
+                <div class="mock-line" style="width:80%;margin:0 auto"></div>
+              </div>
+            </div>
+            <div class="mock-row"><div style="color:rgba(255,255,255,.4);font-size:11px;width:20px">#4</div><div class="mock-text"><div class="mock-line" style="width:55%"></div></div></div>
+            <div class="mock-row"><div style="color:rgba(255,255,255,.4);font-size:11px;width:20px">#5</div><div class="mock-text"><div class="mock-line" style="width:45%"></div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Busca Global ── -->
+    <div class="card tc-w">
+      <div class="card-banner"></div>
+      <div class="card-head">
+        <div class="card-icon">🔍</div>
+        <div class="card-meta">
+          <div class="card-title">Busca Global</div>
+          <div class="card-desc">Uma busca que encontra tanto animes quanto usuários. Hoje a busca só funciona dentro do catálogo.</div>
+          <div class="card-tags"><span class="tag t-api">API</span><span class="tag t-ui">UI</span></div>
+        </div>
+        <span class="pri pri-high">Alta</span>
+      </div>
+      <div class="card-body">
+        <div class="screen-block">
+          <div class="screen-label">🖥️ Como vai funcionar</div>
+          <div class="screen-body">
+            <ul class="elem-list">
+              <li>Ícone de lupa no header — ao clicar, abre uma barra de busca expandida (como o Spotlight do Mac)</li>
+              <li>Resultados aparecem em tempo real enquanto digita (sem precisar dar Enter)</li>
+              <li>Resultados divididos em seções: <strong>"Animes"</strong> com poster e nota · <strong>"Usuários"</strong> com avatar e Hype XP</li>
+              <li>Máximo 5 resultados por seção para não poluir</li>
+              <li>Atalho de teclado <strong>Ctrl+K</strong> abre a busca de qualquer página</li>
+              <li>"Ver todos os resultados" no final leva para página /search?q=xxx completa</li>
+            </ul>
+          </div>
+        </div>
+        <div class="idea-block">
+          <div class="idea-label">💡 Experiência premium</div>
+          <p>Histórico das últimas 5 buscas salvo localmente — quando o usuário abre a busca sem digitar nada, já aparece o que ele pesquisou antes. Pequeno detalhe, grande impacto.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Mobile Bottom Nav ── -->
+    <div class="card tc-w">
+      <div class="card-banner"></div>
+      <div class="card-head">
+        <div class="card-icon">📱</div>
+        <div class="card-meta">
+          <div class="card-title">Mobile Bottom Navigation</div>
+          <div class="card-desc">No celular, a navegação pelo topo é difícil de alcançar. A barra inferior deixa o site muito mais usável no mobile.</div>
+          <div class="card-tags"><span class="tag t-ui">UI</span></div>
+        </div>
+        <span class="pri pri-med">Média</span>
+      </div>
+      <div class="card-body">
+        <div class="screen-block">
+          <div class="screen-label">🖥️ Como vai ser</div>
+          <div class="screen-body">
+            <ul class="elem-list">
+              <li>Barra fixa na parte de baixo da tela, só visível em celular</li>
+              <li>4 abas: 🏠 <strong>Home</strong> · 🔍 <strong>Busca</strong> · 📡 <strong>Feed</strong> · 👤 <strong>Perfil</strong></li>
+              <li>Aba ativa com ícone preenchido e cor da marca</li>
+              <li>Badge vermelho com número de notificações não lidas no ícone de Feed ou Perfil</li>
+              <li>Desaparece ao rolar a página para baixo, reaparece ao rolar para cima — não ocupa espaço o tempo todo</li>
+              <li>Padding extra no final das páginas para o conteúdo não ficar atrás da barra</li>
+            </ul>
+          </div>
+        </div>
+        <div class="idea-block">
+          <div class="idea-label">💡 Referência de design</div>
+          <p>Instagram, TikTok e Twitter — todos usam bottom nav. É o padrão de apps modernos. O ícone ativo pode ter um ponto ou bolinha abaixo para indicar a página atual.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Feed + Paginação ── -->
+    <div class="card tc-w">
+      <div class="card-banner"></div>
+      <div class="card-head">
+        <div class="card-icon">📡</div>
+        <div class="card-meta">
+          <div class="card-title">Feed + Paginação</div>
+          <div class="card-desc">O feed já existe, mas carrega tudo de uma vez. Com muitos itens vai ficar lento. Precisa de "carregar mais".</div>
+          <div class="card-tags"><span class="tag t-api">API</span><span class="tag t-ui">UI</span></div>
+        </div>
+        <span class="pri pri-med">Média</span>
+      </div>
+      <div class="card-body">
+        <div class="screen-block">
+          <div class="screen-label">🖥️ Como vai melhorar</div>
+          <div class="screen-body">
+            <ul class="elem-list">
+              <li>Feed carrega só os 20 itens mais recentes inicialmente</li>
+              <li>Botão <strong>"Carregar mais"</strong> no final da lista, ou scroll infinito automático</li>
+              <li>Indicador de quantos itens novos tem: <strong>"5 novas atividades desde sua última visita"</strong></li>
+              <li>Filtros na parte superior: <strong>Tudo</strong> · <strong>Comentários</strong> · <strong>Avaliações</strong> · <strong>Follows</strong></li>
+              <li>Cada item do feed deve ser bem visual: foto do anime envolvido, username com avatar, hora relativa ("há 2h")</li>
+              <li>Clicar no item leva direto para o episódio ou anime relacionado</li>
+            </ul>
+          </div>
+        </div>
+        <div class="idea-block">
+          <div class="idea-label">💡 Melhoria de retenção</div>
+          <p>Quando o feed está vazio (usuário não segue ninguém), mostrar uma sugestão de usuários para seguir com base nos animes que ele acompanha — igual ao "Quem seguir" do Twitter.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── GitHub Actions ── -->
+    <div class="card tc-w">
+      <div class="card-banner"></div>
+      <div class="card-head">
+        <div class="card-icon">⚙️</div>
+        <div class="card-meta">
+          <div class="card-title">GitHub Actions — CI/CD</div>
+          <div class="card-desc">Automatizar testes e deploy. Todo Pull Request passa por verificação automática antes de ir para produção.</div>
+          <div class="card-tags"><span class="tag t-inf">INFRA</span></div>
+        </div>
+        <span class="pri pri-high">Alta</span>
+      </div>
+      <div class="card-body">
+        <div class="screen-block">
+          <div class="screen-label">⚙️ O que vai acontecer automaticamente</div>
+          <div class="screen-body">
+            <ul class="elem-list">
+              <li>Ao abrir um PR: GitHub roda verificação de tipos (TypeScript), lint e build</li>
+              <li>Se qualquer coisa quebrar, o PR fica bloqueado com ❌ — ninguém merga código com erro</li>
+              <li>Se tudo passar, aparece ✅ verde — pode mergear com confiança</li>
+              <li>Ao mergear na main: deploy automático para o servidor de staging</li>
+              <li>Badge de status no README: <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI5OCIgaGVpZ2h0PSIyMCI+PHJlY3Qgd2lkdGg9Ijk4IiBoZWlnaHQ9IjIwIiByeD0iMyIgZmlsbD0iIzU1NSIvPjxyZWN0IHg9IjM3IiB3aWR0aD0iNjEiIGhlaWdodD0iMjAiIHJ4PSIzIiBmaWxsPSIjNGMxIi8+PHRleHQgeD0iNiIgeT0iMTQiIGZvbnQtZmFtaWx5PSJWZXJkYW5hIiBmb250LXNpemU9IjExIiBmaWxsPSIjZmZmIj5idWlsZDwvdGV4dD48dGV4dCB4PSI0MyIgeT0iMTQiIGZvbnQtZmFtaWx5PSJWZXJkYW5hIiBmb250LXNpemU9IjExIiBmaWxsPSIjZmZmIj5wYXNzaW5nPC90ZXh0Pjwvc3ZnPg==" alt="build passing" style="vertical-align:middle;border-radius:3px;margin-left:4px"> mostrando que tá tudo certo</li>
+            </ul>
+          </div>
+        </div>
+        <div class="idea-block">
+          <div class="idea-label">💡 Por que isso importa</div>
+          <p>Quando são 3 devs trabalhando ao mesmo tempo, é fácil o código de um quebrar o do outro sem perceber. O CI pega isso antes de ir para produção e evita a clássica situação de "funcionava na minha máquina".</p>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /dev-grid Weder -->
+</div><!-- /dev-sec Weder -->
+
+
+<!-- ╔══════════════════════════════╗
+     ║   PEDRO — AZUL              ║
+     ╚══════════════════════════════╝ -->
+<div class="dev-sec">
+  <div class="dev-head dh-p" data-name="PEDRO">
+    <div class="dev-av">P</div>
+    <div class="dev-info">
+      <div class="dn">Pedro</div>
+      <div class="dr">Reviews · Ranking usuários · Badges · Filtro gênero · Testes</div>
+      <span class="dc">5 features</span>
+    </div>
+  </div>
+  <div class="dev-grid">
+
+    <!-- ── Reviews ── -->
+    <div class="card tc-p">
+      <div class="card-banner"></div>
+      <div class="card-head">
+        <div class="card-icon">⭐</div>
+        <div class="card-meta">
+          <div class="card-title">Reviews na Página do Anime</div>
+          <div class="card-desc">Seção dedicada para ler o que a comunidade achou de um anime. Hoje só mostra o form e a nota agregada.</div>
+          <div class="card-tags"><span class="tag t-api">API</span><span class="tag t-ui">UI</span></div>
+        </div>
+        <span class="pri pri-high">Alta</span>
+      </div>
+      <div class="card-body">
+        <div class="screen-block">
+          <div class="screen-label">🖥️ Como vai ser a seção de reviews</div>
+          <div class="screen-body">
+            <ul class="elem-list">
+              <li>Seção logo abaixo do Pentagon Score na página do anime</li>
+              <li>Preview das 3 melhores reviews com card: avatar do usuário, nota visual, trecho do texto, data</li>
+              <li>Se a review tiver spoiler, o texto fica com blur — clique para revelar</li>
+              <li>Botão <strong>"Ver todas as reviews"</strong> que expande a lista com paginação</li>
+              <li>Ordenação: <strong>Mais recentes</strong> · <strong>Melhor nota</strong> · <strong>Mais úteis</strong></li>
+              <li>A review do próprio usuário logado aparece sempre no topo em destaque</li>
+              <li>Se o usuário ainda não avaliou: CTA convidando para avaliar</li>
+            </ul>
+          </div>
+        </div>
+        <div class="idea-block">
+          <div class="idea-label">💡 Estilo Letterboxd</div>
+          <p>Reviews curtas e emocionais têm mais impacto do que textos longos. Incentivar frases como <em>"esse episódio me destruiu"</em> ou <em>"absolute cinema"</em> — limitar a 500 caracteres por padrão, com opção de texto longo.</p>
+        </div>
+        <div class="mockup">
+          <div class="mockup-bar">
+            <div class="mockup-dot md1"></div><div class="mockup-dot md2"></div><div class="mockup-dot md3"></div>
+            <div class="mockup-url">anihype.com/anime/frieren</div>
+          </div>
+          <div class="mockup-content">
+            <div class="mock-row" style="background:rgba(37,99,235,.15);">
+              <div class="mock-avatar" style="background:linear-gradient(135deg,#2563eb,#60a5fa)"></div>
+              <div class="mock-text">
+                <div class="mock-line" style="width:70%"></div>
+                <div class="mock-line-sm"></div>
+                <div class="mock-line-sm" style="width:85%;margin-top:2px"></div>
+              </div>
+              <div style="font-size:12px;color:#fbbf24;white-space:nowrap">9.5 ⚡</div>
+            </div>
+            <div class="mock-row">
+              <div class="mock-avatar" style="background:rgba(255,255,255,.15)"></div>
+              <div class="mock-text"><div class="mock-line" style="width:55%"></div><div class="mock-line-sm"></div></div>
+              <div style="font-size:12px;color:rgba(255,255,255,.4);white-space:nowrap">8.2</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Ranking Usuários ── -->
+    <div class="card tc-p">
+      <div class="card-banner"></div>
+      <div class="card-head">
+        <div class="card-icon">🥇</div>
+        <div class="card-meta">
+          <div class="card-title">Ranking de Usuários</div>
+          <div class="card-desc">Os membros mais ativos da comunidade em destaque. Incentiva participação e cria senso de pertencimento.</div>
+          <div class="card-tags"><span class="tag t-api">API</span><span class="tag t-ui">UI</span></div>
+        </div>
+        <span class="pri pri-med">Média</span>
+      </div>
+      <div class="card-body">
+        <div class="screen-block">
+          <div class="screen-label">🖥️ Como vai ser</div>
+          <div class="screen-body">
+            <ul class="elem-list">
+              <li>Pode ser uma aba na mesma página /ranking (coordenar com Weder): <strong>Animes</strong> | <strong>Membros</strong></li>
+              <li>Podium especial para o Top 3: avatares maiores, fundo dourado/prata/bronze</li>
+              <li>Lista do #4 em diante: posição, avatar, nome, badge equipado, nível de Hype e XP total</li>
+              <li>Cada usuário clicável — leva para o perfil público</li>
+              <li>Filtro de período: <strong>Essa semana</strong> · <strong>Esse mês</strong> · <strong>Todos os tempos</strong></li>
+              <li>Posição do usuário logado sempre visível no final, mesmo que não esteja no top 50</li>
+            </ul>
+          </div>
+        </div>
+        <div class="idea-block">
+          <div class="idea-label">💡 Elemento social poderoso</div>
+          <p>Ver sua posição no ranking e perceber que subiu (ou desceu) é um motivador enorme. Adicionar uma mensagem: <strong>"Você está no top 15%! Mais 230 XP para subir para o top 10%."</strong></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Badges ── -->
+    <div class="card tc-p">
+      <div class="card-banner"></div>
+      <div class="card-head">
+        <div class="card-icon">🏅</div>
+        <div class="card-meta">
+          <div class="card-title">Badges Automáticos</div>
+          <div class="card-desc">Conquistas que o usuário ganha por participar. Aparecem no perfil e ao lado do nome nos comentários.</div>
+          <div class="card-tags"><span class="tag t-api">API</span><span class="tag t-ui">UI</span></div>
+        </div>
+        <span class="pri pri-med">Média</span>
+      </div>
+      <div class="card-body">
+        <div class="screen-block">
+          <div class="screen-label">🏅 Badges sugeridos para a V1</div>
+          <div class="screen-body">
+            <ul class="elem-list">
+              <li>🗣️ <strong>Primeiro Comentário</strong> — comentou pela primeira vez</li>
+              <li>⭐ <strong>Crítico de Plantão</strong> — fez 10 avaliações com review escrita</li>
+              <li>🔥 <strong>Hypado</strong> — acumulou 500 Hype XP</li>
+              <li>👁️ <strong>Maratonista</strong> — seguiu 10 animes diferentes</li>
+              <li>💬 <strong>Voz da Comunidade</strong> — recebeu 50 likes em comentários</li>
+              <li>🏆 <strong>OG</strong> — está na plataforma desde o início (primeiros 100 cadastros)</li>
+            </ul>
+          </div>
+        </div>
+        <div class="screen-block" style="margin-top:12px">
+          <div class="screen-label">🖥️ Como aparecem na tela</div>
+          <div class="screen-body">
+            <ul class="elem-list">
+              <li>Seção "Conquistas" no perfil público com todos os badges ganhos em grid</li>
+              <li>Badge selecionável: usuário escolhe qual exibir ao lado do nome (no comentário e no perfil)</li>
+              <li>Animação especial quando ganha um badge novo — toast com confete</li>
+              <li>Badges que ainda não tem aparecem bloqueados (cadeado), mostrando o que falta para conquistar</li>
+            </ul>
+          </div>
+        </div>
+        <div class="idea-block">
+          <div class="idea-label">💡 Criatividade de produto</div>
+          <p>Os badges com nomes e ícones ligados ao universo anime têm muito mais charme do que badges genéricos. Em vez de "Iniciante", usar <strong>"Genin"</strong>. Em vez de "Especialista", usar <strong>"Anbu"</strong>.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Filtro por Gênero ── -->
+    <div class="card tc-p">
+      <div class="card-banner"></div>
+      <div class="card-head">
+        <div class="card-icon">🎌</div>
+        <div class="card-meta">
+          <div class="card-title">Filtro por Gênero no Catálogo</div>
+          <div class="card-desc">Hoje o catálogo só tem busca por texto e filtro de status. Muita gente procura anime por gênero.</div>
+          <div class="card-tags"><span class="tag t-api">API</span><span class="tag t-ui">UI</span></div>
+        </div>
+        <span class="pri pri-med">Média</span>
+      </div>
+      <div class="card-body">
+        <div class="screen-block">
+          <div class="screen-label">🖥️ Como vai funcionar</div>
+          <div class="screen-body">
+            <ul class="elem-list">
+              <li>Chips clicáveis de gênero na página /anime: <strong>Ação</strong> · <strong>Romance</strong> · <strong>Comédia</strong> · <strong>Fantasia</strong> · etc.</li>
+              <li>Selecionar um chip filtra o grid instantaneamente (sem recarregar)</li>
+              <li>Múltiplos gêneros selecionáveis: mostrar animes que têm todos os gêneros selecionados</li>
+              <li>Na página do anime, os gêneros que aparecem são clicáveis — leva para o catálogo já filtrado</li>
+              <li>URL reflete o filtro: <code>/anime?genre=acao,romance</code> — permite compartilhar o link</li>
+            </ul>
+          </div>
+        </div>
+        <div class="idea-block">
+          <div class="idea-label">💡 Descoberta de conteúdo</div>
+          <p>Além dos chips na listagem, uma página <strong>/genero/acao</strong> com banner e descrição do gênero seria muito boa para SEO — pessoas que buscam no Google "melhores animes de ação" chegariam direto.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Testes Automatizados ── -->
+    <div class="card tc-p">
+      <div class="card-banner"></div>
+      <div class="card-head">
+        <div class="card-icon">🧪</div>
+        <div class="card-meta">
+          <div class="card-title">Testes Automatizados</div>
+          <div class="card-desc">Garantir que as partes mais importantes do sistema não quebrem quando alguém mexe no código.</div>
+          <div class="card-tags"><span class="tag t-api">API</span></div>
+        </div>
+        <span class="pri pri-med">Média</span>
+      </div>
+      <div class="card-body">
+        <div class="screen-block">
+          <div class="screen-label">🧪 O que testar primeiro</div>
+          <div class="screen-body">
+            <ul class="elem-list">
+              <li><strong>Fórmula do Pentagon Score</strong> — a nota final deve bater exato com a fórmula (hype tem peso duplo)</li>
+              <li><strong>Autenticação</strong> — login com senha errada deve retornar erro 401; token expirado deve ser bloqueado</li>
+              <li><strong>Notificações sem duplicata</strong> — a mesma notificação não pode ser enviada duas vezes</li>
+              <li><strong>Sync com isLocked</strong> — anime com isLocked=true não deve ter dados sobrescritos pelo sync</li>
+              <li><strong>Hype XP</strong> — ação deve creditar a quantidade certa de XP</li>
+            </ul>
+          </div>
+        </div>
+        <div class="idea-block">
+          <div class="idea-label">💡 Por que isso importa agora</div>
+          <p>Com 3 devs mexendo ao mesmo tempo, é fácil uma mudança quebrar algo que funcionava. Os testes são a rede de segurança. Não precisa de 100% de cobertura — focar nas regras de negócio que teriam o maior impacto se quebrassem.</p>
+        </div>
+        <div class="alert">
+          <div class="alert-lbl">📌 Nota</div>
+          <p>Jest já está configurado no projeto. Rodar com <code>npm test -w @anihype/api</code>. Começar pela fórmula do Pentagon Score — é a mais simples e mais importante de garantir.</p>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /dev-grid Pedro -->
+</div><!-- /dev-sec Pedro -->
+
+</div><!-- /wrap -->
+</body>
+</html>
