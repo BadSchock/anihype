@@ -5,753 +5,450 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AniHype — Planejamento de Desenvolvimento</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --primary: #6d28d9;
-      --primary-light: #ede9fe;
-      --accent: #f59e0b;
-      --accent-light: #fef3c7;
+      --p: #6d28d9;
+      --p-l: #ede9fe;
+      --p-d: #4c1d95;
+      --amber: #d97706;
+      --amber-l: #fef3c7;
       --green: #059669;
-      --green-light: #d1fae5;
+      --green-l: #d1fae5;
       --red: #dc2626;
-      --red-light: #fee2e2;
+      --red-l: #fee2e2;
       --blue: #2563eb;
-      --blue-light: #dbeafe;
-      --gray-50: #f9fafb;
-      --gray-100: #f3f4f6;
-      --gray-200: #e5e7eb;
-      --gray-300: #d1d5db;
-      --gray-500: #6b7280;
-      --gray-700: #374151;
-      --gray-900: #111827;
-      --text: #1f2937;
-      --muted: #6b7280;
+      --blue-l: #dbeafe;
+      --sky: #0284c7;
+      --sky-l: #e0f2fe;
+      --g50: #f9fafb; --g100: #f3f4f6; --g200: #e5e7eb;
+      --g300: #d1d5db; --g400: #9ca3af; --g500: #6b7280;
+      --g700: #374151; --g800: #1f2937; --g900: #111827;
     }
 
     body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: 'Inter', system-ui, sans-serif;
       background: #fff;
-      color: var(--text);
-      font-size: 14px;
-      line-height: 1.6;
+      color: var(--g800);
+      font-size: 13.5px;
+      line-height: 1.65;
     }
 
-    /* COVER PAGE */
+    /* ── COVER ── */
     .cover {
-      background: linear-gradient(135deg, #1e1b4b 0%, #312e81 40%, #6d28d9 100%);
-      color: #fff;
-      min-height: 297mm;
+      background: linear-gradient(145deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
-      justify-content: center;
-      align-items: flex-start;
-      padding: 60px 80px;
+      justify-content: space-between;
+      padding: 64px 80px;
       page-break-after: always;
       position: relative;
       overflow: hidden;
     }
 
-    .cover::before {
-      content: '';
-      position: absolute;
-      top: -80px; right: -80px;
+    .cover-orb1 {
+      position: absolute; top: -100px; right: -100px;
       width: 500px; height: 500px;
-      background: radial-gradient(circle, rgba(245,158,11,0.15) 0%, transparent 70%);
-      border-radius: 50%;
+      background: radial-gradient(circle, rgba(109,40,217,.35) 0%, transparent 65%);
+      border-radius: 50%; pointer-events: none;
+    }
+    .cover-orb2 {
+      position: absolute; bottom: -80px; left: 40px;
+      width: 380px; height: 380px;
+      background: radial-gradient(circle, rgba(245,158,11,.18) 0%, transparent 65%);
+      border-radius: 50%; pointer-events: none;
+    }
+    .cover-orb3 {
+      position: absolute; top: 40%; left: 35%;
+      width: 260px; height: 260px;
+      background: radial-gradient(circle, rgba(37,99,235,.12) 0%, transparent 65%);
+      border-radius: 50%; pointer-events: none;
     }
 
-    .cover::after {
-      content: '';
-      position: absolute;
-      bottom: -60px; left: 60px;
-      width: 350px; height: 350px;
-      background: radial-gradient(circle, rgba(109,40,217,0.4) 0%, transparent 70%);
-      border-radius: 50%;
-    }
-
-    .cover-tag {
-      background: rgba(245,158,11,0.2);
-      border: 1px solid rgba(245,158,11,0.4);
+    .cover-top { position: relative; z-index: 2; }
+    .cover-pill {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(245,158,11,.15);
+      border: 1px solid rgba(245,158,11,.3);
       color: #fbbf24;
-      padding: 6px 16px;
-      border-radius: 999px;
-      font-size: 12px;
-      font-weight: 600;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      margin-bottom: 32px;
+      padding: 5px 16px;
+      border-radius: 99px;
+      font-size: 11px; font-weight: 700;
+      letter-spacing: .1em; text-transform: uppercase;
+      margin-bottom: 36px;
     }
+    .cover-pill::before { content: '●'; font-size: 7px; }
 
     .cover h1 {
-      font-size: 56px;
-      font-weight: 800;
-      line-height: 1.1;
-      margin-bottom: 8px;
-      position: relative; z-index: 1;
+      font-size: 72px; font-weight: 900;
+      line-height: 1; color: #fff;
+      margin-bottom: 10px;
+    }
+    .cover h1 em { color: #fbbf24; font-style: normal; }
+
+    .cover-tagline {
+      font-size: 20px; font-weight: 300;
+      color: rgba(255,255,255,.6);
+      margin-bottom: 52px;
     }
 
-    .cover h1 span {
-      color: #fbbf24;
+    .cover-stats {
+      display: flex; gap: 40px;
+      position: relative; z-index: 2;
+    }
+    .cover-stat label {
+      display: block; font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .12em;
+      color: rgba(255,255,255,.4); margin-bottom: 4px;
+    }
+    .cover-stat span { font-size: 16px; font-weight: 700; color: #fff; }
+
+    .cover-bottom {
+      position: relative; z-index: 2;
+      display: flex; justify-content: space-between; align-items: flex-end;
+    }
+    .cover-desc {
+      max-width: 420px;
+      font-size: 13px; color: rgba(255,255,255,.45); line-height: 1.6;
+    }
+    .cover-stamp {
+      text-align: right;
+      font-size: 11px; color: rgba(255,255,255,.25);
+      line-height: 1.7;
     }
 
-    .cover-sub {
-      font-size: 22px;
-      font-weight: 300;
-      color: rgba(255,255,255,0.75);
-      margin-bottom: 48px;
-      position: relative; z-index: 1;
-    }
-
-    .cover-divider {
-      width: 80px;
-      height: 4px;
-      background: #f59e0b;
-      border-radius: 2px;
-      margin-bottom: 48px;
-    }
-
-    .cover-meta {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 32px;
-      position: relative; z-index: 1;
-      width: 100%;
-      max-width: 600px;
-    }
-
-    .cover-meta-item label {
-      display: block;
-      font-size: 11px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: rgba(255,255,255,0.5);
-      margin-bottom: 4px;
-    }
-
-    .cover-meta-item span {
-      font-size: 15px;
-      font-weight: 600;
-      color: #fff;
-    }
-
-    .cover-footer {
-      position: absolute;
-      bottom: 48px;
-      left: 80px;
-      right: 80px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      z-index: 1;
-      border-top: 1px solid rgba(255,255,255,0.15);
-      padding-top: 20px;
-    }
-
-    .cover-footer p {
-      font-size: 12px;
-      color: rgba(255,255,255,0.4);
-    }
-
-    /* PAGE LAYOUT */
-    .page {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 48px 56px;
-    }
-
-    /* PAGE BREAK */
+    /* ── PAGE ── */
+    .page { max-width: 920px; margin: 0 auto; padding: 52px 60px; }
     .break { page-break-before: always; }
 
-    /* SECTION HEADER */
-    .section-label {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      color: var(--primary);
-      margin-bottom: 8px;
+    /* ── SECTION HEADER ── */
+    .s-eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 10.5px; font-weight: 800;
+      text-transform: uppercase; letter-spacing: .14em;
+      color: var(--p); margin-bottom: 6px;
+    }
+    .s-eyebrow::before {
+      content: ''; width: 18px; height: 2px;
+      background: var(--p); border-radius: 1px;
     }
 
-    .section-label::before {
-      content: '';
-      display: block;
-      width: 16px;
-      height: 2px;
-      background: var(--primary);
-      border-radius: 1px;
-    }
+    h2 { font-size: 30px; font-weight: 900; color: var(--g900); margin-bottom: 6px; line-height: 1.15; }
+    .s-desc { font-size: 13.5px; color: var(--g500); margin-bottom: 32px; max-width: 600px; }
 
-    h2 {
-      font-size: 28px;
-      font-weight: 800;
-      color: var(--gray-900);
-      margin-bottom: 6px;
-      line-height: 1.2;
-    }
+    h3 { font-size: 15px; font-weight: 700; color: var(--g900); margin: 32px 0 12px; }
+    h3:first-of-type { margin-top: 0; }
 
-    h3 {
-      font-size: 16px;
-      font-weight: 700;
-      color: var(--gray-900);
-      margin: 28px 0 12px;
-    }
-
-    .section-desc {
-      font-size: 14px;
-      color: var(--muted);
-      margin-bottom: 28px;
-      max-width: 620px;
-    }
-
-    /* CARDS DE PRIORIDADE */
-    .priority-card {
-      border-radius: 12px;
-      padding: 20px 24px;
-      margin-bottom: 12px;
-      display: flex;
-      align-items: flex-start;
-      gap: 16px;
-      border: 1px solid transparent;
-    }
-
-    .priority-card.critical {
-      background: var(--red-light);
-      border-color: #fca5a5;
-    }
-
-    .priority-card.high {
-      background: var(--primary-light);
-      border-color: #c4b5fd;
-    }
-
-    .priority-card.medium {
-      background: var(--blue-light);
-      border-color: #93c5fd;
-    }
-
-    .priority-card.low {
-      background: var(--gray-100);
-      border-color: var(--gray-200);
-    }
-
-    .priority-card.done {
-      background: var(--green-light);
-      border-color: #6ee7b7;
-    }
-
-    .priority-num {
-      width: 32px;
-      height: 32px;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 13px;
-      font-weight: 800;
-      flex-shrink: 0;
-    }
-
-    .critical .priority-num { background: #dc2626; color: #fff; }
-    .high .priority-num { background: var(--primary); color: #fff; }
-    .medium .priority-num { background: var(--blue); color: #fff; }
-    .low .priority-num { background: var(--gray-500); color: #fff; }
-    .done .priority-num { background: var(--green); color: #fff; }
-
-    .priority-card-content h4 {
-      font-size: 14px;
-      font-weight: 700;
-      color: var(--gray-900);
-      margin-bottom: 3px;
-    }
-
-    .priority-card-content p {
-      font-size: 13px;
-      color: var(--gray-700);
-    }
-
-    .priority-card-content .badge {
-      display: inline-block;
-      margin-top: 6px;
-      font-size: 11px;
-      font-weight: 600;
-      padding: 2px 10px;
-      border-radius: 999px;
-    }
-
-    .badge-critico { background: #dc2626; color: #fff; }
-    .badge-alta { background: var(--primary); color: #fff; }
-    .badge-media { background: var(--blue); color: #fff; }
-    .badge-baixa { background: var(--gray-500); color: #fff; }
-    .badge-feito { background: var(--green); color: #fff; }
-    .badge-futuro { background: var(--accent); color: #fff; }
-
-    /* TABLES */
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 16px 0 28px;
-      font-size: 13px;
-    }
-
-    thead tr {
-      background: var(--gray-900);
-      color: #fff;
-    }
-
-    thead th {
-      padding: 10px 14px;
-      text-align: left;
-      font-weight: 600;
-      font-size: 12px;
-      letter-spacing: 0.04em;
-    }
-
-    thead th:first-child { border-radius: 8px 0 0 8px; }
-    thead th:last-child { border-radius: 0 8px 8px 0; }
-
-    tbody tr { border-bottom: 1px solid var(--gray-100); }
-    tbody tr:last-child { border-bottom: none; }
-    tbody tr:hover { background: var(--gray-50); }
-
-    td {
-      padding: 9px 14px;
-      color: var(--gray-700);
-      vertical-align: top;
-    }
-
-    td:first-child { font-weight: 600; color: var(--gray-900); }
-
-    .status-ok::before { content: '✅ '; }
-    .status-no::before { content: '⬜ '; }
-    .status-partial::before { content: '🔶 '; }
-
-    /* DOMAIN BLOCKS */
-    .domain-block {
-      border: 1px solid var(--gray-200);
-      border-radius: 14px;
-      overflow: hidden;
-      margin-bottom: 20px;
-    }
-
-    .domain-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 14px 20px;
-      background: var(--gray-900);
-      color: #fff;
-    }
-
-    .domain-icon {
-      width: 36px;
-      height: 36px;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-      background: rgba(255,255,255,0.1);
-    }
-
-    .domain-header-text h3 {
-      margin: 0;
-      font-size: 15px;
-      font-weight: 700;
-      color: #fff;
-    }
-
-    .domain-header-text p {
-      font-size: 12px;
-      color: rgba(255,255,255,0.6);
-    }
-
-    .domain-body {
-      padding: 16px 20px;
-      background: #fff;
-    }
-
-    .domain-items {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-    }
-
-    .domain-item {
-      display: flex;
-      align-items: flex-start;
-      gap: 8px;
-      padding: 8px 12px;
-      border-radius: 8px;
-      font-size: 13px;
-    }
-
-    .domain-item.done { background: var(--green-light); color: #065f46; }
-    .domain-item.todo { background: var(--primary-light); color: #4c1d95; }
-    .domain-item.partial { background: var(--accent-light); color: #92400e; }
-
-    .domain-item .dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      margin-top: 5px;
-      flex-shrink: 0;
-    }
-
-    .done .dot { background: var(--green); }
-    .todo .dot { background: var(--primary); }
-    .partial .dot { background: var(--accent); }
-
-    /* TEAM CARDS */
-    .team-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 16px;
-      margin: 16px 0;
-    }
-
-    .team-card {
-      border-radius: 12px;
-      overflow: hidden;
-      border: 1px solid var(--gray-200);
-    }
-
-    .team-card-header {
-      padding: 16px;
-      color: #fff;
-      font-weight: 700;
-      font-size: 15px;
-    }
-
-    .team-card-header .role {
-      font-size: 11px;
-      font-weight: 500;
-      opacity: 0.8;
-      margin-top: 2px;
-    }
-
-    .dev1 .team-card-header { background: linear-gradient(135deg, #6d28d9, #7c3aed); }
-    .dev2 .team-card-header { background: linear-gradient(135deg, #0369a1, #0284c7); }
-    .dev3 .team-card-header { background: linear-gradient(135deg, #065f46, #059669); }
-
-    .team-card-body {
-      padding: 12px 16px;
-      background: var(--gray-50);
-    }
-
-    .team-card-body ul {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .team-card-body li {
-      font-size: 12px;
-      color: var(--gray-700);
-      display: flex;
-      align-items: flex-start;
-      gap: 6px;
-    }
-
-    .team-card-body li::before {
-      content: '→';
-      color: var(--muted);
-      flex-shrink: 0;
-    }
-
-    /* STACK TABLE */
-    .stack-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-      margin: 16px 0 28px;
-    }
-
-    .stack-item {
-      background: var(--gray-50);
-      border: 1px solid var(--gray-200);
-      border-radius: 10px;
-      padding: 14px 16px;
-    }
-
-    .stack-item .layer {
-      font-size: 11px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--muted);
-      margin-bottom: 4px;
-    }
-
-    .stack-item .tech {
-      font-size: 14px;
-      font-weight: 700;
-      color: var(--gray-900);
-    }
-
-    .stack-item .lang {
-      font-size: 12px;
-      color: var(--primary);
-      font-weight: 500;
-    }
-
-    /* RULES */
-    .rules-list {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin: 16px 0;
-    }
-
-    .rule-item {
-      display: flex;
-      align-items: flex-start;
-      gap: 14px;
-      padding: 12px 16px;
-      background: var(--gray-50);
-      border: 1px solid var(--gray-200);
-      border-radius: 10px;
-    }
-
-    .rule-num {
-      width: 26px;
-      height: 26px;
-      background: var(--gray-900);
-      color: #fff;
-      border-radius: 6px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 12px;
-      font-weight: 800;
-      flex-shrink: 0;
-    }
-
-    .rule-item p {
-      font-size: 13px;
-      color: var(--gray-700);
-    }
-
-    .rule-item p strong {
-      color: var(--gray-900);
-    }
-
-    /* CALLOUT */
+    /* ── CALLOUT ── */
     .callout {
-      border-left: 4px solid var(--primary);
-      background: var(--primary-light);
+      border-left: 4px solid var(--p);
+      background: var(--p-l);
       border-radius: 0 10px 10px 0;
       padding: 14px 18px;
       margin: 20px 0;
-      font-size: 13px;
-      color: #4c1d95;
+      font-size: 13px; color: var(--p-d);
+    }
+    .callout strong { font-weight: 700; }
+
+    .callout-warn {
+      border-left-color: var(--amber);
+      background: var(--amber-l);
+      color: #78350f;
     }
 
-    .callout strong { color: var(--primary); }
-
-    /* FOOTER */
-    .page-footer {
-      margin-top: 48px;
-      padding-top: 20px;
-      border-top: 1px solid var(--gray-200);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 11px;
-      color: var(--muted);
+    /* ── STACK GRID ── */
+    .stack-grid {
+      display: grid; grid-template-columns: repeat(3,1fr);
+      gap: 10px; margin-bottom: 28px;
     }
-
-    /* ROADMAP TIMELINE */
-    .timeline {
-      position: relative;
-      padding-left: 32px;
-      margin: 16px 0;
+    .stack-card {
+      background: var(--g50); border: 1px solid var(--g200);
+      border-radius: 10px; padding: 14px 16px;
     }
+    .stack-layer { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .09em; color: var(--g400); margin-bottom: 3px; }
+    .stack-tech { font-size: 14px; font-weight: 800; color: var(--g900); }
+    .stack-sub { font-size: 11.5px; color: var(--p); font-weight: 500; }
 
-    .timeline::before {
-      content: '';
-      position: absolute;
-      left: 10px;
-      top: 0; bottom: 0;
-      width: 2px;
-      background: var(--gray-200);
+    /* ── STATUS TABLE ── */
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 24px; font-size: 13px; }
+    thead tr { background: var(--g900); }
+    thead th { padding: 10px 14px; text-align: left; font-weight: 600; font-size: 11.5px; color: #fff; letter-spacing: .03em; }
+    thead th:first-child { border-radius: 8px 0 0 8px; }
+    thead th:last-child  { border-radius: 0 8px 8px 0; }
+    tbody tr { border-bottom: 1px solid var(--g100); }
+    tbody tr:last-child { border-bottom: none; }
+    td { padding: 9px 14px; color: var(--g700); vertical-align: top; }
+    td:first-child { font-weight: 600; color: var(--g900); }
+
+    .ok  { color: var(--green); font-weight: 700; }
+    .no  { color: var(--p);     font-weight: 700; }
+    .wip { color: var(--amber); font-weight: 700; }
+
+    /* ── PRIORITY CARDS ── */
+    .pcard {
+      display: flex; align-items: flex-start; gap: 14px;
+      border-radius: 12px; padding: 16px 20px; margin-bottom: 10px;
+      border: 1px solid transparent;
     }
+    .pcard-crit  { background: var(--red-l);   border-color: #fca5a5; }
+    .pcard-high  { background: var(--p-l);     border-color: #c4b5fd; }
+    .pcard-med   { background: var(--sky-l);   border-color: #7dd3fc; }
+    .pcard-low   { background: var(--g100);    border-color: var(--g200); }
 
-    .timeline-item {
-      position: relative;
-      margin-bottom: 20px;
+    .pnum {
+      min-width: 32px; height: 32px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 900;
     }
+    .pcard-crit .pnum { background: var(--red);   color: #fff; }
+    .pcard-high .pnum { background: var(--p);     color: #fff; }
+    .pcard-med  .pnum { background: var(--sky);   color: #fff; }
+    .pcard-low  .pnum { background: var(--g500);  color: #fff; }
 
-    .timeline-dot {
-      position: absolute;
-      left: -26px;
-      top: 4px;
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      border: 2px solid #fff;
-    }
+    .pcard-body h4 { font-size: 14px; font-weight: 700; margin-bottom: 3px; }
+    .pcard-body p  { font-size: 12.5px; color: var(--g700); line-height: 1.5; }
 
-    .timeline-item.done .timeline-dot { background: var(--green); }
-    .timeline-item.next .timeline-dot { background: var(--primary); }
-    .timeline-item.future .timeline-dot { background: var(--gray-300); }
-
-    .timeline-item h4 {
-      font-size: 14px;
-      font-weight: 700;
-      margin-bottom: 4px;
-    }
-
-    .timeline-item.done h4 { color: var(--green); }
-    .timeline-item.next h4 { color: var(--primary); }
-    .timeline-item.future h4 { color: var(--muted); }
-
-    .timeline-item p {
-      font-size: 12px;
-      color: var(--muted);
-    }
-
-    /* PRINT */
-    @media print {
-      body { font-size: 13px; }
-      .cover { min-height: 100vh; page-break-after: always; }
-      .break { page-break-before: always; }
-      .page { padding: 32px 40px; }
-      h2 { font-size: 22px; }
-      .team-grid { grid-template-columns: repeat(3, 1fr); }
-      .stack-grid { grid-template-columns: repeat(3, 1fr); }
-    }
-
-    /* SEPARADOR */
-    .divider {
-      border: none;
-      border-top: 1px solid var(--gray-200);
-      margin: 32px 0;
-    }
-
-    /* CHIPS */
     .chip {
-      display: inline-block;
-      padding: 2px 10px;
-      border-radius: 999px;
-      font-size: 11px;
-      font-weight: 600;
-      margin-left: 6px;
-      vertical-align: middle;
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 2px 10px; border-radius: 99px;
+      font-size: 11px; font-weight: 700; margin-left: 4px;
     }
-    .chip-purple { background: var(--primary-light); color: var(--primary); }
-    .chip-amber  { background: var(--accent-light); color: #92400e; }
-    .chip-green  { background: var(--green-light); color: var(--green); }
-    .chip-gray   { background: var(--gray-100); color: var(--gray-500); }
+    .chip-p     { background: var(--p-l);     color: var(--p);   }
+    .chip-amber { background: var(--amber-l); color: var(--amber); }
+    .chip-green { background: var(--green-l); color: var(--green); }
+    .chip-gray  { background: var(--g100);    color: var(--g500); }
+
+    /* ── DEV CARDS ── */
+    .dev-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin: 20px 0; }
+
+    .dev-card { border-radius: 14px; overflow: hidden; border: 1px solid var(--g200); }
+
+    .dev-header { padding: 18px 20px; color: #fff; position: relative; overflow: hidden; }
+    .dev-header::after {
+      content: ''; position: absolute; top: -20px; right: -20px;
+      width: 80px; height: 80px; border-radius: 50%;
+      background: rgba(255,255,255,.07);
+    }
+    .dev-num { font-size: 11px; font-weight: 700; opacity: .7; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 4px; }
+    .dev-name { font-size: 17px; font-weight: 900; }
+    .dev-role { font-size: 12px; opacity: .7; margin-top: 2px; }
+
+    .dev1 .dev-header { background: linear-gradient(135deg, #5b21b6, #7c3aed); }
+    .dev2 .dev-header { background: linear-gradient(135deg, #0c4a6e, #0284c7); }
+    .dev3 .dev-header { background: linear-gradient(135deg, #064e3b, #059669); }
+
+    .dev-body { padding: 16px 20px; background: #fff; }
+
+    .feature-item {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 10px 12px; border-radius: 8px;
+      margin-bottom: 8px; background: var(--g50);
+      border: 1px solid var(--g100);
+    }
+    .feature-item:last-child { margin-bottom: 0; }
+
+    .feature-icon {
+      font-size: 16px; line-height: 1;
+      width: 28px; height: 28px;
+      background: #fff; border-radius: 7px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; border: 1px solid var(--g200);
+    }
+
+    .feature-text strong {
+      display: block; font-size: 13px; font-weight: 700;
+      color: var(--g900); margin-bottom: 1px;
+    }
+    .feature-text span { font-size: 11.5px; color: var(--g500); line-height: 1.4; }
+
+    .feature-layers {
+      display: flex; gap: 4px; margin-top: 5px; flex-wrap: wrap;
+    }
+    .layer-tag {
+      font-size: 10px; font-weight: 700;
+      padding: 1px 7px; border-radius: 99px;
+    }
+    .lt-api  { background: #ede9fe; color: var(--p);   }
+    .lt-ui   { background: #dbeafe; color: var(--blue); }
+    .lt-db   { background: #d1fae5; color: var(--green); }
+    .lt-inf  { background: #fef3c7; color: var(--amber); }
+
+    /* ── LEGEND ── */
+    .legend {
+      display: flex; gap: 16px; flex-wrap: wrap;
+      margin-bottom: 16px; padding: 10px 14px;
+      background: var(--g50); border: 1px solid var(--g200);
+      border-radius: 8px;
+    }
+    .legend-item {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 11px; font-weight: 600; color: var(--g700);
+    }
+    .legend-dot { width: 8px; height: 8px; border-radius: 2px; }
+
+    /* ── RULES ── */
+    .rule {
+      display: flex; gap: 14px; align-items: flex-start;
+      padding: 12px 16px; margin-bottom: 8px;
+      background: var(--g50); border: 1px solid var(--g200); border-radius: 10px;
+    }
+    .rule-n {
+      width: 26px; height: 26px; border-radius: 6px;
+      background: var(--g900); color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 900; flex-shrink: 0;
+    }
+    .rule p { font-size: 13px; color: var(--g700); }
+    .rule strong { color: var(--g900); }
+    .rule code { background: var(--g200); padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+
+    /* ── TIMELINE ── */
+    .timeline { position: relative; padding-left: 30px; margin: 16px 0; }
+    .timeline::before {
+      content: ''; position: absolute; left: 8px; top: 0; bottom: 0;
+      width: 2px; background: var(--g200);
+    }
+    .tl-item { position: relative; margin-bottom: 22px; }
+    .tl-dot {
+      position: absolute; left: -26px; top: 5px;
+      width: 14px; height: 14px; border-radius: 50%;
+      border: 2px solid #fff; box-shadow: 0 0 0 2px var(--g200);
+    }
+    .tl-done .tl-dot  { background: var(--green);  box-shadow: 0 0 0 2px var(--green); }
+    .tl-now  .tl-dot  { background: var(--p);      box-shadow: 0 0 0 2px var(--p);     }
+    .tl-next .tl-dot  { background: var(--blue);   box-shadow: 0 0 0 2px var(--blue);  }
+    .tl-fut  .tl-dot  { background: var(--g300);   }
+
+    .tl-item h4 { font-size: 14px; font-weight: 700; margin-bottom: 3px; }
+    .tl-done h4 { color: var(--green); }
+    .tl-now  h4 { color: var(--p);     }
+    .tl-next h4 { color: var(--blue);  }
+    .tl-fut  h4 { color: var(--g400);  }
+    .tl-item p  { font-size: 12.5px; color: var(--g500); }
+
+    /* ── FOOTER ── */
+    .pfoot {
+      margin-top: 48px; padding-top: 16px;
+      border-top: 1px solid var(--g200);
+      display: flex; justify-content: space-between;
+      font-size: 11px; color: var(--g400);
+    }
+
+    hr.div { border: none; border-top: 1px solid var(--g200); margin: 32px 0; }
+
+    /* ── PRINT ── */
+    @media print {
+      .cover { min-height: 100vh; }
+      .break { page-break-before: always; }
+      .page { padding: 36px 44px; }
+      .dev-grid { grid-template-columns: repeat(3,1fr); }
+      .stack-grid { grid-template-columns: repeat(3,1fr); }
+    }
   </style>
 </head>
 <body>
 
-<!-- ─── CAPA ─── -->
+<!-- ══════════════════ CAPA ══════════════════ -->
 <div class="cover">
-  <div class="cover-tag">Documento Interno · Junho 2026</div>
-  <h1>Ani<span>Hype</span></h1>
-  <p class="cover-sub">Planejamento Completo de Desenvolvimento</p>
-  <div class="cover-divider"></div>
-  <div class="cover-meta">
-    <div class="cover-meta-item">
-      <label>Atualização</label>
-      <span>21/06/2026</span>
-    </div>
-    <div class="cover-meta-item">
-      <label>Time</label>
-      <span>3 Devs</span>
-    </div>
-    <div class="cover-meta-item">
-      <label>Fase</label>
-      <span>MVP Social</span>
+  <div class="cover-orb1"></div>
+  <div class="cover-orb2"></div>
+  <div class="cover-orb3"></div>
+
+  <div class="cover-top">
+    <div class="cover-pill">Documento Interno · Junho 2026</div>
+    <h1>Ani<em>Hype</em></h1>
+    <p class="cover-tagline">Planejamento de Desenvolvimento · Time Fullstack</p>
+    <div class="cover-stats">
+      <div class="cover-stat"><label>Data</label><span>21/06/2026</span></div>
+      <div class="cover-stat"><label>Time</label><span>3 Devs Fullstack</span></div>
+      <div class="cover-stat"><label>Fase</label><span>MVP Social ✅</span></div>
+      <div class="cover-stat"><label>Próxima frente</label><span>Refinamento</span></div>
     </div>
   </div>
-  <div class="cover-footer">
-    <p>Confidencial · AniHype</p>
-    <p>apps/api (NestJS) · apps/web (Next.js 15) · PostgreSQL</p>
+
+  <div class="cover-bottom">
+    <p class="cover-desc">
+      Este documento cobre o estado atual do projeto, tudo que ainda precisa ser construído e como dividir as tarefas entre 3 devs fullstack — cada um dono de features completas, do banco até a tela.
+    </p>
+    <div class="cover-stamp">
+      AniHype · apps/api (NestJS)<br>
+      apps/web (Next.js 15) · PostgreSQL
+    </div>
   </div>
 </div>
 
-<!-- ─── PÁGINA 1: VISÃO DO PRODUTO ─── -->
+<!-- ══════════════════ PÁG 1 — VISÃO & STACK ══════════════════ -->
 <div class="page break">
-  <div class="section-label">01 — Produto</div>
-  <h2>Visão do AniHype</h2>
-  <p class="section-desc">O Letterboxd do anime brasileiro — uma rede social premium focada no hype semanal de episódios.</p>
+  <div class="s-eyebrow">01 — Produto</div>
+  <h2>O que é o AniHype</h2>
+  <p class="s-desc">Uma plataforma social premium de anime sazonal. Mais Letterboxd do que banco de dados.</p>
 
   <div class="callout">
-    <strong>O que queremos que o usuário sinta:</strong><br>
-    "Esse site está vivo. Tem gente aqui."<br><br>
-    Não competimos com AniList/MAL em quantidade de dados. Competimos em <strong>comunidade, emoção e experiência visual premium</strong>.
+    <strong>Missão do produto:</strong> Não competir com AniList ou MAL em quantidade de dados. Competir em <strong>comunidade, emoção e experiência visual</strong>.<br>
+    A sensação que o usuário deve ter: <em>"Esse site está vivo. Tem gente aqui."</em>
   </div>
 
   <h3>Stack de Tecnologia</h3>
   <div class="stack-grid">
-    <div class="stack-item">
-      <div class="layer">Monorepo</div>
-      <div class="tech">Turborepo</div>
-      <div class="lang">npm workspaces</div>
+    <div class="stack-card">
+      <div class="stack-layer">Monorepo</div>
+      <div class="stack-tech">Turborepo</div>
+      <div class="stack-sub">npm workspaces</div>
     </div>
-    <div class="stack-item">
-      <div class="layer">Backend (API)</div>
-      <div class="tech">NestJS 10</div>
-      <div class="lang">TypeScript</div>
+    <div class="stack-card">
+      <div class="stack-layer">Backend</div>
+      <div class="stack-tech">NestJS 10</div>
+      <div class="stack-sub">TypeScript · apps/api/</div>
     </div>
-    <div class="stack-item">
-      <div class="layer">Banco de dados</div>
-      <div class="tech">PostgreSQL</div>
-      <div class="lang">Prisma ORM</div>
+    <div class="stack-card">
+      <div class="stack-layer">Banco de dados</div>
+      <div class="stack-tech">PostgreSQL</div>
+      <div class="stack-sub">Prisma ORM · schema.prisma</div>
     </div>
-    <div class="stack-item">
-      <div class="layer">Frontend</div>
-      <div class="tech">Next.js 15</div>
-      <div class="lang">TypeScript + TailwindCSS</div>
+    <div class="stack-card">
+      <div class="stack-layer">Frontend</div>
+      <div class="stack-tech">Next.js 15</div>
+      <div class="stack-sub">TypeScript · TailwindCSS · apps/web/</div>
     </div>
-    <div class="stack-item">
-      <div class="layer">Estado Global</div>
-      <div class="tech">Zustand</div>
-      <div class="lang">TanStack React Query</div>
+    <div class="stack-card">
+      <div class="stack-layer">Estado & Dados</div>
+      <div class="stack-tech">Zustand + React Query</div>
+      <div class="stack-sub">TanStack v5</div>
     </div>
-    <div class="stack-item">
-      <div class="layer">Autenticação</div>
-      <div class="tech">JWT + Refresh Token</div>
-      <div class="lang">15min / 7 dias</div>
+    <div class="stack-card">
+      <div class="stack-layer">Auth</div>
+      <div class="stack-tech">JWT + Refresh Token</div>
+      <div class="stack-sub">15min / 7 dias</div>
     </div>
-    <div class="stack-item">
-      <div class="layer">Dados externos</div>
-      <div class="tech">AniList GraphQL</div>
-      <div class="lang">Jikan REST (fallback)</div>
+    <div class="stack-card">
+      <div class="stack-layer">Dados externos</div>
+      <div class="stack-tech">AniList GraphQL</div>
+      <div class="stack-sub">Jikan REST (fallback MAL)</div>
     </div>
-    <div class="stack-item">
-      <div class="layer">Infra local</div>
-      <div class="tech">Docker Compose</div>
-      <div class="lang">PostgreSQL + pgAdmin</div>
+    <div class="stack-card">
+      <div class="stack-layer">Infra local</div>
+      <div class="stack-tech">Docker Compose</div>
+      <div class="stack-sub">PostgreSQL + pgAdmin</div>
     </div>
-    <div class="stack-item">
-      <div class="layer">Rodar projeto</div>
-      <div class="tech">npm run dev</div>
-      <div class="lang">localhost:3001 / 3002</div>
+    <div class="stack-card">
+      <div class="stack-layer">Rodar</div>
+      <div class="stack-tech">npm run dev</div>
+      <div class="stack-sub">localhost:3001 (API) / 3002 (Web)</div>
     </div>
   </div>
 
-  <h3>Regra de Ouro (nunca quebrar)</h3>
-  <div class="callout">
-    O frontend <strong>NUNCA</strong> chama AniList ou Jikan diretamente.<br>
+  <h3>Padrão de arquitetura (nunca quebrar)</h3>
+  <div class="callout callout-warn">
+    O frontend <strong>nunca</strong> chama AniList ou Jikan diretamente.<br>
     Único fluxo permitido: <strong>AniList / Jikan → SyncService (API) → PostgreSQL → Frontend</strong>
   </div>
 
-  <h3>Pentagon Score — Sistema de Notas Próprio</h3>
+  <h3>Pentagon Score — sistema de notas próprio</h3>
   <table>
-    <thead>
-      <tr><th>Critério</th><th>Ícone</th><th>O que avalia</th><th>Peso</th></tr>
-    </thead>
+    <thead><tr><th>Critério</th><th>Ícone</th><th>O que avalia</th><th>Peso</th></tr></thead>
     <tbody>
       <tr><td>Animação</td><td>🎨</td><td>Visual e direção de arte</td><td>1×</td></tr>
       <tr><td>Roteiro</td><td>📖</td><td>História e ritmo</td><td>1×</td></tr>
@@ -760,598 +457,487 @@
       <tr><td>Hype</td><td>⚡</td><td>Emoção, impacto e diversão</td><td><strong>2×</strong></td></tr>
     </tbody>
   </table>
-  <p style="font-size:12px;color:var(--muted);">Fórmula: <code>(animação + roteiro + personagens + som + hype×2) / 6</code></p>
+  <p style="font-size:12px;color:var(--g500)">Fórmula: <code style="background:var(--g100);padding:2px 6px;border-radius:4px">(animação + roteiro + personagens + som + hype×2) / 6</code></p>
 
-  <div class="page-footer">
-    <span>AniHype — Planejamento de Desenvolvimento · Jun/2026</span>
+  <div class="pfoot">
+    <span>AniHype — Planejamento Fullstack · Jun/2026</span>
     <span>Página 1</span>
   </div>
 </div>
 
-<!-- ─── PÁGINA 2: O QUE JÁ ESTÁ PRONTO ─── -->
+<!-- ══════════════════ PÁG 2 — O QUE JÁ EXISTE ══════════════════ -->
 <div class="page break">
-  <div class="section-label">02 — Estado Atual</div>
-  <h2>O que já está implementado</h2>
-  <p class="section-desc">Módulos de backend, páginas de frontend e estrutura de dados já funcionando.</p>
-
-  <h3>Backend — Módulos da API</h3>
-  <table>
-    <thead><tr><th>Módulo</th><th>O que faz</th><th>Status</th></tr></thead>
-    <tbody>
-      <tr><td>auth</td><td>Register, login, refresh token, logout, /me</td><td class="status-ok">Pronto</td></tr>
-      <tr><td>users</td><td>Perfil público por username</td><td class="status-ok">Pronto</td></tr>
-      <tr><td>user-follow</td><td>Seguir/deixar de seguir + contadores</td><td class="status-ok">Pronto</td></tr>
-      <tr><td>anime</td><td>Listar, filtrar, buscar, detalhe + streaming links</td><td class="status-ok">Pronto</td></tr>
-      <tr><td>anime-follow</td><td>Seguir anime + listagem no perfil</td><td class="status-ok">Pronto</td></tr>
-      <tr><td>anime-admin</td><td>Editar capa, banner, trailer, streaming, horários + isLocked</td><td class="status-ok">Pronto</td></tr>
-      <tr><td>episodes</td><td>Today, calendar, recent, trending, por anime + commentCount</td><td class="status-ok">Pronto</td></tr>
-      <tr><td>comments</td><td>CRUD + like + spoiler + replies + hot comments</td><td class="status-ok">Pronto</td></tr>
-      <tr><td>ratings</td><td>Pentagon Score — CRUD + cache agregado + review destaque</td><td class="status-ok">Pronto</td></tr>
-      <tr><td>top-anime</td><td>Top 4 animes favoritos do perfil</td><td class="status-ok">Pronto</td></tr>
-      <tr><td>highlights</td><td>Destaque hero da home (admin-managed)</td><td class="status-ok">Pronto</td></tr>
-      <tr><td>hype</td><td>Hype XP por atividade (comentar, like, rating, follow)</td><td class="status-ok">Pronto</td></tr>
-      <tr><td>feed</td><td>Feed de atividade de quem o usuário segue</td><td class="status-ok">Pronto</td></tr>
-      <tr><td>notifications</td><td>Notificações in-app + unread count + marcar lida</td><td class="status-ok">Pronto</td></tr>
-      <tr><td>sync</td><td>Sync AniList/Jikan + cron diário (04h) / semanal (dom 03h)</td><td class="status-ok">Pronto</td></tr>
-    </tbody>
-  </table>
-
-  <h3>Frontend — Páginas Implementadas</h3>
-  <table>
-    <thead><tr><th>Página</th><th>URL</th><th>O que tem</th></tr></thead>
-    <tbody>
-      <tr><td>Home</td><td>/</td><td>Hero, hoje, comunidade em alta, review destaque, trending</td></tr>
-      <tr><td>Catálogo</td><td>/anime</td><td>Grid + filtros + busca com debounce</td></tr>
-      <tr><td>Anime</td><td>/anime/[slug]</td><td>Banner, episódios, ratings, onde assistir, trailer, seguir</td></tr>
-      <tr><td>Episódio</td><td>/anime/[slug]/ep/[n]</td><td>Hero cinematográfico, comentários, navegação, onde assistir</td></tr>
-      <tr><td>Calendário</td><td>/calendar</td><td>Grade dos próximos 7 dias</td></tr>
-      <tr><td>Feed</td><td>/feed</td><td>Atividade de quem você segue (requer login)</td></tr>
-      <tr><td>Perfil</td><td>/u/[username]</td><td>Avatar, bio, Top 4, Hype XP, seguidores, atividade</td></tr>
-      <tr><td>Admin</td><td>/admin</td><td>Sync, cron, highlights, editor de anime</td></tr>
-    </tbody>
-  </table>
-
-  <div class="page-footer">
-    <span>AniHype — Planejamento de Desenvolvimento · Jun/2026</span>
-    <span>Página 2</span>
-  </div>
-</div>
-
-<!-- ─── PÁGINA 3: PRIORIDADES ─── -->
-<div class="page break">
-  <div class="section-label">03 — Roadmap</div>
-  <h2>Prioridades de Desenvolvimento</h2>
-  <p class="section-desc">Tudo que falta, ordenado por impacto no produto. Itens com ⬛ banco já tem a estrutura pronta.</p>
-
-  <h3>🔴 Prioridade Crítica — sem isso o produto não vive</h3>
-
-  <div class="priority-card critical">
-    <div class="priority-num">1</div>
-    <div class="priority-card-content">
-      <h4>Popular o banco de dados</h4>
-      <p>Rodar <code>npm run sync:season</code> ou usar o admin → Importar Temporada. Sem anime no banco, a home e calendário ficam completamente vazios.</p>
-      <span class="badge badge-critico">Crítico</span>
-    </div>
-  </div>
-
-  <div class="priority-card critical">
-    <div class="priority-num">2</div>
-    <div class="priority-card-content">
-      <h4>Deploy mínimo em staging/produção</h4>
-      <p>Sem isso não dá para testar com usuários reais. Precisa de VPS ou serviço (Railway, Render, Hetzner) + Docker Compose completo.</p>
-      <span class="badge badge-critico">Crítico</span>
-    </div>
-  </div>
-
-  <div class="priority-card critical">
-    <div class="priority-num">3</div>
-    <div class="priority-card-content">
-      <h4>Editar perfil próprio</h4>
-      <p>Usuário não consegue alterar bio, nome de exibição nem avatar depois de criar a conta. Endpoint PATCH /users/me + upload de avatar.</p>
-      <span class="badge badge-critico">Crítico</span>
-    </div>
-  </div>
-
-  <hr class="divider" />
-
-  <h3>🟣 Alta Prioridade — impacto alto, dividir entre o time</h3>
-
-  <div class="priority-card high">
-    <div class="priority-num">4</div>
-    <div class="priority-card-content">
-      <h4>Upload de avatar <span class="chip chip-purple">Cloudflare R2 ou S3</span></h4>
-      <p>Precisa de storage externo. Decisão: URL externa na V1 ou upload próprio?</p>
-      <span class="badge badge-alta">Alta</span>
-    </div>
-  </div>
-
-  <div class="priority-card high">
-    <div class="priority-num">5</div>
-    <div class="priority-card-content">
-      <h4>Ranking de animes <span class="chip chip-purple">/ranking</span></h4>
-      <p>Top por nota da comunidade. Banco já tem índice em ratingAverage + ratingCount. Esforço pequeno, alto impacto visual.</p>
-      <span class="badge badge-alta">Alta</span>
-    </div>
-  </div>
-
-  <div class="priority-card high">
-    <div class="priority-num">6</div>
-    <div class="priority-card-content">
-      <h4>Busca global <span class="chip chip-purple">/search?q=</span></h4>
-      <p>Buscar anime + usuário em um endpoint. Hoje a busca é só no catálogo /anime. Decisão: barra no header ou página dedicada?</p>
-      <span class="badge badge-alta">Alta</span>
-    </div>
-  </div>
-
-  <div class="priority-card high">
-    <div class="priority-num">7</div>
-    <div class="priority-card-content">
-      <h4>Recuperar senha <span class="chip chip-amber">Banco pronto</span></h4>
-      <p>Tabela password_reset_tokens existe, mas não tem API nem UI. Fluxo: email → link → nova senha.</p>
-      <span class="badge badge-alta">Alta</span>
-    </div>
-  </div>
-
-  <div class="priority-card high">
-    <div class="priority-num">8</div>
-    <div class="priority-card-content">
-      <h4>CI/CD GitHub Actions</h4>
-      <p>Lint + typecheck + build a cada PR. Evita quebrar a main. Arquivo .github/workflows/ci.yml.</p>
-      <span class="badge badge-alta">Alta</span>
-    </div>
-  </div>
-
-  <div class="page-footer">
-    <span>AniHype — Planejamento de Desenvolvimento · Jun/2026</span>
-    <span>Página 3</span>
-  </div>
-</div>
-
-<!-- ─── PÁGINA 4: MÉDIA E BAIXA ─── -->
-<div class="page break">
-  <div class="section-label">03 — Roadmap (continuação)</div>
-  <h2>Média e Baixa Prioridade</h2>
-
-  <h3>🔵 Média Prioridade — melhora retenção e polish</h3>
+  <div class="s-eyebrow">02 — Estado Atual</div>
+  <h2>O que já está pronto</h2>
+  <p class="s-desc">Features completas (back + front) que já estão funcionando hoje.</p>
 
   <table>
-    <thead><tr><th>#</th><th>Feature</th><th>Frente</th><th>O que discutir</th></tr></thead>
+    <thead><tr><th>Feature</th><th>O que funciona hoje</th><th>Status</th></tr></thead>
     <tbody>
-      <tr><td>9</td><td>Seção de reviews na página do anime</td><td>Comunidade</td><td>Paginação, ordenar por recentes ou melhores?</td></tr>
-      <tr><td>10</td><td>Paginação do feed</td><td>Social</td><td>Cursor ou offset? Quantos itens por página?</td></tr>
-      <tr><td>11</td><td>Toggle notificação por anime</td><td>Social</td><td>Campo notifyOnEpisode existe no banco, falta UI</td></tr>
-      <tr><td>12</td><td>Preferências de notificação</td><td>Social</td><td>Banco tem tabela pronta. O que o usuário pode silenciar?</td></tr>
-      <tr><td>13</td><td>Mobile bottom navigation + badge</td><td>UX</td><td>Quais abas: Home, Feed, Calendário, Perfil?</td></tr>
-      <tr><td>14</td><td>Ranking de usuários por Hype XP</td><td>Gamificação</td><td>Público ou opt-in? Ranking pode ser competitivo demais?</td></tr>
-      <tr><td>15</td><td>Badges automáticos</td><td>Gamificação</td><td>Tabelas prontas, falta lógica de concessão. Quais na V1?</td></tr>
-      <tr><td>16</td><td>Filtro por gênero no catálogo</td><td>Anime</td><td>Quais filtros além de status e busca?</td></tr>
-      <tr><td>17</td><td>Perfil — lista completa de animes seguidos</td><td>Anime</td><td>Mostrar tudo ou paginar?</td></tr>
-      <tr><td>18</td><td>Watchlist ("quero assistir")</td><td>Anime</td><td>Separado de "seguindo" ou é a mesma coisa?</td></tr>
-      <tr><td>19</td><td>Spoiler settings por usuário</td><td>UX</td><td>Banco tem tabela spoiler_settings. Tela de configuração?</td></tr>
-      <tr><td>20</td><td>Polish visual (skeleton, animações)</td><td>UX</td><td>Quais páginas polir primeiro?</td></tr>
-      <tr><td>21</td><td>Testes automatizados (Jest)</td><td>Qualidade</td><td>Quais services críticos testar primeiro?</td></tr>
-      <tr><td>22</td><td>Painel de moderação /admin/moderation</td><td>Admin</td><td>Banco tem logs prontos. Quem modera?</td></tr>
-      <tr><td>23</td><td>Denúncia de comentários</td><td>Comunidade</td><td>comment_reports existe. Fluxo: denunciar → mod revisa</td></tr>
-      <tr><td>24</td><td>Verificação de e-mail</td><td>Conta</td><td>Obrigatória no cadastro ou opcional?</td></tr>
-    </tbody>
-  </table>
-
-  <h3>⚪ Baixa Prioridade / Futuro</h3>
-
-  <table>
-    <thead><tr><th>Feature</th><th>Frente</th><th>Observação</th></tr></thead>
-    <tbody>
-      <tr><td>OAuth Google/Discord</td><td>Conta</td><td>Banco preparado. Prioridade após recuperação de senha</td></tr>
-      <tr><td>Daily login bonus</td><td>Gamificação</td><td>Enum DAILY_LOGIN existe. Incentiva ou vira farm?</td></tr>
-      <tr><td>Gráfico radar usuário vs comunidade</td><td>Comunidade</td><td>Mostrar na página do anime e no perfil</td></tr>
-      <tr><td>Reações em comentários (🔥😂😭)</td><td>Comunidade</td><td>Vale a complexidade ou like basta na V1?</td></tr>
-      <tr><td>Push notifications web</td><td>Social</td><td>Service worker + Web Push API</td></tr>
-      <tr><td>E-mail de notificação</td><td>Social</td><td>Precisa de SMTP / serviço de e-mail</td></tr>
-      <tr><td>WebSockets (tempo real)</td><td>Social</td><td>Comentários ao vivo, contagem em tempo real</td></tr>
-      <tr><td>PWA avançado</td><td>Infra</td><td>Install prompt, ícones PNG 512px</td></tr>
-      <tr><td>Catálogo histórico completo</td><td>Anime</td><td>Importar milhares de títulos além da temporada atual</td></tr>
-      <tr><td>Premium (assinatura)</td><td>Monetização</td><td>Tabela premium_subscriptions existe. Sem produto definido</td></tr>
-      <tr><td>Ads</td><td>Monetização</td><td>Tabela ad_slots existe. Sem implementação</td></tr>
-      <tr><td>App mobile</td><td>Infra</td><td>React Native ou PWA nativo. Pós-produto estável</td></tr>
-      <tr><td>Import de lista do MAL</td><td>Anime</td><td>Retenção de usuários vindos do MAL</td></tr>
-    </tbody>
-  </table>
-
-  <div class="page-footer">
-    <span>AniHype — Planejamento de Desenvolvimento · Jun/2026</span>
-    <span>Página 4</span>
-  </div>
-</div>
-
-<!-- ─── PÁGINA 5: DOMÍNIOS ─── -->
-<div class="page break">
-  <div class="section-label">04 — Domínios</div>
-  <h2>Os 10 Domínios do Projeto</h2>
-  <p class="section-desc">Cada domínio pode ser desenvolvido de forma independente — ideal para dividir entre o time.</p>
-
-  <div class="domain-block">
-    <div class="domain-header">
-      <div class="domain-icon">👤</div>
-      <div class="domain-header-text">
-        <h3>1. Usuário & Conta</h3>
-        <p>Cadastro, login, perfil, avatar, senha</p>
-      </div>
-    </div>
-    <div class="domain-body">
-      <div class="domain-items">
-        <div class="domain-item done"><div class="dot"></div>Cadastro, login, refresh token</div>
-        <div class="domain-item done"><div class="dot"></div>Perfil público com Top 4 e seguidores</div>
-        <div class="domain-item todo"><div class="dot"></div>Editar perfil (bio, displayName, avatar)</div>
-        <div class="domain-item todo"><div class="dot"></div>Upload de avatar (R2/S3)</div>
-        <div class="domain-item todo"><div class="dot"></div>Recuperar senha (banco pronto)</div>
-        <div class="domain-item todo"><div class="dot"></div>Verificação de e-mail (banco pronto)</div>
-        <div class="domain-item todo"><div class="dot"></div>OAuth Google/Discord (banco pronto)</div>
-        <div class="domain-item todo"><div class="dot"></div>Excluir conta (soft delete existe)</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="domain-block">
-    <div class="domain-header">
-      <div class="domain-icon">🎌</div>
-      <div class="domain-header-text">
-        <h3>2. Anime & Episódios</h3>
-        <p>Catálogo, sync, calendário, ranking</p>
-      </div>
-    </div>
-    <div class="domain-body">
-      <div class="domain-items">
-        <div class="domain-item done"><div class="dot"></div>Listagem, filtros, busca, detalhe</div>
-        <div class="domain-item done"><div class="dot"></div>Episódios: today, calendar, trending</div>
-        <div class="domain-item done"><div class="dot"></div>Sync AniList/Jikan + cron automático</div>
-        <div class="domain-item done"><div class="dot"></div>isLocked + admin editor</div>
-        <div class="domain-item todo"><div class="dot"></div>Popular banco com temporada atual</div>
-        <div class="domain-item todo"><div class="dot"></div>Ranking de animes /ranking</div>
-        <div class="domain-item todo"><div class="dot"></div>Busca global /search?q=</div>
-        <div class="domain-item todo"><div class="dot"></div>Filtro por gênero no catálogo</div>
-        <div class="domain-item todo"><div class="dot"></div>Watchlist "quero assistir"</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="domain-block">
-    <div class="domain-header">
-      <div class="domain-icon">💬</div>
-      <div class="domain-header-text">
-        <h3>3. Comunidade (Comentários & Ratings)</h3>
-        <p>A alma do produto — discussão e avaliação</p>
-      </div>
-    </div>
-    <div class="domain-body">
-      <div class="domain-items">
-        <div class="domain-item done"><div class="dot"></div>Comentários com replies, likes, spoiler</div>
-        <div class="domain-item done"><div class="dot"></div>Pentagon Score + cache agregado</div>
-        <div class="domain-item done"><div class="dot"></div>Hot comments para a home</div>
-        <div class="domain-item todo"><div class="dot"></div>Seção de reviews na página do anime</div>
-        <div class="domain-item todo"><div class="dot"></div>Denúncia de comentários (banco pronto)</div>
-        <div class="domain-item todo"><div class="dot"></div>Moderação admin (banco pronto)</div>
-        <div class="domain-item todo"><div class="dot"></div>Gráfico radar usuário vs comunidade</div>
-        <div class="domain-item todo"><div class="dot"></div>Reações além de like (🔥😂😭)</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="domain-block">
-    <div class="domain-header">
-      <div class="domain-icon">📡</div>
-      <div class="domain-header-text">
-        <h3>4. Social (Feed & Notificações)</h3>
-        <p>Loop de retenção e alertas</p>
-      </div>
-    </div>
-    <div class="domain-body">
-      <div class="domain-items">
-        <div class="domain-item done"><div class="dot"></div>Feed /feed de quem você segue</div>
-        <div class="domain-item done"><div class="dot"></div>Notificações in-app (like, reply, seguidor, episódio)</div>
-        <div class="domain-item done"><div class="dot"></div>Sino no header com badge</div>
-        <div class="domain-item todo"><div class="dot"></div>Paginação do feed (cursor pagination)</div>
-        <div class="domain-item todo"><div class="dot"></div>Toggle notificação por anime (UI falta)</div>
-        <div class="domain-item todo"><div class="dot"></div>Página de preferências de notificação</div>
-        <div class="domain-item todo"><div class="dot"></div>Push notifications web</div>
-        <div class="domain-item todo"><div class="dot"></div>E-mail de notificação</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="domain-block">
-    <div class="domain-header">
-      <div class="domain-icon">⚡</div>
-      <div class="domain-header-text">
-        <h3>5. Gamificação (Hype XP & Badges)</h3>
-        <p>Reputação e identidade do usuário</p>
-      </div>
-    </div>
-    <div class="domain-body">
-      <div class="domain-items">
-        <div class="domain-item done"><div class="dot"></div>Hype XP por comentar, like, rating, follow</div>
-        <div class="domain-item done"><div class="dot"></div>Níveis calculados e exibidos no perfil</div>
-        <div class="domain-item todo"><div class="dot"></div>Ranking de usuários por XP</div>
-        <div class="domain-item todo"><div class="dot"></div>Badges automáticos (tabelas prontas)</div>
-        <div class="domain-item todo"><div class="dot"></div>Conquistas (primeiro comentário, 100 XP…)</div>
-        <div class="domain-item todo"><div class="dot"></div>Daily login bonus (enum pronto)</div>
-        <div class="domain-item todo"><div class="dot"></div>Badge visível no comentário e perfil</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="domain-block">
-    <div class="domain-header">
-      <div class="domain-icon">🏠</div>
-      <div class="domain-header-text">
-        <h3>6. Home & Descoberta</h3>
-        <p>A vitrine do produto — o que o usuário vê primeiro</p>
-      </div>
-    </div>
-    <div class="domain-body">
-      <div class="domain-items">
-        <div class="domain-item done"><div class="dot"></div>Hero, lançamentos hoje, comunidade em alta</div>
-        <div class="domain-item done"><div class="dot"></div>Review destaque, em exibição, trending</div>
-        <div class="domain-item todo"><div class="dot"></div>Home personalizada para logados</div>
-        <div class="domain-item todo"><div class="dot"></div>Mobile bottom navigation com badge</div>
-        <div class="domain-item todo"><div class="dot"></div>Polish: skeleton, animações, empty states</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="domain-block">
-    <div class="domain-header">
-      <div class="domain-icon">🛡️</div>
-      <div class="domain-header-text">
-        <h3>7. Admin & Moderação</h3>
-        <p>Operação do produto</p>
-      </div>
-    </div>
-    <div class="domain-body">
-      <div class="domain-items">
-        <div class="domain-item done"><div class="dot"></div>Sync manual, cron, highlights, editor anime</div>
-        <div class="domain-item todo"><div class="dot"></div>Painel de moderação /admin/moderation</div>
-        <div class="domain-item todo"><div class="dot"></div>Middleware server-side em /admin</div>
-        <div class="domain-item todo"><div class="dot"></div>Logs de sync mais claros</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="domain-block">
-    <div class="domain-header">
-      <div class="domain-icon">🚀</div>
-      <div class="domain-header-text">
-        <h3>8. Infraestrutura & Deploy</h3>
-        <p>Fazer o produto rodar em produção</p>
-      </div>
-    </div>
-    <div class="domain-body">
-      <div class="domain-items">
-        <div class="domain-item done"><div class="dot"></div>docker-compose.yml para Postgres local</div>
-        <div class="domain-item done"><div class="dot"></div>Turborepo + health check na API</div>
-        <div class="domain-item todo"><div class="dot"></div>Dockerfile para API e web</div>
-        <div class="domain-item todo"><div class="dot"></div>docker-compose.prod.yml (API+Web+Nginx)</div>
-        <div class="domain-item todo"><div class="dot"></div>GitHub Actions CI/CD</div>
-        <div class="domain-item todo"><div class="dot"></div>Deploy em VPS/Railway/Render</div>
-        <div class="domain-item todo"><div class="dot"></div>SSL, CORS em produção</div>
-        <div class="domain-item todo"><div class="dot"></div>Sentry, uptime monitoring</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="page-footer">
-    <span>AniHype — Planejamento de Desenvolvimento · Jun/2026</span>
-    <span>Página 5</span>
-  </div>
-</div>
-
-<!-- ─── PÁGINA 6: DIVISÃO DO TIME ─── -->
-<div class="page break">
-  <div class="section-label">05 — Time</div>
-  <h2>Divisão entre os 3 Devs</h2>
-  <p class="section-desc">Divisão pensada para evitar conflito de merge. Cada dev mexe em arquivos diferentes.</p>
-
-  <div class="team-grid">
-    <div class="team-card dev1">
-      <div class="team-card-header">
-        Dev 1
-        <div class="role">Frontend & Produto</div>
-      </div>
-      <div class="team-card-body">
-        <ul>
-          <li>Página /configuracoes (editar perfil)</li>
-          <li>Página /ranking (animes + usuários)</li>
-          <li>Seção de reviews na página do anime</li>
-          <li>Mobile bottom navigation + badge</li>
-          <li>Toggle notificação por anime (UI)</li>
-          <li>Polish: skeleton, animações, empty states</li>
-          <li>Tipos em src/types/api.ts para features novas</li>
-        </ul>
-      </div>
-    </div>
-    <div class="team-card dev2">
-      <div class="team-card-header">
-        Dev 2
-        <div class="role">Backend & Features</div>
-      </div>
-      <div class="team-card-body">
-        <ul>
-          <li>PATCH /users/me + upload avatar (R2/S3)</li>
-          <li>GET /anime/ranking + GET /users/ranking</li>
-          <li>GET /search?q= (busca unificada)</li>
-          <li>Cursor pagination em /feed/me</li>
-          <li>PATCH /anime-follow/:id (toggle notify)</li>
-          <li>Sistema de badges — concessão automática</li>
-          <li>POST /auth/forgot-password (recuperar senha)</li>
-        </ul>
-      </div>
-    </div>
-    <div class="team-card dev3">
-      <div class="team-card-header">
-        Dev 3
-        <div class="role">Infra & DevOps</div>
-      </div>
-      <div class="team-card-body">
-        <ul>
-          <li>Dockerfile para API e web</li>
-          <li>docker-compose.prod.yml + Nginx</li>
-          <li>GitHub Actions CI (lint, typecheck, build)</li>
-          <li>Configurar VPS + deploy</li>
-          <li>Secrets e variáveis de produção</li>
-          <li>SSL / HTTPS</li>
-          <li>Monitoramento básico (uptime, health)</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-
-  <h3>Arquivos de cada Dev — zona segura</h3>
-  <table>
-    <thead><tr><th>Dev</th><th>Pode mexer livremente</th><th>⚠️ Combinar antes</th></tr></thead>
-    <tbody>
-      <tr>
-        <td>Dev 1</td>
-        <td>apps/web/src/app/* · components/* · hooks/use-*.ts · types/api.ts</td>
-        <td>site-header.tsx · auth-provider.tsx · services/api.ts</td>
-      </tr>
-      <tr>
-        <td>Dev 2</td>
-        <td>apps/api/src/modules/* (módulos novos) · services novos</td>
-        <td>prisma/schema.prisma · app.module.ts · services/api.ts</td>
-      </tr>
-      <tr>
-        <td>Dev 3</td>
-        <td>Dockerfile* · docker-compose* · .github/workflows/* · nginx.conf</td>
-        <td>.env.example (não commitar .env real nunca)</td>
-      </tr>
-    </tbody>
-  </table>
-
-  <hr class="divider" />
-
-  <div class="section-label">06 — Regras</div>
-  <h2>Regras de Colaboração</h2>
-  <p class="section-desc">Simples, mas evitam muito conflito de merge e horas de debug desnecessário.</p>
-
-  <div class="rules-list">
-    <div class="rule-item">
-      <div class="rule-num">1</div>
-      <p><strong>Um branch por feature:</strong> <code>feature/nome-da-feature</code>. Nunca commitar direto na main.</p>
-    </div>
-    <div class="rule-item">
-      <div class="rule-num">2</div>
-      <p><strong>Antes de mexer em schema.prisma:</strong> avisa o time. Todos precisam dar git pull e rodar a migration antes de continuar.</p>
-    </div>
-    <div class="rule-item">
-      <div class="rule-num">3</div>
-      <p><strong>Antes de mexer em app.module.ts:</strong> avisa no chat do time. Conflito de merge aqui é frequente.</p>
-    </div>
-    <div class="rule-item">
-      <div class="rule-num">4</div>
-      <p><strong>Antes de abrir PR:</strong> rodar <code>npm run type-check</code>. Não abrir PR com erro de TypeScript.</p>
-    </div>
-    <div class="rule-item">
-      <div class="rule-num">5</div>
-      <p><strong>Nunca commitar .env:</strong> nem o .env da API, nem o da web. Usar sempre .env.example como referência.</p>
-    </div>
-    <div class="rule-item">
-      <div class="rule-num">6</div>
-      <p><strong>Zero hardcode:</strong> URLs, segredos e credenciais sempre em variáveis de ambiente.</p>
-    </div>
-  </div>
-
-  <div class="page-footer">
-    <span>AniHype — Planejamento de Desenvolvimento · Jun/2026</span>
-    <span>Página 6</span>
-  </div>
-</div>
-
-<!-- ─── PÁGINA 7: PAUTA DA REUNIÃO ─── -->
-<div class="page break">
-  <div class="section-label">07 — Próximos Passos</div>
-  <h2>Pauta para a Primeira Reunião</h2>
-  <p class="section-desc">Ordem sugerida de discussão. Resolver do mais crítico ao mais estratégico.</p>
-
-  <div class="timeline">
-    <div class="timeline-item done">
-      <div class="timeline-dot"></div>
-      <h4>✅ Implementado — loop social, feed, notificações, sync, home viva</h4>
-      <p>MVP social funcional. Comentários, ratings, follows, notificações in-app, admin editor.</p>
-    </div>
-
-    <div class="timeline-item next">
-      <div class="timeline-dot"></div>
-      <h4>🎯 Agora — Popular banco + Deploy</h4>
-      <p>Rodar sync:season, subir em staging. Confirmar que o produto funciona com dados reais antes de avançar.</p>
-    </div>
-
-    <div class="timeline-item next">
-      <div class="timeline-dot"></div>
-      <h4>🎯 Semana 1 — Editar perfil + Avatar</h4>
-      <p>PATCH /users/me (Dev 2) + página /configuracoes (Dev 1) + CI/CD (Dev 3). Pode rodar em paralelo.</p>
-    </div>
-
-    <div class="timeline-item next">
-      <div class="timeline-dot"></div>
-      <h4>🎯 Semana 2 — Ranking + Busca Global</h4>
-      <p>GET /ranking e GET /search (Dev 2) + páginas no frontend (Dev 1). Alto impacto visual.</p>
-    </div>
-
-    <div class="timeline-item next">
-      <div class="timeline-dot"></div>
-      <h4>🎯 Semana 3 — Feed paginado + Toggle notificação</h4>
-      <p>Cursor pagination (Dev 2) + UI toggle anime (Dev 1) + Docker prod (Dev 3).</p>
-    </div>
-
-    <div class="timeline-item next">
-      <div class="timeline-dot"></div>
-      <h4>🎯 Semana 4 — Reviews + Moderação</h4>
-      <p>Seção de reviews na página do anime (Dev 1) + denúncia/moderação (Dev 2).</p>
-    </div>
-
-    <div class="timeline-item future">
-      <div class="timeline-dot"></div>
-      <h4>⏳ Futuro — Badges, OAuth, Push, Premium</h4>
-      <p>Após produto estabilizado em produção. Banco e modelos já preparados para todas essas features.</p>
-    </div>
-  </div>
-
-  <hr class="divider" />
-
-  <div class="section-label">08 — Referência</div>
-  <h2>Conta Admin & Setup Rápido</h2>
-
-  <table>
-    <thead><tr><th>Dado</th><th>Valor</th></tr></thead>
-    <tbody>
-      <tr><td>Email admin</td><td>anihype@gmail.com</td></tr>
-      <tr><td>Senha admin</td><td>AniHype1$</td></tr>
-      <tr><td>Frontend local</td><td>http://localhost:3002</td></tr>
-      <tr><td>API local</td><td>http://localhost:3001/api/v1</td></tr>
-      <tr><td>Swagger (docs)</td><td>http://localhost:3001/api/docs</td></tr>
-    </tbody>
-  </table>
-
-  <h3>Comandos essenciais</h3>
-  <table>
-    <thead><tr><th>Comando</th><th>O que faz</th></tr></thead>
-    <tbody>
-      <tr><td>npm install</td><td>Instala dependências de todo o monorepo</td></tr>
-      <tr><td>npm run db:setup</td><td>Cria banco, roda migrations e seed de roles</td></tr>
-      <tr><td>npm run dev</td><td>Sobe API + Web juntos</td></tr>
-      <tr><td>npm run dev:api</td><td>Só o backend (porta 3001)</td></tr>
-      <tr><td>npm run dev:web</td><td>Só o frontend (porta 3002)</td></tr>
-      <tr><td>npm run sync:season</td><td>Importa todos os animes da temporada atual</td></tr>
-      <tr><td>npm run type-check</td><td>Verifica erros TypeScript em todo o projeto</td></tr>
+      <tr><td>Autenticação completa</td><td>Cadastro, login, refresh token, logout, sessão persistente no F5, interceptor 401</td><td class="ok">✅ Pronto</td></tr>
+      <tr><td>Catálogo de animes</td><td>Listagem, filtros, busca com debounce, detalhe por slug, streaming links</td><td class="ok">✅ Pronto</td></tr>
+      <tr><td>Sync AniList/Jikan</td><td>Import por ID, import temporada, cron diário (04h) e semanal (dom 03h)</td><td class="ok">✅ Pronto</td></tr>
+      <tr><td>Episódios</td><td>Today, calendar, recent, trending, por anime, navegação entre eps, commentCount</td><td class="ok">✅ Pronto</td></tr>
+      <tr><td>Comentários</td><td>CRUD + thread (replies) + likes + spoiler blur/reveal + hot comments</td><td class="ok">✅ Pronto</td></tr>
+      <tr><td>Pentagon Score</td><td>5 critérios + fórmula + cache agregado + badge nos cards + review destaque home</td><td class="ok">✅ Pronto</td></tr>
+      <tr><td>Perfil público</td><td>Avatar, bio, Top 4, Hype XP, seguidores, atividade recente</td><td class="ok">✅ Pronto</td></tr>
+      <tr><td>Seguir anime</td><td>Botão na página do anime + seção "seguindo" no perfil</td><td class="ok">✅ Pronto</td></tr>
+      <tr><td>Seguir usuário</td><td>Botão no perfil + contadores de seguidores/seguindo</td><td class="ok">✅ Pronto</td></tr>
+      <tr><td>Hype XP</td><td>XP por comentar, reply, like recebido, rating, follow anime · níveis no perfil</td><td class="ok">✅ Pronto</td></tr>
+      <tr><td>Top 4 do perfil</td><td>Escolher 4 animes favoritos · exibido no perfil público</td><td class="ok">✅ Pronto</td></tr>
+      <tr><td>Feed de atividade</td><td>Página /feed com o que quem você segue está fazendo (comentários, ratings, follows)</td><td class="ok">✅ Pronto</td></tr>
+      <tr><td>Notificações in-app</td><td>Like, reply, novo seguidor, episódio novo · sino no header · badge de não lidas</td><td class="ok">✅ Pronto</td></tr>
+      <tr><td>Home viva</td><td>Hero, hoje, comunidade em alta, review destaque, últimos adicionados, em exibição</td><td class="ok">✅ Pronto</td></tr>
+      <tr><td>Calendário</td><td>Grade dos próximos 7 dias de lançamentos</td><td class="ok">✅ Pronto</td></tr>
+      <tr><td>Onde assistir</td><td>Streaming links por anime (Crunchyroll, Netflix…) na página do anime e episódio</td><td class="ok">✅ Pronto</td></tr>
+      <tr><td>Admin panel</td><td>Sync manual, cron trigger, destaque hero, editor de anime (capa/banner/trailer/links/horários)</td><td class="ok">✅ Pronto</td></tr>
+      <tr><td>isLocked (sync)</td><td>Protege edições manuais de serem sobrescritas pelo sync automático</td><td class="ok">✅ Pronto</td></tr>
     </tbody>
   </table>
 
   <div class="callout">
-    <strong>Documentos relacionados:</strong> LEIA-ME-DEVS.md · planejamentodev.md · ESTADO-DO-PROJETO.md · SETUP-BANCO.md · ANILIST-INTEGRACAO.md
+    <strong>Banco preparado para features futuras:</strong> as tabelas <code>password_reset_tokens</code>, <code>email_verification_tokens</code>, <code>badges</code>, <code>user_badges</code>, <code>comment_reports</code>, <code>spoiler_settings</code>, <code>notification_preferences</code>, <code>premium_subscriptions</code> e <code>ad_slots</code> já existem no schema — só precisam de lógica de negócio e UI.
   </div>
 
-  <div class="page-footer">
-    <span>AniHype — Planejamento de Desenvolvimento · Jun/2026</span>
-    <span>Página 7 — Fim do documento</span>
+  <div class="pfoot">
+    <span>AniHype — Planejamento Fullstack · Jun/2026</span>
+    <span>Página 2</span>
+  </div>
+</div>
+
+<!-- ══════════════════ PÁG 3 — PRIORIDADE CRÍTICA & ALTA ══════════════════ -->
+<div class="page break">
+  <div class="s-eyebrow">03 — Roadmap</div>
+  <h2>O que falta construir</h2>
+  <p class="s-desc">Features ordenadas por impacto. Cada item = back + front completo. Um dev, uma feature.</p>
+
+  <h3>🔴 Crítico — sem isso o produto não vive</h3>
+
+  <div class="pcard pcard-crit">
+    <div class="pnum">1</div>
+    <div class="pcard-body">
+      <h4>Popular o banco com animes da temporada atual</h4>
+      <p>Rodar <code style="background:rgba(0,0,0,.06);padding:1px 5px;border-radius:3px">npm run sync:season</code> ou admin → Importar Temporada. Sem isso a home e o calendário ficam completamente vazios. Não é código novo — é operação.</p>
+    </div>
+  </div>
+
+  <div class="pcard pcard-crit">
+    <div class="pnum">2</div>
+    <div class="pcard-body">
+      <h4>Deploy em staging ou produção</h4>
+      <p>Sem um ambiente acessível não dá para testar com usuários reais nem dividir tarefas com confiança. Precisa de VPS ou serviço cloud (Railway, Render, Hetzner) + Docker Compose completo + domínio + SSL.</p>
+    </div>
+  </div>
+
+  <hr class="div" />
+  <h3>🟣 Alta Prioridade — alto impacto, implementar logo</h3>
+
+  <div class="pcard pcard-high">
+    <div class="pnum">3</div>
+    <div class="pcard-body">
+      <h4>Editar perfil + upload de avatar <span class="chip chip-amber">⬛ banco pronto</span></h4>
+      <p>Usuário não consegue mudar nada depois de criar a conta. Envolve: endpoint <code>PATCH /users/me</code>, integração com storage externo (Cloudflare R2 ou S3) para avatar, e página/modal <code>/configuracoes</code> no frontend.</p>
+    </div>
+  </div>
+
+  <div class="pcard pcard-high">
+    <div class="pnum">4</div>
+    <div class="pcard-body">
+      <h4>Recuperar senha <span class="chip chip-amber">⬛ banco pronto</span></h4>
+      <p>Tabela <code>password_reset_tokens</code> já existe. Falta: endpoint <code>POST /auth/forgot-password</code>, envio de e-mail com token (SMTP / Resend / SendGrid), endpoint <code>POST /auth/reset-password</code> e tela no frontend.</p>
+    </div>
+  </div>
+
+  <div class="pcard pcard-high">
+    <div class="pnum">5</div>
+    <div class="pcard-body">
+      <h4>Ranking de animes <span class="chip chip-green">⚡ fácil</span></h4>
+      <p>Página <code>/ranking</code> com os animes mais bem avaliados. Banco já tem índice em <code>ratingAverage + ratingCount</code>. Endpoint simples + nova página no frontend. Alto impacto visual, esforço pequeno.</p>
+    </div>
+  </div>
+
+  <div class="pcard pcard-high">
+    <div class="pnum">6</div>
+    <div class="pcard-body">
+      <h4>Busca global <span class="chip chip-p">novo endpoint</span></h4>
+      <p>Endpoint <code>GET /search?q=</code> retornando anime + usuário em uma busca só. Hoje a busca só funciona no catálogo <code>/anime</code>. Decisão de UX: barra no header ou página dedicada <code>/search</code>?</p>
+    </div>
+  </div>
+
+  <div class="pcard pcard-high">
+    <div class="pnum">7</div>
+    <div class="pcard-body">
+      <h4>CI/CD com GitHub Actions</h4>
+      <p>Arquivo <code>.github/workflows/ci.yml</code> rodando lint + typecheck + build em todo PR. Evita que código quebrado entre na main. Pré-requisito para trabalhar em equipe com segurança.</p>
+    </div>
+  </div>
+
+  <div class="pfoot">
+    <span>AniHype — Planejamento Fullstack · Jun/2026</span>
+    <span>Página 3</span>
+  </div>
+</div>
+
+<!-- ══════════════════ PÁG 4 — MÉDIA & BAIXA ══════════════════ -->
+<div class="page break">
+  <div class="s-eyebrow">03 — Roadmap (continuação)</div>
+  <h2>Média e Baixa Prioridade</h2>
+  <p class="s-desc">Melhoram retenção, qualidade e preparação para o futuro.</p>
+
+  <h3>🔵 Média Prioridade</h3>
+  <table>
+    <thead><tr><th>#</th><th>Feature</th><th>O que envolve</th><th>Obs.</th></tr></thead>
+    <tbody>
+      <tr><td>8</td><td>Seção de reviews na página do anime</td><td>API paginada + componente com ordenação (recentes / melhores nota)</td><td>Dados já existem</td></tr>
+      <tr><td>9</td><td>Paginação do feed</td><td>Cursor pagination no endpoint + "carregar mais" na UI</td><td>Hoje carrega tudo</td></tr>
+      <tr><td>10</td><td>Toggle notificação por anime</td><td>PATCH /anime-follow/:id + botão na página do anime</td><td>Campo no banco pronto</td></tr>
+      <tr><td>11</td><td>Preferências de notificação</td><td>Tela de configurações + endpoint PATCH</td><td>Tabela pronta no banco</td></tr>
+      <tr><td>12</td><td>Ranking de usuários por Hype XP</td><td>Endpoint GET /ranking/users + página no frontend</td><td>Índice no banco pronto</td></tr>
+      <tr><td>13</td><td>Badges automáticos</td><td>Serviço que confere condições e concede badge + exibição no perfil/comentários</td><td>Tabelas prontas</td></tr>
+      <tr><td>14</td><td>Mobile bottom navigation</td><td>Componente nav com Home, Feed, Calendário, Perfil + badge de notificações</td><td>Só frontend</td></tr>
+      <tr><td>15</td><td>Filtro por gênero no catálogo</td><td>Parâmetro de query na API + chips de gênero na UI</td><td>Banco tem genres</td></tr>
+      <tr><td>16</td><td>Perfil — animes seguidos completos</td><td>Lista paginada na aba do perfil</td><td>API já tem dados</td></tr>
+      <tr><td>17</td><td>Watchlist ("quero assistir")</td><td>Nova tabela user_watchlist + endpoint + aba no perfil</td><td>Migration necessária</td></tr>
+      <tr><td>18</td><td>Spoiler settings por usuário</td><td>Tela de configuração + endpoint PATCH</td><td>Tabela pronta no banco</td></tr>
+      <tr><td>19</td><td>Gráfico radar usuário vs comunidade</td><td>SVG interativo comparando nota pessoal vs média geral</td><td>Dados prontos</td></tr>
+      <tr><td>20</td><td>Denúncia de comentários</td><td>POST /comments/:id/report + fluxo de revisão no admin</td><td>Tabela comment_reports pronta</td></tr>
+      <tr><td>21</td><td>Painel de moderação no admin</td><td>Lista de denúncias + ações (esconder, manter, avisar)</td><td>Modelos prontos</td></tr>
+      <tr><td>22</td><td>Verificação de e-mail</td><td>Envio no cadastro + endpoint de confirmação + banner no perfil</td><td>Tabela pronta</td></tr>
+      <tr><td>23</td><td>Polish visual (skeleton, animações)</td><td>Skeleton em todas as páginas, transições, empty states melhores</td><td>Só frontend</td></tr>
+      <tr><td>24</td><td>Testes automatizados</td><td>Jest nos services críticos (auth, ratings, sync, notifications)</td><td>Zero testes hoje</td></tr>
+    </tbody>
+  </table>
+
+  <h3>⚪ Baixa Prioridade / Futuro</h3>
+  <table>
+    <thead><tr><th>Feature</th><th>O que seria</th><th>Observação</th></tr></thead>
+    <tbody>
+      <tr><td>OAuth Google/Discord</td><td>Login social</td><td>Banco preparado. Entra após recuperar senha</td></tr>
+      <tr><td>Daily login bonus</td><td>+XP por entrar todo dia</td><td>Enum DAILY_LOGIN pronto. Incentiva ou vira farm?</td></tr>
+      <tr><td>Reações em comentários</td><td>🔥 😂 😭 além de like</td><td>Vale a complexidade ou like basta?</td></tr>
+      <tr><td>Push notifications web</td><td>Aviso quando episódio estreia</td><td>Service worker + Web Push API</td></tr>
+      <tr><td>E-mail de notificação</td><td>Resumo de atividade por e-mail</td><td>Precisa de SMTP / Resend / SendGrid</td></tr>
+      <tr><td>WebSockets</td><td>Comentários ao vivo, contagem em tempo real</td><td>Infraestrutura nova necessária</td></tr>
+      <tr><td>Catálogo histórico completo</td><td>Importar animes além da temporada atual</td><td>Decisão de escopo — banco aguenta</td></tr>
+      <tr><td>Premium (assinatura)</td><td>Plano pago com features extras</td><td>Tabela premium_subscriptions existe, sem produto</td></tr>
+      <tr><td>Import de lista do MAL</td><td>Usuário traz lista pessoal do MAL</td><td>Retenção de quem vem de outra plataforma</td></tr>
+      <tr><td>PWA / app mobile</td><td>Install prompt, ícones, offline</td><td>Pós-produto estável</td></tr>
+    </tbody>
+  </table>
+
+  <div class="pfoot">
+    <span>AniHype — Planejamento Fullstack · Jun/2026</span>
+    <span>Página 4</span>
+  </div>
+</div>
+
+<!-- ══════════════════ PÁG 5 — DIVISÃO FULLSTACK ══════════════════ -->
+<div class="page break">
+  <div class="s-eyebrow">04 — Time</div>
+  <h2>Divisão entre os 3 Devs Fullstack</h2>
+  <p class="s-desc">Cada dev é dono de features completas — do banco até a tela. Sem dividir por camada.</p>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:var(--p)"></div><span class="layer-tag lt-api">API</span> Endpoint NestJS</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--blue)"></div><span class="layer-tag lt-ui">UI</span> Frontend Next.js</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div><span class="layer-tag lt-db">DB</span> Migration Prisma</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--amber)"></div><span class="layer-tag lt-inf">INFRA</span> Docker / CI / Deploy</div>
+  </div>
+
+  <div class="dev-grid">
+
+    <!-- DEV 1 -->
+    <div class="dev-card dev1">
+      <div class="dev-header">
+        <div class="dev-num">Dev 1</div>
+        <div class="dev-name">Perfil & Descoberta</div>
+        <div class="dev-role">Conta · Rankings · Busca</div>
+      </div>
+      <div class="dev-body">
+        <div class="feature-item">
+          <div class="feature-icon">✏️</div>
+          <div class="feature-text">
+            <strong>Editar perfil + avatar</strong>
+            <span>Tela /configuracoes + PATCH /users/me + upload R2/S3</span>
+            <div class="feature-layers">
+              <span class="layer-tag lt-api">API</span>
+              <span class="layer-tag lt-ui">UI</span>
+            </div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">🏆</div>
+          <div class="feature-text">
+            <strong>Ranking de animes</strong>
+            <span>GET /anime/ranking + página /ranking no frontend</span>
+            <div class="feature-layers">
+              <span class="layer-tag lt-api">API</span>
+              <span class="layer-tag lt-ui">UI</span>
+            </div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">🔍</div>
+          <div class="feature-text">
+            <strong>Busca global</strong>
+            <span>GET /search?q= (anime + usuário) + barra/página no frontend</span>
+            <div class="feature-layers">
+              <span class="layer-tag lt-api">API</span>
+              <span class="layer-tag lt-ui">UI</span>
+            </div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">🎌</div>
+          <div class="feature-text">
+            <strong>Filtro por gênero + watchlist</strong>
+            <span>Query params na API + chips no catálogo + aba no perfil</span>
+            <div class="feature-layers">
+              <span class="layer-tag lt-api">API</span>
+              <span class="layer-tag lt-ui">UI</span>
+              <span class="layer-tag lt-db">DB</span>
+            </div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">📱</div>
+          <div class="feature-text">
+            <strong>Mobile bottom navigation</strong>
+            <span>Componente com Home, Feed, Calendário, Perfil + badge</span>
+            <div class="feature-layers">
+              <span class="layer-tag lt-ui">UI</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DEV 2 -->
+    <div class="dev-card dev2">
+      <div class="dev-header">
+        <div class="dev-num">Dev 2</div>
+        <div class="dev-name">Social & Gamificação</div>
+        <div class="dev-role">XP · Badges · Feed · Notif</div>
+      </div>
+      <div class="dev-body">
+        <div class="feature-item">
+          <div class="feature-icon">🔑</div>
+          <div class="feature-text">
+            <strong>Recuperar senha</strong>
+            <span>forgot-password + reset-password + e-mail + tela frontend</span>
+            <div class="feature-layers">
+              <span class="layer-tag lt-api">API</span>
+              <span class="layer-tag lt-ui">UI</span>
+            </div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">🏅</div>
+          <div class="feature-text">
+            <strong>Badges automáticos</strong>
+            <span>Serviço de concessão + exibição no perfil e comentários</span>
+            <div class="feature-layers">
+              <span class="layer-tag lt-api">API</span>
+              <span class="layer-tag lt-ui">UI</span>
+            </div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">📡</div>
+          <div class="feature-text">
+            <strong>Feed paginado + toggle notificação</strong>
+            <span>Cursor pagination + botão "notificar" na página do anime</span>
+            <div class="feature-layers">
+              <span class="layer-tag lt-api">API</span>
+              <span class="layer-tag lt-ui">UI</span>
+            </div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">⭐</div>
+          <div class="feature-text">
+            <strong>Reviews na página do anime</strong>
+            <span>Seção paginada com ordenação recentes / melhor nota</span>
+            <div class="feature-layers">
+              <span class="layer-tag lt-api">API</span>
+              <span class="layer-tag lt-ui">UI</span>
+            </div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">🥇</div>
+          <div class="feature-text">
+            <strong>Ranking de usuários</strong>
+            <span>GET /ranking/users por Hype XP + página no frontend</span>
+            <div class="feature-layers">
+              <span class="layer-tag lt-api">API</span>
+              <span class="layer-tag lt-ui">UI</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DEV 3 -->
+    <div class="dev-card dev3">
+      <div class="dev-header">
+        <div class="dev-num">Dev 3</div>
+        <div class="dev-name">Infra & Moderação</div>
+        <div class="dev-role">Deploy · CI · Admin · Qualidade</div>
+      </div>
+      <div class="dev-body">
+        <div class="feature-item">
+          <div class="feature-icon">🚀</div>
+          <div class="feature-text">
+            <strong>Docker Compose completo + deploy</strong>
+            <span>Dockerfile API e web + docker-compose.prod + VPS + SSL</span>
+            <div class="feature-layers">
+              <span class="layer-tag lt-inf">INFRA</span>
+            </div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">⚙️</div>
+          <div class="feature-text">
+            <strong>CI/CD GitHub Actions</strong>
+            <span>Lint + typecheck + build em todo PR. Secrets em produção.</span>
+            <div class="feature-layers">
+              <span class="layer-tag lt-inf">INFRA</span>
+            </div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">🛡️</div>
+          <div class="feature-text">
+            <strong>Denúncia + moderação de comentários</strong>
+            <span>POST /report + painel /admin/moderation + ações</span>
+            <div class="feature-layers">
+              <span class="layer-tag lt-api">API</span>
+              <span class="layer-tag lt-ui">UI</span>
+            </div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">🧪</div>
+          <div class="feature-text">
+            <strong>Testes automatizados</strong>
+            <span>Jest nos services críticos: auth, ratings, sync, notifications</span>
+            <div class="feature-layers">
+              <span class="layer-tag lt-api">API</span>
+            </div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">✨</div>
+          <div class="feature-text">
+            <strong>Polish visual geral</strong>
+            <span>Skeleton em todas as páginas, animações, empty states</span>
+            <div class="feature-layers">
+              <span class="layer-tag lt-ui">UI</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="callout">
+    <strong>Regra de divisão:</strong> cada dev entrega a feature completa — migration, endpoint, hook, página, tela. Evita o problema de um fazer a tela sem o back estar pronto ou vice-versa. Se a feature for grande, divide em subtarefas menores, mas o mesmo dev vai até o fim.
+  </div>
+
+  <div class="pfoot">
+    <span>AniHype — Planejamento Fullstack · Jun/2026</span>
+    <span>Página 5</span>
+  </div>
+</div>
+
+<!-- ══════════════════ PÁG 6 — REGRAS & TIMELINE ══════════════════ -->
+<div class="page break">
+  <div class="s-eyebrow">05 — Colaboração</div>
+  <h2>Regras do Time</h2>
+  <p class="s-desc">Simples, mas evitam horas de debug e conflito de merge desnecessários.</p>
+
+  <div class="rule"><div class="rule-n">1</div><p><strong>Um branch por feature:</strong> <code>feature/nome-da-feature</code>. Nunca commitar direto na main sem PR.</p></div>
+  <div class="rule"><div class="rule-n">2</div><p><strong>Antes de mexer em schema.prisma:</strong> avisa o time no chat. Todos precisam dar <code>git pull</code> e rodar a migration antes de continuar.</p></div>
+  <div class="rule"><div class="rule-n">3</div><p><strong>Antes de mexer em app.module.ts:</strong> avisa antes. É o arquivo que mais gera conflito de merge no backend.</p></div>
+  <div class="rule"><div class="rule-n">4</div><p><strong>Antes de abrir PR:</strong> rodar <code>npm run type-check</code>. Não abrir PR com erro de TypeScript.</p></div>
+  <div class="rule"><div class="rule-n">5</div><p><strong>services/api.ts e types/api.ts:</strong> avisar no chat antes de editar — todo dev mexe nesses arquivos, conflito fácil.</p></div>
+  <div class="rule"><div class="rule-n">6</div><p><strong>Nunca commitar .env:</strong> nem da API nem da web. Usar sempre o .env.example como referência para novos devs.</p></div>
+  <div class="rule"><div class="rule-n">7</div><p><strong>Zero hardcode:</strong> URLs, segredos e credenciais sempre em variáveis de ambiente. Nunca no código.</p></div>
+
+  <hr class="div" />
+
+  <div class="s-eyebrow">06 — Próximos Passos</div>
+  <h2>Timeline Sugerida</h2>
+  <p class="s-desc">Ordem prática para não travar um dev esperando o outro.</p>
+
+  <div class="timeline">
+    <div class="tl-item tl-done">
+      <div class="tl-dot"></div>
+      <h4>✅ Concluído — MVP Social completo</h4>
+      <p>Auth, feed, notificações, comentários, ratings, follows, sync, admin editor, home viva. Base sólida.</p>
+    </div>
+    <div class="tl-item tl-now">
+      <div class="tl-dot"></div>
+      <h4>🎯 Agora (esta semana) — Popular banco + CI/CD</h4>
+      <p>Dev que estiver disponível roda o sync:season. Dev 3 configura o GitHub Actions enquanto os outros avançam.</p>
+    </div>
+    <div class="tl-item tl-next">
+      <div class="tl-dot"></div>
+      <h4>Semana 1 — Features em paralelo</h4>
+      <p>Dev 1: editar perfil + avatar. Dev 2: recuperar senha. Dev 3: Docker Compose + deploy staging. Tudo independente, sem esperar ninguém.</p>
+    </div>
+    <div class="tl-item tl-next">
+      <div class="tl-dot"></div>
+      <h4>Semana 2 — Descoberta & Social</h4>
+      <p>Dev 1: ranking de animes + busca global. Dev 2: feed paginado + reviews na página do anime. Dev 3: testes + polish visual.</p>
+    </div>
+    <div class="tl-item tl-next">
+      <div class="tl-dot"></div>
+      <h4>Semana 3 — Gamificação & Moderação</h4>
+      <p>Dev 1: filtros + watchlist. Dev 2: badges + ranking usuários. Dev 3: denúncias + painel de moderação.</p>
+    </div>
+    <div class="tl-item tl-next">
+      <div class="tl-dot"></div>
+      <h4>Semana 4 — Polish & Qualidade</h4>
+      <p>Mobile nav, skeleton, animações, testes, verificação de e-mail, preferências de notificação.</p>
+    </div>
+    <div class="tl-item tl-fut">
+      <div class="tl-dot"></div>
+      <h4>⏳ Futuro — OAuth, Push, Premium, WebSockets</h4>
+      <p>Depois do produto estável em produção. Banco e modelos já preparados para tudo isso.</p>
+    </div>
+  </div>
+
+  <hr class="div" />
+
+  <div class="s-eyebrow">07 — Referência</div>
+  <h2>Setup & Conta Admin</h2>
+
+  <table>
+    <thead><tr><th>Comando / Dado</th><th>Valor / O que faz</th></tr></thead>
+    <tbody>
+      <tr><td>npm install</td><td>Instala dependências do monorepo inteiro</td></tr>
+      <tr><td>npm run db:setup</td><td>Cria banco, roda migrations e seed de roles</td></tr>
+      <tr><td>npm run dev</td><td>Sobe API + Web juntos em paralelo</td></tr>
+      <tr><td>npm run dev:api</td><td>Só o backend (porta 3001)</td></tr>
+      <tr><td>npm run dev:web</td><td>Só o frontend (porta 3002)</td></tr>
+      <tr><td>npm run sync:season</td><td>Importa todos os animes da temporada atual</td></tr>
+      <tr><td>npm run type-check</td><td>Verifica erros TypeScript em todo o projeto</td></tr>
+      <tr><td>Email admin</td><td>anihype@gmail.com · Senha: AniHype1$</td></tr>
+      <tr><td>Frontend local</td><td>http://localhost:3002</td></tr>
+      <tr><td>API + Swagger</td><td>http://localhost:3001/api/v1 · /api/docs</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <strong>Documentos relacionados:</strong> <code>LEIA-ME-DEVS.md</code> · <code>planejamentodev.md</code> · <code>ESTADO-DO-PROJETO.md</code> · <code>SETUP-BANCO.md</code>
+  </div>
+
+  <div class="pfoot">
+    <span>AniHype — Planejamento Fullstack · Jun/2026</span>
+    <span>Página 6 — Fim do documento</span>
   </div>
 </div>
 
