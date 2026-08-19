@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { cn } from '@anihype/ui';
@@ -46,8 +47,21 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md">
       <nav className="mx-auto flex h-14 max-w-7xl items-center gap-4 px-4 sm:px-6">
-        <Link href="/" className="flex-shrink-0 text-xl font-black tracking-tight text-foreground">
-          Ani<span className="text-gradient">Hype</span>
+        <Link href="/" className="relative flex-shrink-0">
+          <span className="relative inline-flex items-center justify-center px-1">
+            <Image
+              src="/LogoAniHype.png"
+              alt=""
+              width={64}
+              height={64}
+              className="pointer-events-none absolute left-1/2 top-1/2 h-12 w-12 -translate-x-1/2 -translate-y-1/2 object-contain opacity-45 sm:h-14 sm:w-14"
+              priority
+              aria-hidden
+            />
+            <span className="relative z-10 text-xl font-black tracking-tight text-foreground">
+              Ani<span className="text-gradient">Hype</span>
+            </span>
+          </span>
         </Link>
 
         <div className="flex flex-1 items-center justify-between gap-4">

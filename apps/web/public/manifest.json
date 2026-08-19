@@ -9,15 +9,15 @@
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
+      "src": "/LogoAniHype.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon",
       "purpose": "any"
     },
     {
-      "src": "/icon.svg",
-      "sizes": "512x512",
-      "type": "image/svg+xml",
+      "src": "/LogoAniHype.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon",
       "purpose": "maskable"
     }
   ],

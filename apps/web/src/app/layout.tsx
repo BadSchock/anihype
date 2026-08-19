@@ -36,8 +36,8 @@ export const metadata: Metadata = {
   creator: 'AniHype',
   manifest: '/manifest.json',
   icons: {
-    icon: [{ url: '/icon.svg', type: 'image/svg+xml' }],
-    apple: [{ url: '/icon.svg', type: 'image/svg+xml' }],
+    icon: [{ url: '/LogoAniHype.ico', type: 'image/x-icon' }],
+    apple: [{ url: '/LogoAniHype.ico', type: 'image/x-icon' }],
   },
   openGraph: {
     type: 'website',
