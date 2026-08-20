@@ -1,10 +1,19 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { HypeTransactionReason, Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateRatingDto } from './dto/rating.dto';
 import { HypeService } from '../hype/hype.service';
+import { censorText } from '../../common/moderation';
 
 const MIN_RATINGS_FOR_RANKING = 10;
+
+export type RatingsSort = 'recent' | 'score';
+
+function parseSort(sort?: string): RatingsSort {
+  if (!sort || sort === 'recent') return 'recent';
+  if (sort === 'score') return 'score';
+  throw new BadRequestException('sort inválido. Use recent ou score.');
+}
 
 @Injectable()
 export class RatingsService {
@@ -41,6 +50,14 @@ export class RatingsService {
       RatingsService.computeFinalScore(dto).toFixed(2),
     );
 
+    let reviewText: string | null = dto.reviewText?.trim() ? dto.reviewText.trim() : null;
+    let contentCensored = false;
+    if (reviewText) {
+      const result = censorText(reviewText);
+      reviewText = result.text;
+      contentCensored = result.censored;
+    }
+
     const rating = await this.prisma.animeRating.upsert({
       where: { userId_animeId: { userId, animeId: anime.id } },
       create: {
@@ -52,7 +69,7 @@ export class RatingsService {
         sound: dto.sound,
         hype: dto.hype,
         finalScore,
-        reviewText: dto.reviewText ?? null,
+        reviewText,
         containsSpoiler: dto.containsSpoiler ?? false,
       },
       update: {
@@ -62,7 +79,7 @@ export class RatingsService {
         sound: dto.sound,
         hype: dto.hype,
         finalScore,
-        reviewText: dto.reviewText ?? null,
+        reviewText,
         containsSpoiler: dto.containsSpoiler ?? false,
         deletedAt: null,
       },
@@ -78,7 +95,11 @@ export class RatingsService {
       });
     }
 
-    return { ...rating, badge: RatingsService.getBadge(Number(finalScore)) };
+    return {
+      ...rating,
+      badge: RatingsService.getBadge(Number(finalScore)),
+      contentCensored,
+    };
   }
 
   async getMyRating(userId: number, animeSlug: string) {
@@ -94,7 +115,15 @@ export class RatingsService {
 
     if (!rating) return null;
 
-    return { ...rating, badge: RatingsService.getBadge(Number(rating.finalScore)) };
+    const reviewText = rating.reviewText
+      ? censorText(rating.reviewText).text
+      : rating.reviewText;
+
+    return {
+      ...rating,
+      reviewText,
+      badge: RatingsService.getBadge(Number(rating.finalScore)),
+    };
   }
 
   async deleteMyRating(userId: number, animeSlug: string) {
@@ -113,7 +142,12 @@ export class RatingsService {
     return { message: 'Avaliação removida com sucesso.' };
   }
 
-  async getAnimeRatings(animeSlug: string, page = 1, limit = 20) {
+  async getAnimeRatings(
+    animeSlug: string,
+    page = 1,
+    limit = 20,
+    sort: string = 'recent',
+  ) {
     const anime = await this.prisma.anime.findFirst({
       where: { slug: animeSlug, deletedAt: null },
       select: {
@@ -129,13 +163,28 @@ export class RatingsService {
     });
     if (!anime) throw new NotFoundException('Anime não encontrado');
 
+    const sortKey = parseSort(sort);
+    const orderBy: Prisma.AnimeRatingOrderByWithRelationInput[] =
+      sortKey === 'score'
+        ? [{ finalScore: 'desc' }, { createdAt: 'desc' }]
+        : [{ createdAt: 'desc' }];
+
     const skip = (page - 1) * limit;
 
     const [reviews, total] = await Promise.all([
       this.prisma.animeRating.findMany({
         where: { animeId: anime.id, deletedAt: null, reviewText: { not: null } },
-        include: { user: { select: { id: true, username: true, displayName: true } } },
-        orderBy: { createdAt: 'desc' },
+        include: {
+          user: {
+            select: {
+              id: true,
+              username: true,
+              displayName: true,
+              avatarUrl: true,
+            },
+          },
+        },
+        orderBy,
         skip,
         take: limit,
       }),
@@ -162,6 +211,7 @@ export class RatingsService {
       },
       reviews: reviews.map((r) => ({
         ...r,
+        reviewText: r.reviewText ? censorText(r.reviewText).text : r.reviewText,
         finalScore: Number(r.finalScore),
         badge: RatingsService.getBadge(Number(r.finalScore)),
       })),
@@ -170,6 +220,7 @@ export class RatingsService {
         page,
         limit,
         totalPages: Math.ceil(total / limit),
+        sort: sortKey,
       },
     };
   }
@@ -201,7 +252,7 @@ export class RatingsService {
     return {
       id: rating.id,
       finalScore: Number(rating.finalScore),
-      reviewText: rating.reviewText,
+      reviewText: rating.reviewText ? censorText(rating.reviewText).text : rating.reviewText,
       containsSpoiler: rating.containsSpoiler,
       badge: RatingsService.getBadge(Number(rating.finalScore)),
       user: rating.user,

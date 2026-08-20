@@ -7,6 +7,7 @@ import { useCommentReplies, useToggleLike } from '@/hooks/use-comments';
 import { buildLoginUrl } from '@/lib/auth-url';
 import { UserAvatar } from '@/components/user/user-avatar';
 import type { Comment } from '@/types/api';
+import { censorText } from '@/lib/censor-text';
 
 interface CommentItemProps {
   comment: Comment;
@@ -57,6 +58,8 @@ export function CommentItem({
     toggleLike(comment.id);
   };
 
+  const safeContent = censorText(comment.content);
+
   return (
     <div className={`flex gap-3 ${nested ? '' : ''}`}>
       <div className="flex-shrink-0">
@@ -85,7 +88,7 @@ export function CommentItem({
                 userSelect: spoilerRevealed ? 'text' : 'none',
               }}
             >
-              {comment.content}
+              {safeContent}
             </p>
             {!spoilerRevealed && (
               <button
@@ -99,7 +102,7 @@ export function CommentItem({
             )}
           </div>
         ) : (
-          <p className="text-sm leading-relaxed text-foreground/90">{comment.content}</p>
+          <p className="text-sm leading-relaxed text-foreground/90">{safeContent}</p>
         )}
 
         <div className="mt-1 flex flex-wrap items-center gap-4 text-xs text-muted-foreground">

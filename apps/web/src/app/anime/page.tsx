@@ -35,8 +35,7 @@ const SEASON_CHIPS = [
 
 const ORDER_OPTIONS = [
   { value: 'popular', label: 'Mais populares' },
-  { value: 'rating', label: '⚡ Melhor nota AniHype' },
-  { value: 'score', label: 'Score AniList' },
+  { value: 'rating', label: 'Melhor Hypômetro' },
   { value: 'recent', label: 'Mais recentes' },
   { value: 'title', label: 'A–Z' },
 ];
@@ -80,7 +79,7 @@ function ChipGroup<T extends string>({
 export default function AnimeListPage() {
   const [search, setSearch] = useState('');
   const debouncedSearch = useDebouncedValue(search, 400);
-  const [orderBy, setOrderBy] = useState<'popular' | 'rating' | 'score' | 'recent' | 'title'>('popular');
+  const [orderBy, setOrderBy] = useState<'popular' | 'rating' | 'recent' | 'title'>('popular');
   const [status, setStatus] = useState('');
   const [format, setFormat] = useState('');
   const [season, setSeason] = useState('');
@@ -140,7 +139,7 @@ export default function AnimeListPage() {
           />
           <select
             value={orderBy}
-            onChange={(e) => { setOrderBy(e.target.value as 'popular' | 'rating' | 'score' | 'recent' | 'title'); resetPage(); }}
+            onChange={(e) => { setOrderBy(e.target.value as 'popular' | 'rating' | 'recent' | 'title'); resetPage(); }}
             className="rounded-lg bg-muted px-3 py-2 text-sm text-foreground outline-none focus:ring-1 focus:ring-purple-500"
           >
             {ORDER_OPTIONS.map((o) => (

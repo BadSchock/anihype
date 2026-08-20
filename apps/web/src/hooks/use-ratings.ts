@@ -8,10 +8,16 @@ import {
 } from '@/services/api';
 import { useAuthStore } from '@/stores/auth.store';
 
-export function useAnimeRatings(slug: string) {
+export function useAnimeRatings(
+  slug: string,
+  opts: { page?: number; limit?: number; sort?: 'recent' | 'score' } = {},
+) {
+  const page = opts.page ?? 1;
+  const limit = opts.limit ?? 20;
+  const sort = opts.sort ?? 'recent';
   return useQuery({
-    queryKey: ['ratings', slug],
-    queryFn: () => getAnimeRatings(slug),
+    queryKey: ['ratings', slug, page, limit, sort],
+    queryFn: () => getAnimeRatings(slug, page, limit, sort),
     enabled: !!slug,
   });
 }

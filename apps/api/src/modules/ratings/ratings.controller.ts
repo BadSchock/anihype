@@ -53,16 +53,18 @@ export class RatingsController {
 
   @Get()
   @Public()
-  @ApiOperation({ summary: 'Listar reviews e agregado da comunidade para este anime' })
+  @ApiOperation({ summary: 'Listar reviews e agregado do Hypômetro para este anime' })
   getAnimeRatings(
     @Param('slug') slug: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
+    @Query('sort') sort?: string,
   ) {
     return this.ratingsService.getAnimeRatings(
       slug,
       page ? parseInt(page, 10) : 1,
       limit ? parseInt(limit, 10) : 20,
+      sort ?? 'recent',
     );
   }
 }

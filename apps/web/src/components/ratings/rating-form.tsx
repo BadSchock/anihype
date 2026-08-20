@@ -1,15 +1,22 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import type { LucideIcon } from 'lucide-react';
+import { BookOpen, Clapperboard, Music2, Users, Zap } from 'lucide-react';
 import type { MyRating, RatingDimensions } from '@/types/api';
 import { useUpsertRating, useDeleteRating } from '@/hooks/use-ratings';
 
-const DIMENSIONS: { key: keyof RatingDimensions; label: string; icon: string; description: string }[] = [
-  { key: 'animation', label: 'Animação', icon: '🎨', description: 'Visual, fluidez, direção de arte' },
-  { key: 'story',     label: 'Roteiro',  icon: '📖', description: 'História, ritmo, coerência' },
-  { key: 'characters',label: 'Personagens', icon: '🎭', description: 'Desenvolvimento e carisma' },
-  { key: 'sound',     label: 'Som & Música', icon: '🎵', description: 'OST, abertura, encerramento, vozes' },
-  { key: 'hype',      label: 'Hype',     icon: '⚡', description: 'Diversão, vício e vontade de continuar' },
+const DIMENSIONS: {
+  key: keyof RatingDimensions;
+  label: string;
+  Icon: LucideIcon;
+  description: string;
+}[] = [
+  { key: 'animation', label: 'Animação', Icon: Clapperboard, description: 'Visual, fluidez, direção de arte' },
+  { key: 'story', label: 'Roteiro', Icon: BookOpen, description: 'História, ritmo, coerência' },
+  { key: 'characters', label: 'Personagens', Icon: Users, description: 'Desenvolvimento e carisma' },
+  { key: 'sound', label: 'Som & Música', Icon: Music2, description: 'OST, abertura, encerramento, vozes' },
+  { key: 'hype', label: 'Hype', Icon: Zap, description: 'Diversão, vício e vontade de continuar' },
 ];
 
 function computeFinalScore(scores: RatingDimensions) {
@@ -26,51 +33,53 @@ function getBadge(score: number) {
 
 function ScoreSlider({
   label,
-  icon,
+  Icon,
   description,
   value,
   onChange,
 }: {
   label: string;
-  icon: string;
+  Icon: LucideIcon;
   description: string;
   value: number;
   onChange: (v: number) => void;
 }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <div className="flex flex-col gap-0.5 sm:flex-row sm:items-center sm:justify-between">
-        <span className="flex flex-col gap-0.5 text-sm font-medium text-foreground sm:flex-row sm:items-center sm:gap-1.5">
-          <span className="flex items-center gap-1.5">
-            <span>{icon}</span> {label}
+      <div className="grid grid-cols-[1fr_auto] items-start gap-3 sm:items-center">
+        <span className="min-w-0">
+          <span className="flex items-center gap-2 text-sm font-semibold text-foreground">
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <Icon className="h-4 w-4" aria-hidden />
+            </span>
+            {label}
           </span>
-          <span className="text-xs font-normal text-muted-foreground">{description}</span>
+          <span className="mt-0.5 block pl-10 text-xs text-muted-foreground">{description}</span>
         </span>
-        <span className="min-w-[2rem] text-left text-sm font-bold text-purple-400 sm:text-right">
+        <span className="w-8 shrink-0 text-right text-sm font-bold tabular-nums text-primary">
           {value}
         </span>
       </div>
-      <div className="relative">
-        <input
-          type="range"
-          min={1}
-          max={10}
-          step={1}
-          value={value}
-          onChange={(e) => onChange(Number(e.target.value))}
-          className="w-full cursor-pointer accent-purple-500"
-        />
-        <div className="mt-0.5 flex justify-between px-0.5 text-[10px] text-muted-foreground/50">
-          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
-            <span
-              key={n}
-              className={n <= value ? 'text-purple-400' : ''}
-              style={{ width: '10%', textAlign: 'center' }}
-            >
-              {n}
-            </span>
-          ))}
-        </div>
+      <input
+        type="range"
+        min={1}
+        max={10}
+        step={1}
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+        className="w-full cursor-pointer accent-primary"
+        aria-label={label}
+      />
+      <div className="mt-0.5 flex justify-between px-0.5 text-[10px] text-muted-foreground/60">
+        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
+          <span
+            key={n}
+            className={n <= value ? 'font-semibold text-primary' : ''}
+            style={{ width: '10%', textAlign: 'center' }}
+          >
+            {n}
+          </span>
+        ))}
       </div>
     </div>
   );
@@ -94,6 +103,7 @@ export function RatingForm({ slug, myRating, onClose }: RatingFormProps) {
   const [containsSpoiler, setContainsSpoiler] = useState(myRating?.containsSpoiler ?? false);
   const [showReview, setShowReview] = useState(!!myRating?.reviewText);
   const [formError, setFormError] = useState<string | null>(null);
+  const [censorNotice, setCensorNotice] = useState<string | null>(null);
 
   useEffect(() => {
     if (myRating) {
@@ -122,13 +132,20 @@ export function RatingForm({ slug, myRating, onClose }: RatingFormProps) {
 
   async function handleSubmit() {
     setFormError(null);
+    setCensorNotice(null);
     try {
-      await upsert.mutateAsync({
+      const result = await upsert.mutateAsync({
         ...scores,
         reviewText: reviewText.trim() || undefined,
         containsSpoiler,
       });
-      onClose?.();
+      if (result.contentCensored) {
+        setCensorNotice('Algumas palavras foram censuradas na sua review.');
+        if (result.reviewText) setReviewText(result.reviewText);
+        window.setTimeout(() => onClose?.(), 1200);
+      } else {
+        onClose?.();
+      }
     } catch (err) {
       setFormError(err instanceof Error ? err.message : 'Não foi possível salvar a avaliação.');
     }
@@ -151,7 +168,7 @@ export function RatingForm({ slug, myRating, onClose }: RatingFormProps) {
       {/* Nota final preview */}
       <div className="flex items-center justify-between rounded-xl bg-purple-500/10 px-5 py-4">
         <div>
-          <p className="text-xs text-muted-foreground uppercase tracking-wide font-semibold">Nota final</p>
+          <p className="text-xs text-muted-foreground uppercase tracking-wide font-semibold">Hypômetro</p>
           <p className="text-3xl font-black text-foreground">{finalScore.toFixed(1)}</p>
         </div>
         <div className="text-right">
@@ -166,7 +183,7 @@ export function RatingForm({ slug, myRating, onClose }: RatingFormProps) {
           <ScoreSlider
             key={d.key}
             label={d.label}
-            icon={d.icon}
+            Icon={d.Icon}
             description={d.description}
             value={scores[d.key]}
             onChange={(v) => setScore(d.key, v)}
@@ -208,6 +225,10 @@ export function RatingForm({ slug, myRating, onClose }: RatingFormProps) {
         )}
       </div>
 
+      {censorNotice && (
+        <p className="rounded-lg bg-amber-500/10 px-3 py-2 text-sm text-amber-300">{censorNotice}</p>
+      )}
+
       {/* Ações */}
       {formError && (
         <p className="rounded-lg bg-red-500/10 px-3 py-2 text-sm text-red-400">{formError}</p>
@@ -219,7 +240,7 @@ export function RatingForm({ slug, myRating, onClose }: RatingFormProps) {
           disabled={isLoading}
           className="flex-1 rounded-xl bg-purple-600 py-2.5 text-sm font-semibold text-white hover:bg-purple-700 disabled:opacity-50 transition-colors"
         >
-          {isLoading ? 'Salvando...' : myRating ? 'Atualizar avaliação' : 'Avaliar'}
+          {isLoading ? 'Salvando...' : myRating ? 'Atualizar Hypômetro' : 'Avaliar no Hypômetro'}
         </button>
         {myRating && (
           <button

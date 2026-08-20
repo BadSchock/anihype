@@ -293,8 +293,18 @@ export interface CreateRatingPayload {
   containsSpoiler?: boolean;
 }
 
-export function getAnimeRatings(slug: string, page = 1) {
-  return request<AnimeRatingResponse>(`/anime/${slug}/ratings?page=${page}`, { skipAuth: true });
+export function getAnimeRatings(
+  slug: string,
+  page = 1,
+  limit = 20,
+  sort: 'recent' | 'score' = 'recent',
+) {
+  const params = new URLSearchParams({
+    page: String(page),
+    limit: String(limit),
+    sort,
+  });
+  return request<AnimeRatingResponse>(`/anime/${slug}/ratings?${params}`, { skipAuth: true });
 }
 
 export function getMyAnimeRating(slug: string, token?: string) {

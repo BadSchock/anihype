@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
+import { Zap } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { getHeroHighlight } from '@/services/api';
 
@@ -75,8 +76,12 @@ export function HeroSection() {
               </p>
             )}
             {highlight.anime.ratingAverage !== null && highlight.anime.ratingCount >= 10 && (
-              <p className="mt-3 text-sm font-semibold text-purple-400">
-                ⚡ {highlight.anime.ratingAverage.toFixed(1)} · {highlight.anime.ratingCount} avaliações
+              <p className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-primary">
+                <Zap className="h-4 w-4" aria-hidden />
+                Hypômetro {highlight.anime.ratingAverage.toFixed(1)}
+                <span className="font-medium text-muted-foreground">
+                  · {highlight.anime.ratingCount} avaliações
+                </span>
               </p>
             )}
             <Link
