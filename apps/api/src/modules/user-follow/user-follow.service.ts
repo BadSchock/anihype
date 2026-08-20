@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { BadgesService } from '../badges/badges.service';
 
 const USER_SELECT = {
   id: true,
@@ -19,6 +20,7 @@ export class UserFollowService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly notificationsService: NotificationsService,
+    private readonly badgesService: BadgesService,
   ) {}
 
   private async resolveUser(username: string) {
@@ -64,9 +66,11 @@ export class UserFollowService {
 
     if (!existing) {
       void this.notificationsService.notifyUserFollowed(followerId, target.id);
+      const awardedBadges = await this.badgesService.awardIfEligible(followerId, 'user_followed');
+      return { following: true, message: 'Usuário seguido com sucesso.', awardedBadges };
     }
 
-    return { following: true, message: 'Usuário seguido com sucesso.' };
+    return { following: true, message: 'Usuário seguido com sucesso.', awardedBadges: [] };
   }
 
   async unfollow(followerId: number, username: string) {

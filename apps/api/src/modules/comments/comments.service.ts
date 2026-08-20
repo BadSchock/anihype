@@ -8,6 +8,7 @@ import { CommentDto, CommentWithLikedDto, HotCommentDto } from './dto/comment-re
 import { PaginatedResult } from '../../common/dto/pagination.dto';
 import { HypeService } from '../hype/hype.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { BadgesService } from '../badges/badges.service';
 
 @Injectable()
 export class CommentsService {
@@ -15,6 +16,7 @@ export class CommentsService {
     private readonly repo: CommentsRepository,
     private readonly hypeService: HypeService,
     private readonly notificationsService: NotificationsService,
+    private readonly badgesService: BadgesService,
   ) {}
 
   async findByEpisode(
@@ -71,11 +73,13 @@ export class CommentsService {
       referenceId: comment.id,
     });
 
+    const awardedBadges = await this.badgesService.awardIfEligible(userId, 'comment_created');
+
     if (dto.parentId) {
       void this.notificationsService.notifyCommentReply(dto.parentId, userId, comment.id);
     }
 
-    return this.toDto(comment);
+    return { ...this.toDto(comment), awardedBadges };
   }
 
   async update(id: number, dto: UpdateCommentDto, userId: number): Promise<CommentDto> {
@@ -112,6 +116,7 @@ export class CommentsService {
           referenceId: like.id,
         });
         void this.notificationsService.notifyCommentLiked(commentId, userId);
+        void this.badgesService.awardIfEligible(comment.userId, 'like_received');
       }
     }
 
@@ -139,6 +144,15 @@ export class CommentsService {
         id: c.user.id,
         username: c.user.username,
         avatarUrl: c.user.avatarUrl ?? null,
+        equippedBadge: c.user.profile?.equippedBadge
+          ? {
+              id: c.user.profile.equippedBadge.id,
+              slug: c.user.profile.equippedBadge.slug,
+              name: c.user.profile.equippedBadge.name,
+              rarityColor: c.user.profile.equippedBadge.rarityColor ?? null,
+              iconUrl: c.user.profile.equippedBadge.iconUrl ?? null,
+            }
+          : null,
       },
       parentId: c.parentId ?? null,
       content: c.content,

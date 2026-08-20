@@ -3,6 +3,7 @@ import { HypeTransactionReason, Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateRatingDto } from './dto/rating.dto';
 import { HypeService } from '../hype/hype.service';
+import { BadgesService } from '../badges/badges.service';
 
 const MIN_RATINGS_FOR_RANKING = 10;
 
@@ -11,6 +12,7 @@ export class RatingsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly hypeService: HypeService,
+    private readonly badgesService: BadgesService,
   ) {}
 
   /** Nota final: (animation + story + characters + sound + hype*2) / 6 */
@@ -78,7 +80,13 @@ export class RatingsService {
       });
     }
 
-    return { ...rating, badge: RatingsService.getBadge(Number(finalScore)) };
+    const awardedBadges = await this.badgesService.awardIfEligible(userId, 'rating_upserted');
+
+    return {
+      ...rating,
+      badge: RatingsService.getBadge(Number(finalScore)),
+      awardedBadges,
+    };
   }
 
   async getMyRating(userId: number, animeSlug: string) {

@@ -1,10 +1,20 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { CommentPublicationStatus } from '@prisma/client';
 
+class EquippedBadgeDto {
+  @ApiProperty() id!: number;
+  @ApiProperty() slug!: string;
+  @ApiProperty() name!: string;
+  @ApiPropertyOptional() rarityColor?: string | null;
+  @ApiPropertyOptional() iconUrl?: string | null;
+}
+
 class CommentAuthorDto {
   @ApiProperty() id!: number;
   @ApiProperty() username!: string;
   @ApiPropertyOptional() avatarUrl?: string | null;
+  @ApiPropertyOptional({ type: EquippedBadgeDto, nullable: true })
+  equippedBadge?: EquippedBadgeDto | null;
 }
 
 export class CommentDto {
@@ -20,6 +30,8 @@ export class CommentDto {
   @ApiProperty() createdAt!: Date;
   @ApiProperty() updatedAt!: Date;
   @ApiPropertyOptional() editedAt?: Date | null;
+  @ApiPropertyOptional({ description: 'Conquistas desbloqueadas nesta ação' })
+  awardedBadges?: Array<{ slug: string; name: string; rarityColor: string | null }>;
 }
 
 export class CommentWithLikedDto extends CommentDto {

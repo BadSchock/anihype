@@ -25,6 +25,7 @@ import { AnimeAdminModule } from './modules/anime-admin/anime-admin.module';
 import { UserFollowModule } from './modules/user-follow/user-follow.module';
 import { FeedModule } from './modules/feed/feed.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
+import { BadgesModule } from './modules/badges/badges.module';
 import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
 
 @Module({
@@ -55,6 +56,7 @@ import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
     HighlightsModule,
     TopAnimeModule,
     AnimeFollowModule,
+    BadgesModule,
     HypeModule,
     AnimeAdminModule,
     UserFollowModule,

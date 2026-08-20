@@ -3,6 +3,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createComment, getEpisodeComments, toggleCommentLike } from '@/services/api';
 import { useAuthStore } from '@/stores/auth.store';
+import { notifyAwardedBadges } from '@/hooks/use-badges';
+import type { AwardedBadge, Comment } from '@/types/api';
 
 export function useEpisodeComments(episodeId: number, page = 1) {
   const authReady = useAuthStore((s) => s.authReady);
@@ -38,8 +40,10 @@ export function useCreateComment(episodeId: number) {
 
   return useMutation({
     mutationFn: (body: { content: string; parentId?: number; isSpoiler?: boolean }) =>
-      createComment({ episodeId, ...body }, accessToken ?? ''),
-    onSuccess: async (_data, variables) => {
+      createComment({ episodeId, ...body }, accessToken ?? '') as Promise<
+        Comment & { awardedBadges?: AwardedBadge[] }
+      >,
+    onSuccess: async (data, variables) => {
       await queryClient.invalidateQueries({ queryKey: ['comments', 'episode', episodeId] });
       if (variables.parentId) {
         await queryClient.invalidateQueries({
@@ -48,7 +52,9 @@ export function useCreateComment(episodeId: number) {
       }
       if (user?.username) {
         void queryClient.invalidateQueries({ queryKey: ['hype', user.username] });
+        void queryClient.invalidateQueries({ queryKey: ['badges', user.username] });
       }
+      notifyAwardedBadges(data.awardedBadges);
     },
   });
 }

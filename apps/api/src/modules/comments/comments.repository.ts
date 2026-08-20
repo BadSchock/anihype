@@ -10,6 +10,19 @@ const commentInclude = {
       id: true,
       username: true,
       avatarUrl: true,
+      profile: {
+        select: {
+          equippedBadge: {
+            select: {
+              id: true,
+              slug: true,
+              name: true,
+              rarityColor: true,
+              iconUrl: true,
+            },
+          },
+        },
+      },
     },
   },
   _count: {
@@ -114,7 +127,26 @@ export class CommentsRepository {
         createdAt: { gte: since },
       },
       include: {
-        user: { select: { id: true, username: true, avatarUrl: true } },
+        user: {
+          select: {
+            id: true,
+            username: true,
+            avatarUrl: true,
+            profile: {
+              select: {
+                equippedBadge: {
+                  select: {
+                    id: true,
+                    slug: true,
+                    name: true,
+                    rarityColor: true,
+                    iconUrl: true,
+                  },
+                },
+              },
+            },
+          },
+        },
         episode: {
           include: {
             anime: {

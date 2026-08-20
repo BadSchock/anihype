@@ -27,6 +27,9 @@ import type {
   FollowedAnimeEntry,
   AnimeFollowStatus,
   HypeStats,
+  EquippedBadge,
+  UserBadgesResponse,
+  AwardedBadge,
 } from '@/types/api';
 import { useAuthStore } from '@/stores/auth.store';
 
@@ -275,10 +278,25 @@ export interface PublicProfile {
   avatarUrl: string | null;
   bio: string | null;
   createdAt: string;
+  equippedBadge?: EquippedBadge | null;
 }
 
 export function getPublicProfile(username: string) {
   return request<PublicProfile>(`/users/${username}`, { skipAuth: true });
+}
+
+// ─── Badges / Conquistas ─────────────────────────────────────────────────────
+
+export function getUserBadges(username: string) {
+  return request<UserBadgesResponse>(`/users/${username}/badges`, { skipAuth: true });
+}
+
+export function equipBadge(badgeId: number | null, token?: string) {
+  return request<{ equippedBadge: EquippedBadge | null }>(`/users/me/badges/equipped`, {
+    method: 'PATCH',
+    body: JSON.stringify({ badgeId }),
+    token,
+  });
 }
 
 // ─── Ratings ─────────────────────────────────────────────────────────────────

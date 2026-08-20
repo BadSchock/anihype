@@ -109,6 +109,7 @@ export interface MyRating {
   reviewText?: string | null;
   containsSpoiler: boolean;
   badge: RatingBadge;
+  awardedBadges?: AwardedBadge[];
 }
 
 export interface AnimeDetail extends AnimeListItem {
@@ -209,6 +210,43 @@ export interface CommentAuthor {
   id: number;
   username: string;
   avatarUrl?: string | null;
+  equippedBadge?: EquippedBadge | null;
+}
+
+export interface EquippedBadge {
+  id: number;
+  slug: string;
+  name: string;
+  rarityColor?: string | null;
+  iconUrl?: string | null;
+}
+
+export interface BadgeProgress {
+  id: number;
+  slug: string;
+  name: string;
+  description: string | null;
+  rarityColor: string | null;
+  iconUrl: string | null;
+  earned: boolean;
+  acquiredAt: string | null;
+  isEquipped: boolean;
+  progress: {
+    current: number;
+    target: number;
+    hint: string;
+  };
+}
+
+export interface UserBadgesResponse {
+  badges: BadgeProgress[];
+  equippedBadge: EquippedBadge | null;
+}
+
+export interface AwardedBadge {
+  slug: string;
+  name: string;
+  rarityColor: string | null;
 }
 
 export interface Comment {

@@ -7,6 +7,7 @@ import {
   type CreateRatingPayload,
 } from '@/services/api';
 import { useAuthStore } from '@/stores/auth.store';
+import { notifyAwardedBadges } from '@/hooks/use-badges';
 
 export function useAnimeRatings(slug: string) {
   return useQuery({
@@ -32,9 +33,13 @@ export function useUpsertRating(slug: string) {
 
   return useMutation({
     mutationFn: (payload: CreateRatingPayload) => upsertAnimeRating(slug, payload),
-    onSuccess: () => {
+    onSuccess: (data) => {
       void qc.invalidateQueries({ queryKey: ['ratings', slug] });
-      if (username) void qc.invalidateQueries({ queryKey: ['hype', username] });
+      if (username) {
+        void qc.invalidateQueries({ queryKey: ['hype', username] });
+        void qc.invalidateQueries({ queryKey: ['badges', username] });
+      }
+      notifyAwardedBadges(data.awardedBadges);
     },
   });
 }

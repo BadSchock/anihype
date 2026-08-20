@@ -57,6 +57,55 @@ async function seedBadges(): Promise<void> {
       description: 'Equipe de moderação',
       rarityColor: '#22C55E',
     },
+    // Achievement badges (ANI-10)
+    {
+      slug: 'first-comment',
+      name: 'Primeiro Comentário',
+      description: 'Publicou o primeiro comentário na comunidade',
+      rarityColor: '#22C55E',
+    },
+    {
+      slug: 'first-rating',
+      name: 'Primeira Nota',
+      description: 'Avaliou o primeiro anime no Hypômetro',
+      rarityColor: '#F59E0B',
+    },
+    {
+      slug: 'critic-on-duty',
+      name: 'Crítico de Plantão',
+      description: 'Escreveu 10 reviews junto com a nota',
+      rarityColor: '#EF4444',
+    },
+    {
+      slug: 'hyped',
+      name: 'Hypado',
+      description: 'Alcançou 500 Hype XP',
+      rarityColor: '#A855F7',
+    },
+    {
+      slug: 'marathoner',
+      name: 'Maratonista',
+      description: 'Seguiu 10 animes diferentes',
+      rarityColor: '#3B82F6',
+    },
+    {
+      slug: 'networker',
+      name: 'Conexão',
+      description: 'Seguiu 10 usuários da comunidade',
+      rarityColor: '#06B6D4',
+    },
+    {
+      slug: 'community-voice',
+      name: 'Voz da Comunidade',
+      description: 'Recebeu 50 likes em comentários',
+      rarityColor: '#EC4899',
+    },
+    {
+      slug: 'og',
+      name: 'OG',
+      description: 'Entre os 100 primeiros usuários do AniHype',
+      rarityColor: '#EAB308',
+    },
   ];
 
   for (const b of badges) {

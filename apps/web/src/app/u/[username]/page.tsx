@@ -56,7 +56,21 @@ export default async function UserProfilePage({ params }: Props) {
             />
 
             <div className="flex flex-1 flex-col gap-1 pb-1 text-center sm:text-left">
-              <h1 className="text-2xl font-bold text-foreground">{displayName}</h1>
+              <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
+                <h1 className="text-2xl font-bold text-foreground">{displayName}</h1>
+                {user.equippedBadge && (
+                  <span
+                    className="rounded-full border px-2 py-0.5 text-xs font-semibold"
+                    style={{
+                      borderColor: `${user.equippedBadge.rarityColor ?? '#A855F7'}66`,
+                      color: user.equippedBadge.rarityColor ?? '#A855F7',
+                      backgroundColor: `${user.equippedBadge.rarityColor ?? '#A855F7'}18`,
+                    }}
+                  >
+                    {user.equippedBadge.name}
+                  </span>
+                )}
+              </div>
               <p className="text-sm text-muted-foreground">@{user.username}</p>
               <p className="text-xs text-muted-foreground">Membro desde {joinedAt}</p>
               <ProfileSocialStats username={user.username} />

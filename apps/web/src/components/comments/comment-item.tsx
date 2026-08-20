@@ -6,6 +6,7 @@ import { useAuthHydrated } from '@/hooks/use-auth-hydrated';
 import { useCommentReplies, useToggleLike } from '@/hooks/use-comments';
 import { buildLoginUrl } from '@/lib/auth-url';
 import { UserAvatar } from '@/components/user/user-avatar';
+import { EquippedBadgeChip } from '@/components/badges/equipped-badge-chip';
 import type { Comment } from '@/types/api';
 
 interface CommentItemProps {
@@ -64,8 +65,11 @@ export function CommentItem({
       </div>
 
       <div className="flex min-w-0 flex-1 flex-col gap-1">
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
           <span className="font-medium text-foreground/80">{comment.author.username}</span>
+          {comment.author.equippedBadge && (
+            <EquippedBadgeChip badge={comment.author.equippedBadge} />
+          )}
           <span>·</span>
           <span>{timeAgo(comment.createdAt)}</span>
           {comment.editedAt && <span>(editado)</span>}

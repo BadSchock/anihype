@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { HypeTransactionReason } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
+import { BadgesService } from '../badges/badges.service';
 
 /** Pontos por ação — valores conservadores para evitar farm. */
 const XP_BY_REASON: Partial<Record<HypeTransactionReason, number>> = {
@@ -29,7 +30,10 @@ export interface HypeStats {
 
 @Injectable()
 export class HypeService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly badgesService: BadgesService,
+  ) {}
 
   /**
    * Concede XP de forma idempotente (user + reason + referenceId).
@@ -84,6 +88,8 @@ export class HypeService {
           });
         }
       });
+
+      void this.badgesService.awardIfEligible(params.userId, 'xp_awarded');
     } catch {
       // Gamificação não deve bloquear comentários/likes/ratings
     }

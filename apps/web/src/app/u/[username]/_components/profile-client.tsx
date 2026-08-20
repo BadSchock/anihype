@@ -4,6 +4,7 @@ import { useAuthHydrated } from '@/hooks/use-auth-hydrated';
 import { TopAnimeSection } from '@/components/profile/top-anime-section';
 import { FollowingSection } from '@/components/profile/following-section';
 import { HypeBadge } from '@/components/profile/hype-badge';
+import { AchievementsSection } from '@/components/profile/achievements-section';
 import { UserActivitySection } from '@/components/profile/user-activity-section';
 
 interface Props {
@@ -18,6 +19,7 @@ export function ProfileClient({ username, userId }: Props) {
   return (
     <>
       <HypeBadge username={username} className="mt-6" />
+      <AchievementsSection username={username} isOwner={!!isOwner} />
       <TopAnimeSection username={username} isOwner={isOwner} />
       <FollowingSection username={username} />
       <UserActivitySection username={username} />

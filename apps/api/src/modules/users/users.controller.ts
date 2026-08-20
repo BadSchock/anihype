@@ -13,16 +13,8 @@ export class UsersController {
   @ApiOperation({ summary: 'Perfil público de um usuário pelo username' })
   @ApiParam({ name: 'username', type: String })
   async getPublicProfile(@Param('username') username: string) {
-    const user = await this.usersService.findByUsername(username);
+    const user = await this.usersService.getPublicProfile(username);
     if (!user) throw new NotFoundException('Usuário não encontrado');
-
-    return {
-      id: user.id,
-      username: user.username,
-      displayName: user.displayName,
-      avatarUrl: user.avatarUrl,
-      bio: user.bio,
-      createdAt: user.createdAt,
-    };
+    return user;
   }
 }

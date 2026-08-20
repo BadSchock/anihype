@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { HypeTransactionReason } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { HypeService } from '../hype/hype.service';
+import { BadgesService } from '../badges/badges.service';
 
 const ANIME_SELECT = {
   id: true,
@@ -22,6 +23,7 @@ export class AnimeFollowService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly hypeService: HypeService,
+    private readonly badgesService: BadgesService,
   ) {}
 
   private async resolveAnime(slug: string) {
@@ -86,9 +88,11 @@ export class AnimeFollowService {
         reason: HypeTransactionReason.ANIME_FOLLOWED,
         referenceId: follow.id,
       });
+      const awardedBadges = await this.badgesService.awardIfEligible(userId, 'anime_followed');
+      return { following: true, message: 'Anime seguido com sucesso.', awardedBadges };
     }
 
-    return { following: true, message: 'Anime seguido com sucesso.' };
+    return { following: true, message: 'Anime seguido com sucesso.', awardedBadges: [] };
   }
 
   async unfollow(userId: number, slug: string) {

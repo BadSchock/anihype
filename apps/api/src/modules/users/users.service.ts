@@ -3,6 +3,7 @@ import { User, RoleCode } from '@prisma/client';
 
 import { PrismaService } from '../../prisma/prisma.service';
 import { UsersRepository } from './users.repository';
+import { BadgesService } from '../badges/badges.service';
 
 export interface CreateUserInput {
   email: string;
@@ -20,6 +21,7 @@ export class UsersService {
   constructor(
     private readonly repo: UsersRepository,
     private readonly prisma: PrismaService,
+    private readonly badgesService: BadgesService,
   ) {}
 
   async findById(id: number): Promise<User | null> {
@@ -64,6 +66,8 @@ export class UsersService {
       },
     });
 
+    void this.badgesService.awardIfEligible(user.id, 'user_registered');
+
     return user;
   }
 
@@ -75,5 +79,43 @@ export class UsersService {
 
   async updateLastLogin(id: number): Promise<void> {
     await this.repo.update(id, { lastLoginAt: new Date() });
+  }
+
+  async getPublicProfile(username: string) {
+    const user = await this.prisma.user.findFirst({
+      where: { username: username.toLowerCase(), deletedAt: null },
+      select: {
+        id: true,
+        username: true,
+        displayName: true,
+        avatarUrl: true,
+        bio: true,
+        createdAt: true,
+        profile: {
+          select: {
+            equippedBadge: {
+              select: {
+                id: true,
+                slug: true,
+                name: true,
+                rarityColor: true,
+                iconUrl: true,
+              },
+            },
+          },
+        },
+      },
+    });
+    if (!user) return null;
+
+    return {
+      id: user.id,
+      username: user.username,
+      displayName: user.displayName,
+      avatarUrl: user.avatarUrl,
+      bio: user.bio,
+      createdAt: user.createdAt,
+      equippedBadge: user.profile?.equippedBadge ?? null,
+    };
   }
 }
