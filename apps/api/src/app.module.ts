@@ -26,6 +26,7 @@ import { UserFollowModule } from './modules/user-follow/user-follow.module';
 import { FeedModule } from './modules/feed/feed.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { BadgesModule } from './modules/badges/badges.module';
+import { RankingModule } from './modules/ranking/ranking.module';
 import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
 
 @Module({
@@ -62,6 +63,7 @@ import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
     UserFollowModule,
     FeedModule,
     NotificationsModule,
+    RankingModule,
   ],
   providers: [
     // Exception filter global
