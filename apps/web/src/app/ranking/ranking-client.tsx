@@ -217,39 +217,63 @@ function AnimePodiumCard({ item, visualIdx }: { item: AnimeRankingItem; visualId
 }
 
 function UserPodiumCard({ item, visualIdx }: { item: UserRankingItem; visualIdx: number }) {
+  const displayName = item.displayName ?? item.username;
+  const hasBg = Boolean(item.profileBackgroundUrl);
+
   return (
     <Link
       href={`/u/${item.username}`}
       className={cn(
-        'flex flex-col items-center rounded-xl border p-4 text-center transition hover:brightness-110',
-        PODIUM_STYLE[visualIdx],
+        'relative flex flex-col overflow-hidden rounded-xl border text-center transition hover:brightness-110',
+        !hasBg && PODIUM_STYLE[visualIdx],
+        hasBg && 'border-border',
       )}
     >
-      <span className="mb-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
-        #{item.position}
-      </span>
-      <UserAvatar
-        name={item.displayName ?? item.username}
-        avatarUrl={item.avatarUrl}
-        size="lg"
+      {hasBg && (
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: `url(${item.profileBackgroundUrl})` }}
+          aria-hidden
+        />
+      )}
+      {/* Readability shield — ready for dynamic backgrounds */}
+      <div
+        className={cn(
+          'absolute inset-0',
+          hasBg
+            ? 'bg-gradient-to-t from-background via-background/75 to-transparent'
+            : 'bg-gradient-to-t from-background/40 via-transparent to-transparent',
+        )}
+        aria-hidden
       />
-      <p className="mt-3 truncate text-sm font-bold text-foreground">
-        {item.displayName ?? item.username}
-      </p>
-      {item.equippedBadge && (
-        <div className="mt-1">
-          <EquippedBadgeChip badge={item.equippedBadge} />
+
+      <div className="relative z-10 flex flex-col items-center gap-3 p-[1.5rem]">
+        <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+          #{item.position}
+        </span>
+        <UserAvatar
+          name={displayName}
+          avatarUrl={item.avatarUrl}
+          size="lg"
+          frameColor={item.profileFrameColor}
+          className="h-[5rem] w-[5rem] text-2xl"
+        />
+        <div className="flex min-w-0 flex-col items-center gap-1">
+          <p className="w-full truncate text-sm font-bold text-foreground">{displayName}</p>
+          {item.equippedBadge && <EquippedBadgeChip badge={item.equippedBadge} />}
         </div>
-      )}
-      <p className="mt-2 text-lg font-black tabular-nums">{item.hypeXp} XP</p>
-      {item.level?.displayName && (
-        <p className="text-[11px] text-muted-foreground">{item.level.displayName}</p>
-      )}
+        <p className="text-lg font-black tabular-nums text-foreground">{item.hypeXp} XP</p>
+        {item.level?.displayName && (
+          <p className="text-[11px] text-muted-foreground">{item.level.displayName}</p>
+        )}
+      </div>
     </Link>
   );
 }
 
 function MemberRow({ item }: { item: UserRankingItem }) {
+  const displayName = item.displayName ?? item.username;
+
   return (
     <li>
       <Link
@@ -260,15 +284,14 @@ function MemberRow({ item }: { item: UserRankingItem }) {
           #{item.position}
         </span>
         <UserAvatar
-          name={item.displayName ?? item.username}
+          name={displayName}
           avatarUrl={item.avatarUrl}
           size="sm"
+          frameColor={item.profileFrameColor}
         />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <p className="truncate font-semibold text-foreground">
-              {item.displayName ?? item.username}
-            </p>
+            <p className="truncate font-semibold text-foreground">{displayName}</p>
             {item.equippedBadge && <EquippedBadgeChip badge={item.equippedBadge} />}
           </div>
           <p className="text-xs text-muted-foreground">

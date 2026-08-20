@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import type { CSSProperties } from 'react';
 import { cn } from '@anihype/ui';
 
 interface UserAvatarProps {
@@ -6,6 +7,8 @@ interface UserAvatarProps {
   avatarUrl?: string | null;
   size?: 'sm' | 'md' | 'lg' | 'xl';
   className?: string;
+  /** Optional profile frame color (CSS color). Uses ring + ring-offset. */
+  frameColor?: string | null;
 }
 
 const SIZE = {
@@ -22,18 +25,35 @@ const PIXEL = {
   xl: 96,
 } as const;
 
-export function UserAvatar({ name, avatarUrl, size = 'md', className }: UserAvatarProps) {
+export function UserAvatar({
+  name,
+  avatarUrl,
+  size = 'md',
+  className,
+  frameColor,
+}: UserAvatarProps) {
   const initial = name.charAt(0).toUpperCase();
   const sizeClass = SIZE[size];
+  const hasFrame = Boolean(frameColor);
+
+  const ringClass = hasFrame
+    ? 'ring-4 ring-offset-2 ring-offset-background'
+    : 'ring-2 ring-purple-500/20';
+
+  const ringStyle: CSSProperties | undefined = hasFrame
+    ? { ['--tw-ring-color' as string]: frameColor! }
+    : undefined;
 
   if (avatarUrl) {
     return (
       <div
         className={cn(
-          'relative flex-shrink-0 overflow-hidden rounded-full bg-purple-500/20 ring-2 ring-purple-500/20',
+          'relative flex-shrink-0 overflow-hidden rounded-full bg-purple-500/20',
+          ringClass,
           sizeClass,
           className,
         )}
+        style={ringStyle}
       >
         <Image
           src={avatarUrl}
@@ -50,10 +70,12 @@ export function UserAvatar({ name, avatarUrl, size = 'md', className }: UserAvat
   return (
     <div
       className={cn(
-        'flex flex-shrink-0 items-center justify-center rounded-full bg-purple-500/30 font-bold text-purple-300 ring-2 ring-purple-500/20',
+        'flex flex-shrink-0 items-center justify-center rounded-full bg-purple-500/30 font-bold text-purple-300',
+        ringClass,
         sizeClass,
         className,
       )}
+      style={ringStyle}
       aria-hidden
     >
       {initial}

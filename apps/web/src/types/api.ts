@@ -279,6 +279,9 @@ export interface UserRankingItem {
   hypeXp: number;
   level: { tierOrder: number; displayName: string | null; minXp: number } | null;
   equippedBadge: EquippedBadge | null;
+  /** Cosméticos de perfil (V1.1) — null até existir inventário/equip. */
+  profileFrameColor: string | null;
+  profileBackgroundUrl: string | null;
 }
 
 export interface UserRankingMe {

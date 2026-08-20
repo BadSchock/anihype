@@ -133,6 +133,9 @@ export class RankingService {
           }
         : null,
       equippedBadge: p.equippedBadge,
+      // Slots for future profile cosmetics (frames / backgrounds)
+      profileFrameColor: null as string | null,
+      profileBackgroundUrl: null as string | null,
     }));
 
     const me = await this.buildMeBlock(
@@ -236,6 +239,8 @@ export class RankingService {
               }
             : null,
           equippedBadge: u.profile?.equippedBadge ?? null,
+          profileFrameColor: null as string | null,
+          profileBackgroundUrl: null as string | null,
         };
       })
       .filter((x): x is NonNullable<typeof x> => x !== null);
