@@ -45,7 +45,8 @@ export function AchievementsSection({ username, isOwner, className }: Props) {
             isOwner={isOwner}
             busy={equip.isPending}
             onEquip={() => {
-              if (!isOwner || !badge.earned) return;
+              if (!isOwner || !(badge.earned || badge.progress.current >= badge.progress.target))
+                return;
               equip.mutate(badge.isEquipped ? null : badge.id);
             }}
           />
@@ -67,28 +68,28 @@ function AchievementTile({
   onEquip: () => void;
 }) {
   const rarity = badge.rarityColor ?? '#A855F7';
-  const unlocked = badge.earned;
-  const pct = Math.min(
-    100,
-    Math.round((badge.progress.current / Math.max(badge.progress.target, 1)) * 100),
-  );
-  const fraction = `${badge.progress.current}/${badge.progress.target}`;
+  const { current, target } = badge.progress;
+  const isUnlocked = badge.earned || current >= target;
+  const pct = isUnlocked
+    ? 100
+    : Math.min(100, Math.round((current / Math.max(target, 1)) * 100));
+  const fraction = `${current}/${target}`;
 
   return (
     <button
       type="button"
-      disabled={!isOwner || !unlocked || busy}
+      disabled={!isOwner || !isUnlocked || busy}
       onClick={onEquip}
       className={cn(
         'relative flex min-h-[10rem] flex-col justify-between rounded-xl border p-[1.5rem] text-left transition',
-        unlocked
-          ? 'opacity-100 hover:brightness-110'
+        isUnlocked
+          ? 'border-primary/50 bg-primary/10 opacity-100 hover:brightness-110'
           : 'border-border/60 bg-muted/30 opacity-55',
-        unlocked && badge.isEquipped && 'ring-2 ring-offset-2 ring-offset-background',
-        isOwner && unlocked ? 'cursor-pointer' : 'cursor-default',
+        isUnlocked && badge.isEquipped && 'ring-2 ring-offset-2 ring-offset-background',
+        isOwner && isUnlocked ? 'cursor-pointer' : 'cursor-default',
       )}
       style={
-        unlocked
+        isUnlocked
           ? {
               borderColor: `${rarity}80`,
               backgroundImage: `linear-gradient(165deg, ${rarity}22 0%, transparent 55%)`,
@@ -98,7 +99,7 @@ function AchievementTile({
           : undefined
       }
       title={
-        unlocked
+        isUnlocked
           ? isOwner
             ? badge.isEquipped
               ? 'Clique para desequipar'
@@ -111,14 +112,14 @@ function AchievementTile({
         <p
           className={cn(
             'min-w-0 flex-1 pr-1 text-sm font-bold leading-snug',
-            unlocked ? 'text-foreground' : 'text-muted-foreground',
+            isUnlocked ? 'text-foreground' : 'text-muted-foreground',
           )}
         >
           {badge.name}
         </p>
-        {unlocked ? (
+        {isUnlocked ? (
           <CheckCircle2
-            className="h-5 w-5 flex-shrink-0"
+            className="h-5 w-5 flex-shrink-0 text-primary"
             style={{ color: rarity }}
             aria-label="Conquistado"
           />
@@ -130,7 +131,7 @@ function AchievementTile({
       <p
         className={cn(
           'mt-2 line-clamp-3 text-[0.75rem] leading-snug',
-          unlocked ? 'text-muted-foreground' : 'text-muted-foreground/80',
+          isUnlocked ? 'text-muted-foreground' : 'text-muted-foreground/80',
         )}
       >
         {badge.description}
@@ -153,11 +154,13 @@ function AchievementTile({
           <div
             className={cn(
               'h-full rounded-full transition-all duration-500',
-              unlocked ? '' : 'opacity-70',
+              isUnlocked ? 'bg-primary' : 'opacity-70',
             )}
             style={{
               width: `${pct}%`,
-              backgroundColor: unlocked ? rarity : 'hsl(var(--muted-foreground) / 0.45)',
+              ...(isUnlocked ? { backgroundColor: rarity } : {
+                backgroundColor: 'hsl(var(--muted-foreground) / 0.45)',
+              }),
             }}
           />
         </div>
