@@ -205,6 +205,191 @@ async function seedDevAdminUser(): Promise<void> {
   console.log(`[seed] Admin dev OK → ${email} (username: ${username})`);
 }
 
+/** Demo local: 10 users + Hypômetro em até 20 animes (para ranking / UI). */
+const DEMO_USERS = [
+  { username: 'sakura_fan', displayName: 'Sakura', email: 'sakura@demo.anihype.local' },
+  { username: 'gojo_sensei', displayName: 'Gojo', email: 'gojo@demo.anihype.local' },
+  { username: 'levi_ackerman', displayName: 'Levi', email: 'levi@demo.anihype.local' },
+  { username: 'mikasa_prot', displayName: 'Mikasa', email: 'mikasa@demo.anihype.local' },
+  { username: 'luffy_hype', displayName: 'Luffy', email: 'luffy@demo.anihype.local' },
+  { username: 'nezuko_chan', displayName: 'Nezuko', email: 'nezuko@demo.anihype.local' },
+  { username: 'killua_z', displayName: 'Killua', email: 'killua@demo.anihype.local' },
+  { username: 'asuka_lang', displayName: 'Asuka', email: 'asuka@demo.anihype.local' },
+  { username: 'spike_cow', displayName: 'Spike', email: 'spike@demo.anihype.local' },
+  { username: 'violet_e', displayName: 'Violet', email: 'violet@demo.anihype.local' },
+] as const;
+
+const DEMO_PASSWORD = 'Demo1234!';
+
+const DEMO_REVIEWS = [
+  'Animação impecável e trilha sonora que eleva cada cena.',
+  'História engaja do começo ao fim — Hypômetro alto com razão.',
+  'Personagens memoráveis, mas o ritmo oscila no meio.',
+  'Vale cada nota. Comunidade precisa ver isso.',
+  'Bom, porém esperava mais do arco final.',
+  null,
+  null,
+  'Review curta: hype garantido.',
+  null,
+  'Um dos melhores da temporada na minha opinião.',
+] as const;
+
+function computeFinalScore(scores: {
+  animation: number;
+  story: number;
+  characters: number;
+  sound: number;
+  hype: number;
+}): number {
+  return (
+    (scores.animation + scores.story + scores.characters + scores.sound + scores.hype * 2) /
+    6
+  );
+}
+
+/** Deterministic 1–10 score from seeds (stable across re-runs). */
+function demoScore(userIndex: number, animeIndex: number, dim: number): number {
+  const n = (userIndex * 17 + animeIndex * 31 + dim * 13) % 10;
+  // Bias toward mid-high so ranking looks lively (4–10)
+  return Math.min(10, Math.max(4, n + 4));
+}
+
+async function recalculateAnimeAggregates(animeId: number): Promise<void> {
+  const agg = await prisma.animeRating.aggregate({
+    where: { animeId, deletedAt: null },
+    _count: { id: true },
+    _avg: {
+      animation: true,
+      story: true,
+      characters: true,
+      sound: true,
+      hype: true,
+      finalScore: true,
+    },
+  });
+
+  const avg = agg._avg;
+  await prisma.anime.update({
+    where: { id: animeId },
+    data: {
+      ratingCount: agg._count.id,
+      ratingAverage: avg.finalScore != null ? Number(avg.finalScore.toFixed(2)) : null,
+      ratingAnimation: avg.animation != null ? Number(avg.animation.toFixed(2)) : null,
+      ratingStory: avg.story != null ? Number(avg.story.toFixed(2)) : null,
+      ratingCharacters: avg.characters != null ? Number(avg.characters.toFixed(2)) : null,
+      ratingSound: avg.sound != null ? Number(avg.sound.toFixed(2)) : null,
+      ratingHype: avg.hype != null ? Number(avg.hype.toFixed(2)) : null,
+    },
+  });
+}
+
+async function seedDemoHypometro(): Promise<void> {
+  const userRole = await prisma.role.findUnique({ where: { code: RoleCode.USER } });
+  if (!userRole) throw new Error('Role USER não encontrada');
+
+  const passwordHash = await bcrypt.hash(DEMO_PASSWORD, BCRYPT_ROUNDS);
+  const userIds: number[] = [];
+
+  for (let i = 0; i < DEMO_USERS.length; i++) {
+    const demo = DEMO_USERS[i]!;
+    const email = demo.email.toLowerCase();
+    const username = demo.username.toLowerCase();
+    const hypeXp = 80 + i * 95; // spread for /ranking Membros
+
+    const user = await prisma.user.upsert({
+      where: { email },
+      create: {
+        email,
+        username,
+        passwordHash,
+        displayName: demo.displayName,
+        emailVerified: true,
+        emailVerifiedAt: new Date(),
+        roles: { create: [{ roleId: userRole.id }] },
+        profile: { create: { hypeXp } },
+      },
+      update: {
+        passwordHash,
+        displayName: demo.displayName,
+        emailVerified: true,
+      },
+    });
+
+    await prisma.userProfile.upsert({
+      where: { userId: user.id },
+      create: { userId: user.id, hypeXp },
+      update: { hypeXp },
+    });
+
+    const level = await prisma.hypeLevel.findFirst({
+      where: { minXp: { lte: hypeXp } },
+      orderBy: { minXp: 'desc' },
+    });
+    if (level) {
+      await prisma.userProfile.update({
+        where: { userId: user.id },
+        data: { hypeLevelId: level.id },
+      });
+    }
+
+    userIds.push(user.id);
+  }
+
+  const animes = await prisma.anime.findMany({
+    where: { deletedAt: null },
+    orderBy: [{ popularityScore: 'desc' }, { id: 'asc' }],
+    take: 20,
+    select: { id: true, slug: true, titleRomaji: true },
+  });
+
+  if (animes.length === 0) {
+    console.log('[seed] Demo Hypômetro SKIP — nenhum anime no banco (rode o sync antes)');
+    return;
+  }
+
+  let ratingCount = 0;
+  for (let a = 0; a < animes.length; a++) {
+    const anime = animes[a]!;
+    for (let u = 0; u < userIds.length; u++) {
+      const userId = userIds[u]!;
+      const scores = {
+        animation: demoScore(u, a, 1),
+        story: demoScore(u, a, 2),
+        characters: demoScore(u, a, 3),
+        sound: demoScore(u, a, 4),
+        hype: demoScore(u, a, 5),
+      };
+      const finalScore = Number(computeFinalScore(scores).toFixed(2));
+      const reviewText = DEMO_REVIEWS[(u + a) % DEMO_REVIEWS.length] ?? null;
+
+      await prisma.animeRating.upsert({
+        where: { userId_animeId: { userId, animeId: anime.id } },
+        create: {
+          userId,
+          animeId: anime.id,
+          ...scores,
+          finalScore,
+          reviewText,
+          containsSpoiler: false,
+        },
+        update: {
+          ...scores,
+          finalScore,
+          reviewText,
+          deletedAt: null,
+        },
+      });
+      ratingCount += 1;
+    }
+    await recalculateAnimeAggregates(anime.id);
+  }
+
+  console.log(
+    `[seed] Demo Hypômetro OK → ${userIds.length} users (senha: ${DEMO_PASSWORD}), ` +
+      `${animes.length} animes, ${ratingCount} ratings`,
+  );
+}
+
 async function main(): Promise<void> {
   await seedRoles();
   console.log('[seed] Roles OK');
@@ -213,6 +398,7 @@ async function main(): Promise<void> {
   await seedHypeLevels();
   console.log('[seed] Hype levels OK');
   await seedDevAdminUser();
+  await seedDemoHypometro();
 }
 
 main()
