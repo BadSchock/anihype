@@ -83,6 +83,15 @@ export class BadgesService {
   }> {
     const user = await this.prisma.user.findFirst({
       where: { username: username.toLowerCase(), deletedAt: null },
+      select: { id: true },
+    });
+    if (!user) throw new NotFoundException('Usuário não encontrado');
+
+    // Backfill: seed/admin paths may meet criteria without UserBadge rows
+    await this.syncAllEligible(user.id);
+
+    const full = await this.prisma.user.findFirst({
+      where: { id: user.id },
       select: {
         id: true,
         profile: { select: { equippedBadgeId: true } },
@@ -92,11 +101,11 @@ export class BadgesService {
         },
       },
     });
-    if (!user) throw new NotFoundException('Usuário não encontrado');
+    if (!full) throw new NotFoundException('Usuário não encontrado');
 
-    const progressMap = await this.computeAllProgress(user.id);
+    const progressMap = await this.computeAllProgress(full.id);
     const earnedBySlug = new Map(
-      user.badges.map((ub) => [ub.badge.slug, ub] as const),
+      full.badges.map((ub) => [ub.badge.slug, ub] as const),
     );
 
     const catalog = await this.prisma.badge.findMany({
@@ -106,10 +115,13 @@ export class BadgesService {
 
     const badges: BadgeProgressDto[] = ACHIEVEMENT_BADGES.map((def) => {
       const row = bySlug.get(def.slug);
-      const earned = earnedBySlug.get(def.slug);
+      const earnedRow = earnedBySlug.get(def.slug);
       const progress = progressMap[def.slug];
+      const metTarget = progress.current >= progress.target;
+      const earned = !!earnedRow || metTarget;
       const isEquipped =
-        !!earned && user.profile?.equippedBadgeId === (row?.id ?? earned.badgeId);
+        !!earnedRow &&
+        full.profile?.equippedBadgeId === (row?.id ?? earnedRow.badgeId);
 
       return {
         id: row?.id ?? 0,
@@ -118,8 +130,8 @@ export class BadgesService {
         description: row?.description ?? def.description,
         rarityColor: row?.rarityColor ?? def.rarityColor,
         iconUrl: row?.iconUrl ?? null,
-        earned: !!earned,
-        acquiredAt: earned?.acquiredAt.toISOString() ?? null,
+        earned,
+        acquiredAt: earnedRow?.acquiredAt.toISOString() ?? null,
         isEquipped,
         progress: {
           current: progress.current,
@@ -130,8 +142,8 @@ export class BadgesService {
     });
 
     let equippedBadge: EquippedBadgeDto | null = null;
-    if (user.profile?.equippedBadgeId) {
-      const eq = catalog.find((b) => b.id === user.profile!.equippedBadgeId);
+    if (full.profile?.equippedBadgeId) {
+      const eq = catalog.find((b) => b.id === full.profile!.equippedBadgeId);
       if (eq && earnedBySlug.has(eq.slug)) {
         equippedBadge = {
           id: eq.id,
@@ -144,6 +156,23 @@ export class BadgesService {
     }
 
     return { badges, equippedBadge };
+  }
+
+  /** Grant any achievement whose progress is already complete. */
+  async syncAllEligible(userId: number): Promise<AwardedBadgeDto[]> {
+    const awarded: AwardedBadgeDto[] = [];
+    for (const slug of ACHIEVEMENT_SLUGS) {
+      const ok = await this.tryAward(userId, slug);
+      if (ok) {
+        const meta = ACHIEVEMENT_BADGES.find((b) => b.slug === slug)!;
+        awarded.push({
+          slug,
+          name: meta.name,
+          rarityColor: meta.rarityColor,
+        });
+      }
+    }
+    return awarded;
   }
 
   async equipBadge(userId: number, badgeId: number | null): Promise<{
