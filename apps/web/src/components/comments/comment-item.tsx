@@ -67,9 +67,9 @@ export function CommentItem({
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
           <span className="font-medium text-foreground/80">{comment.author.username}</span>
-          {comment.author.equippedBadge && (
+          {comment.author.equippedBadge ? (
             <EquippedBadgeChip badge={comment.author.equippedBadge} />
-          )}
+          ) : null}
           <span>·</span>
           <span>{timeAgo(comment.createdAt)}</span>
           {comment.editedAt && <span>(editado)</span>}

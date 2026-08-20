@@ -23,6 +23,12 @@ export function useEquipBadge(username: string) {
     mutationFn: (badgeId: number | null) => equipBadge(badgeId, accessToken ?? ''),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ['badges', username] });
+      // Equipped chip is read from live profile on comments / reviews / ranking
+      void qc.invalidateQueries({ queryKey: ['comments'] });
+      void qc.invalidateQueries({ queryKey: ['ratings'] });
+      void qc.invalidateQueries({ queryKey: ['ranking', 'users'] });
+      void qc.invalidateQueries({ queryKey: ['public-profile', username] });
+      void qc.invalidateQueries({ queryKey: ['profile', username] });
     },
   });
 }
