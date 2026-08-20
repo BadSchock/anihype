@@ -19,10 +19,23 @@ const PERIODS: { id: UserRankingPeriod; label: string }[] = [
 ];
 
 const PODIUM_STYLE = [
-  'order-2 sm:order-1 border-amber-400/50 bg-amber-500/10',
-  'order-1 sm:order-2 border-yellow-300/60 bg-yellow-400/15 sm:-translate-y-3',
-  'order-3 border-orange-400/40 bg-orange-500/10',
+  'order-2 sm:order-1 border-slate-300/40',
+  'order-1 sm:order-2 border-yellow-300/70 sm:-translate-y-3',
+  'order-3 border-orange-400/50',
 ] as const;
+
+/** Fallback ring until profile cosmetics exist — only podium places. */
+const PODIUM_FRAME: Record<number, string> = {
+  1: '#FBBF24',
+  2: '#CBD5E1',
+  3: '#FB923C',
+};
+
+const PODIUM_BACKDROP: Record<number, string> = {
+  1: 'linear-gradient(160deg, rgba(251,191,36,0.35) 0%, rgba(15,17,21,0.95) 55%, rgba(15,17,21,1) 100%)',
+  2: 'linear-gradient(160deg, rgba(203,213,225,0.28) 0%, rgba(15,17,21,0.95) 55%, rgba(15,17,21,1) 100%)',
+  3: 'linear-gradient(160deg, rgba(251,146,60,0.30) 0%, rgba(15,17,21,0.95) 55%, rgba(15,17,21,1) 100%)',
+};
 
 export function RankingClient() {
   const [tab, setTab] = useState<Tab>('animes');
@@ -218,32 +231,33 @@ function AnimePodiumCard({ item, visualIdx }: { item: AnimeRankingItem; visualId
 
 function UserPodiumCard({ item, visualIdx }: { item: UserRankingItem; visualIdx: number }) {
   const displayName = item.displayName ?? item.username;
-  const hasBg = Boolean(item.profileBackgroundUrl);
+  const customBg = item.profileBackgroundUrl;
+  const hasCustomBg = Boolean(customBg);
+  const frameColor =
+    item.profileFrameColor ?? PODIUM_FRAME[item.position] ?? null;
+  const podiumBackdrop = PODIUM_BACKDROP[item.position];
 
   return (
     <Link
       href={`/u/${item.username}`}
       className={cn(
-        'relative flex flex-col overflow-hidden rounded-xl border text-center transition hover:brightness-110',
-        !hasBg && PODIUM_STYLE[visualIdx],
-        hasBg && 'border-border',
+        'relative flex flex-col overflow-hidden rounded-xl border text-center shadow-lg transition hover:brightness-110',
+        PODIUM_STYLE[visualIdx],
       )}
     >
-      {hasBg && (
-        <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url(${item.profileBackgroundUrl})` }}
-          aria-hidden
-        />
-      )}
-      {/* Readability shield — ready for dynamic backgrounds */}
+      {/* Custom profile BG (V1.1) or medal wash fallback */}
       <div
-        className={cn(
-          'absolute inset-0',
-          hasBg
-            ? 'bg-gradient-to-t from-background via-background/75 to-transparent'
-            : 'bg-gradient-to-t from-background/40 via-transparent to-transparent',
-        )}
+        className="absolute inset-0 bg-cover bg-center"
+        style={{
+          backgroundImage: hasCustomBg
+            ? `url(${customBg})`
+            : podiumBackdrop,
+        }}
+        aria-hidden
+      />
+      {/* Readability shield */}
+      <div
+        className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent"
         aria-hidden
       />
 
@@ -255,7 +269,7 @@ function UserPodiumCard({ item, visualIdx }: { item: UserRankingItem; visualIdx:
           name={displayName}
           avatarUrl={item.avatarUrl}
           size="lg"
-          frameColor={item.profileFrameColor}
+          frameColor={frameColor}
           className="h-[5rem] w-[5rem] text-2xl"
         />
         <div className="flex min-w-0 flex-col items-center gap-1">
