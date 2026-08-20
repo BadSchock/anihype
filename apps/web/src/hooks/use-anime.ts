@@ -1,11 +1,19 @@
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
-import { getAnimeBySlug, getAnimeList } from '@/services/api';
+import { getAnimeBySlug, getAnimeList, getGenres } from '@/services/api';
 
 export function useAnimeList(params: Record<string, string | number | undefined> = {}) {
   return useQuery({
     queryKey: ['anime', 'list', params],
     queryFn: () => getAnimeList(params),
+  });
+}
+
+export function useGenres() {
+  return useQuery({
+    queryKey: ['genres'],
+    queryFn: getGenres,
+    staleTime: 1000 * 60 * 30,
   });
 }
 

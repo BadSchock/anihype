@@ -8,18 +8,31 @@ import {
   StreamingLinkDto,
   StudioDto,
 } from './dto/anime-response.dto';
-import { PaginatedResult } from '../../common/dto/pagination.dto';
+import { PaginatedResult, paginate } from '../../common/dto/pagination.dto';
+import {
+  parseGenreIdList,
+  parseGenreSlugList,
+  resolveEffectiveGenreIds,
+} from './genre-filter.util';
 
 @Injectable()
 export class AnimeService {
   constructor(private readonly repo: AnimeRepository) {}
 
   async findMany(query: AnimeQueryDto): Promise<PaginatedResult<AnimeListItemDto>> {
-    const result = await this.repo.findMany(query);
+    const resolved = await this.resolveGenreFilter(query);
+    if (resolved === 'empty') {
+      return paginate([], 0, query.page, query.limit);
+    }
+    const result = await this.repo.findMany(query, resolved);
     return {
       data: result.data.map((a) => this.toListItem(a)),
       meta: result.meta,
     };
+  }
+
+  async listGenres(): Promise<GenreDto[]> {
+    return this.repo.findAllGenres();
   }
 
   async findByIdOrSlug(idOrSlug: string): Promise<AnimeDetailDto> {
@@ -28,6 +41,23 @@ export class AnimeService {
       throw new NotFoundException(`Anime "${idOrSlug}" não encontrado.`);
     }
     return this.toDetail(anime);
+  }
+
+  private async resolveGenreFilter(
+    query: AnimeQueryDto,
+  ): Promise<number[] | 'empty' | undefined> {
+    const slugsRequested = parseGenreSlugList(query.genre);
+    const fromCsv = parseGenreIdList(query.genreIds);
+    const explicitIds = [...fromCsv, ...(query.genreId ? [query.genreId] : [])];
+
+    const slugIdsFound =
+      slugsRequested.length > 0 ? await this.repo.findGenreIdsBySlugs(slugsRequested) : [];
+
+    return resolveEffectiveGenreIds({
+      slugsRequested,
+      slugIdsFound,
+      explicitIds,
+    });
   }
 
   // ---------------------------------------------------------------------------

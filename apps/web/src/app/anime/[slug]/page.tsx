@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
+import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getAnimeBySlug } from '@/services/api';
 import { Badge } from '@/components/ui/badge';
@@ -147,12 +148,13 @@ export default async function AnimePage({ params }: Props) {
             {anime.genres.length > 0 && (
               <div className="flex flex-wrap gap-2">
                 {anime.genres.map((g) => (
-                  <span
+                  <Link
                     key={g.id}
-                    className="rounded-full bg-purple-500/15 px-3 py-0.5 text-xs font-medium text-purple-300"
+                    href={`/anime?genre=${encodeURIComponent(g.slug)}`}
+                    className="rounded-full bg-purple-500/15 px-3 py-0.5 text-xs font-medium text-purple-300 transition-colors hover:bg-purple-500/25 hover:text-purple-200"
                   >
                     {g.name}
-                  </span>
+                  </Link>
                 ))}
               </div>
             )}

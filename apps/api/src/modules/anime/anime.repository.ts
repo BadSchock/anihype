@@ -3,6 +3,7 @@ import { Anime, Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AnimeQueryDto } from './dto/anime-query.dto';
 import { PaginatedResult, paginate } from '../../common/dto/pagination.dto';
+import { buildGenreAndConditions } from './genre-filter.util';
 
 const animeInclude = {
   genres: {
@@ -28,9 +29,17 @@ type AnimeWithRelations = Prisma.AnimeGetPayload<{ include: typeof animeInclude 
 export class AnimeRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findMany(query: AnimeQueryDto): Promise<PaginatedResult<AnimeWithRelations>> {
-    const { page, limit, search, status, format, season, seasonYear, genreId, orderBy } = query;
+  async findMany(
+    query: AnimeQueryDto,
+    resolvedGenreIds?: number[],
+  ): Promise<PaginatedResult<AnimeWithRelations>> {
+    const { page, limit, search, status, format, season, seasonYear, orderBy } = query;
     const skip = (page - 1) * limit;
+
+    const genreAnd =
+      resolvedGenreIds && resolvedGenreIds.length > 0
+        ? buildGenreAndConditions(resolvedGenreIds)
+        : undefined;
 
     const where: Prisma.AnimeWhereInput = {
       deletedAt: null,
@@ -38,7 +47,7 @@ export class AnimeRepository {
       ...(format && { format }),
       ...(season && { season }),
       ...(seasonYear && { seasonYear }),
-      ...(genreId && { genres: { some: { genreId } } }),
+      ...(genreAnd && { AND: genreAnd }),
       ...(search && {
         OR: [
           { titleRomaji: { contains: search, mode: 'insensitive' } },
@@ -56,6 +65,22 @@ export class AnimeRepository {
     ]);
 
     return paginate(data, total, page, limit);
+  }
+
+  async findAllGenres(): Promise<{ id: number; name: string; slug: string }[]> {
+    return this.prisma.genre.findMany({
+      select: { id: true, name: true, slug: true },
+      orderBy: { name: 'asc' },
+    });
+  }
+
+  async findGenreIdsBySlugs(slugs: string[]): Promise<number[]> {
+    if (slugs.length === 0) return [];
+    const rows = await this.prisma.genre.findMany({
+      where: { slug: { in: slugs } },
+      select: { id: true },
+    });
+    return rows.map((r) => r.id);
   }
 
   async findById(id: number): Promise<AnimeWithRelations | null> {
