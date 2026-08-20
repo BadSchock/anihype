@@ -1,5 +1,6 @@
 'use client';
 
+import { CheckCircle2, Lock } from 'lucide-react';
 import { cn } from '@anihype/ui';
 import { useEquipBadge, useUserBadges } from '@/hooks/use-badges';
 import type { BadgeProgress } from '@/types/api';
@@ -22,7 +23,7 @@ export function AchievementsSection({ username, isOwner, className }: Props) {
         </h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-28 animate-pulse rounded-xl bg-muted" />
+            <div key={i} className="min-h-[10rem] animate-pulse rounded-xl bg-muted" />
           ))}
         </div>
       </section>
@@ -65,29 +66,39 @@ function AchievementTile({
   busy: boolean;
   onEquip: () => void;
 }) {
-  const color = badge.rarityColor ?? '#A855F7';
-  const pct = Math.min(100, Math.round((badge.progress.current / badge.progress.target) * 100));
+  const rarity = badge.rarityColor ?? '#A855F7';
+  const unlocked = badge.earned;
+  const pct = Math.min(
+    100,
+    Math.round((badge.progress.current / Math.max(badge.progress.target, 1)) * 100),
+  );
+  const fraction = `${badge.progress.current}/${badge.progress.target}`;
 
   return (
     <button
       type="button"
-      disabled={!isOwner || !badge.earned || busy}
+      disabled={!isOwner || !unlocked || busy}
       onClick={onEquip}
       className={cn(
-        'relative flex flex-col rounded-xl border p-3 text-left transition',
-        badge.earned
-          ? 'bg-card hover:border-foreground/20'
-          : 'bg-muted/40 opacity-80',
-        badge.isEquipped && 'ring-2 ring-offset-2 ring-offset-background',
-        isOwner && badge.earned && 'cursor-pointer',
-        (!isOwner || !badge.earned) && 'cursor-default',
+        'relative flex min-h-[10rem] flex-col justify-between rounded-xl border p-[1.5rem] text-left transition',
+        unlocked
+          ? 'opacity-100 hover:brightness-110'
+          : 'border-border/60 bg-muted/30 opacity-55',
+        unlocked && badge.isEquipped && 'ring-2 ring-offset-2 ring-offset-background',
+        isOwner && unlocked ? 'cursor-pointer' : 'cursor-default',
       )}
-      style={{
-        borderColor: badge.earned ? `${color}55` : undefined,
-        ...(badge.isEquipped ? { ['--tw-ring-color' as string]: color } : {}),
-      }}
+      style={
+        unlocked
+          ? {
+              borderColor: `${rarity}80`,
+              backgroundImage: `linear-gradient(165deg, ${rarity}22 0%, transparent 55%)`,
+              backgroundColor: 'hsl(var(--card))',
+              ...(badge.isEquipped ? { ['--tw-ring-color' as string]: rarity } : {}),
+            }
+          : undefined
+      }
       title={
-        badge.earned
+        unlocked
           ? isOwner
             ? badge.isEquipped
               ? 'Clique para desequipar'
@@ -96,36 +107,58 @@ function AchievementTile({
           : badge.progress.hint
       }
     >
-      {!badge.earned && (
-        <span className="absolute right-2 top-2 text-xs text-muted-foreground" aria-hidden>
-          🔒
-        </span>
-      )}
+      <div className="flex items-start justify-between gap-2">
+        <p
+          className={cn(
+            'min-w-0 flex-1 pr-1 text-sm font-bold leading-snug',
+            unlocked ? 'text-foreground' : 'text-muted-foreground',
+          )}
+        >
+          {badge.name}
+        </p>
+        {unlocked ? (
+          <CheckCircle2
+            className="h-5 w-5 flex-shrink-0"
+            style={{ color: rarity }}
+            aria-label="Conquistado"
+          />
+        ) : (
+          <Lock className="h-5 w-5 flex-shrink-0 text-muted-foreground/70" aria-hidden />
+        )}
+      </div>
+
+      <p
+        className={cn(
+          'mt-2 line-clamp-3 text-[0.75rem] leading-snug',
+          unlocked ? 'text-muted-foreground' : 'text-muted-foreground/80',
+        )}
+      >
+        {badge.description}
+      </p>
+
       {badge.isEquipped && (
         <span
-          className="absolute right-2 top-2 text-[10px] font-bold uppercase tracking-wide"
-          style={{ color }}
+          className="mt-2 text-[0.65rem] font-bold uppercase tracking-wide"
+          style={{ color: rarity }}
         >
           Equipado
         </span>
       )}
 
-      <p className="pr-6 text-sm font-bold text-foreground">{badge.name}</p>
-      <p className="mt-1 line-clamp-2 text-[11px] leading-snug text-muted-foreground">
-        {badge.description}
-      </p>
-
-      <div className="mt-auto pt-3">
-        <div className="mb-1 flex justify-between text-[10px] text-muted-foreground">
-          <span>{badge.progress.hint}</span>
-          <span>
-            {badge.progress.current}/{badge.progress.target}
-          </span>
+      <div className="mt-auto pt-4">
+        <div className="mb-1.5 flex justify-end">
+          <span className="text-[0.75rem] tabular-nums text-muted-foreground">{fraction}</span>
         </div>
-        <div className="h-1 overflow-hidden rounded-full bg-black/10 dark:bg-white/10">
+        <div className="h-2 overflow-hidden rounded-full bg-muted dark:bg-gray-800">
           <div
-            className="h-full rounded-full transition-all"
-            style={{ width: `${pct}%`, backgroundColor: color }}
+            className={cn(
+              'h-full rounded-full transition-all duration-500',
+              unlocked ? '' : 'opacity-70',
+            )}
+            style={{
+              width: `${pct}%`,
+              backgroundColor: unlocked ? rarity : 'hsl(var(--muted-foreground) / 0.45)',
+            }}
           />
         </div>
       </div>
