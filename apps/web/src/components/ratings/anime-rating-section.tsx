@@ -36,6 +36,7 @@ import { CommunityScore } from './community-score';
 import { RatingForm } from './rating-form';
 import { buildLoginUrl } from '@/lib/auth-url';
 import { ErrorState } from '@/components/ui/error-state';
+import { EquippedBadgeChip } from '@/components/badges/equipped-badge-chip';
 
 function getBadgeColor(label: string) {
   const map: Record<string, string> = {
@@ -154,10 +155,13 @@ export function AnimeRatingSection({ slug }: { slug: string }) {
               className="rounded-xl bg-muted/50 p-4"
             >
               <div className="mb-2 flex items-start justify-between gap-2">
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <span className="text-sm font-semibold text-foreground">
                     {review.user.displayName ?? review.user.username}
                   </span>
+                  {review.user.equippedBadge && (
+                    <EquippedBadgeChip badge={review.user.equippedBadge} />
+                  )}
                   <span className={`text-xs font-medium ${getBadgeColor(review.badge.label)}`}>
                     {review.badge.emoji} {review.badge.label}
                   </span>

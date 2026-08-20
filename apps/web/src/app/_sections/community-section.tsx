@@ -6,6 +6,7 @@ import { EpisodeCarousel, EpisodeCarouselSkeleton } from '@/components/episode/e
 import { EmptyState } from '@/components/ui/empty-state';
 import { ErrorState } from '@/components/ui/error-state';
 import { UserAvatar } from '@/components/user/user-avatar';
+import { EquippedBadgeChip } from '@/components/badges/equipped-badge-chip';
 import type { TrendingEpisode } from '@/types/api';
 
 export function CommunitySection() {
@@ -121,6 +122,9 @@ export function CommunitySection() {
                       <span className="text-xs font-medium text-foreground">
                         @{comment.author.username}
                       </span>
+                      {comment.author.equippedBadge && (
+                        <EquippedBadgeChip badge={comment.author.equippedBadge} />
+                      )}
                       <span className="ml-auto text-[10px] text-muted-foreground">
                         {comment.likeCount > 0 && `❤ ${comment.likeCount}`}
                         {comment.replyCount > 0 && ` · ${comment.replyCount} resp.`}

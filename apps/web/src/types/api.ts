@@ -72,6 +72,7 @@ export interface ReviewUser {
   id: number;
   username: string;
   displayName?: string | null;
+  equippedBadge?: EquippedBadge | null;
 }
 
 export interface AnimeReview {

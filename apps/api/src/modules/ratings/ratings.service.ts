@@ -142,7 +142,28 @@ export class RatingsService {
     const [reviews, total] = await Promise.all([
       this.prisma.animeRating.findMany({
         where: { animeId: anime.id, deletedAt: null, reviewText: { not: null } },
-        include: { user: { select: { id: true, username: true, displayName: true } } },
+        include: {
+          user: {
+            select: {
+              id: true,
+              username: true,
+              displayName: true,
+              profile: {
+                select: {
+                  equippedBadge: {
+                    select: {
+                      id: true,
+                      slug: true,
+                      name: true,
+                      rarityColor: true,
+                      iconUrl: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
         orderBy: { createdAt: 'desc' },
         skip,
         take: limit,
@@ -169,9 +190,26 @@ export class RatingsService {
         },
       },
       reviews: reviews.map((r) => ({
-        ...r,
+        id: r.id,
+        userId: r.userId,
+        animeId: r.animeId,
+        animation: r.animation,
+        story: r.story,
+        characters: r.characters,
+        sound: r.sound,
+        hype: r.hype,
         finalScore: Number(r.finalScore),
+        reviewText: r.reviewText,
+        containsSpoiler: r.containsSpoiler,
+        createdAt: r.createdAt,
+        updatedAt: r.updatedAt,
         badge: RatingsService.getBadge(Number(r.finalScore)),
+        user: {
+          id: r.user.id,
+          username: r.user.username,
+          displayName: r.user.displayName,
+          equippedBadge: r.user.profile?.equippedBadge ?? null,
+        },
       })),
       meta: {
         total,
