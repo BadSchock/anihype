@@ -149,23 +149,29 @@ function PentagonChart({ dims }: { dims: RatingDimensions }) {
 
           {dataPoints.map((p, i) => {
             const a = radAngle(i);
-            // Push score labels outward so bottom verts don't sit inside the fill
-            const labelX = p.x + Math.cos(a) * 14;
-            const labelY = p.y + Math.sin(a) * 14;
+            // Further out + halo so scores stay readable on dark/light
+            const labelX = p.x + Math.cos(a) * 20;
+            const labelY = p.y + Math.sin(a) * 20;
+            const score = dims[DIMS[i]!.key].toFixed(1);
             return (
               <g key={i}>
                 <circle cx={p.x} cy={p.y} r={5.5} fill="hsl(var(--background))" />
                 <circle cx={p.x} cy={p.y} r={3.75} fill="hsl(var(--primary))" />
+                {/* Halo: stroke background behind text for contrast on purple fill */}
                 <text
                   x={labelX}
                   y={labelY}
                   textAnchor="middle"
                   dominantBaseline="middle"
-                  fontSize={11}
+                  fontSize={12}
                   fontWeight="700"
-                  fill="hsl(var(--primary))"
+                  stroke="hsl(var(--background))"
+                  strokeWidth={4}
+                  strokeLinejoin="round"
+                  paintOrder="stroke"
+                  fill="hsl(var(--foreground))"
                 >
-                  {dims[DIMS[i]!.key].toFixed(1)}
+                  {score}
                 </text>
               </g>
             );
