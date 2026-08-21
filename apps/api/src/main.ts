@@ -4,6 +4,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 import { AppModule } from './app.module';
 import { AppLogger } from './common/logger';
+import { createCorsOriginChecker, parseCorsOrigins } from './config/cors.util';
 
 async function bootstrap() {
   const logger = new AppLogger();
@@ -16,11 +17,11 @@ async function bootstrap() {
   app.useLogger(logger);
 
   const port = process.env['PORT'] ?? '3001';
-  const corsOrigin = process.env['CORS_ORIGIN'] ?? 'http://localhost:3002';
+  const corsOrigins = parseCorsOrigins(process.env['CORS_ORIGIN']);
   const nodeEnv = process.env['NODE_ENV'] ?? 'development';
 
   app.enableCors({
-    origin: corsOrigin,
+    origin: createCorsOriginChecker(corsOrigins),
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
@@ -63,7 +64,7 @@ async function bootstrap() {
 
   logger.log(`🚀 AniHype API running on: http://localhost:${port}/api/v1`);
   logger.log(`🌍 Environment: ${nodeEnv}`);
-  logger.log(`🔗 CORS origin: ${corsOrigin}`);
+  logger.log(`🔗 CORS origins: ${corsOrigins.join(', ')}`);
 }
 
 void bootstrap();

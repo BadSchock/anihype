@@ -18,6 +18,7 @@
     "db:setup": "npm run db:setup -w @anihype/api",
     "db:migrate": "npm run db:migrate-deploy -w @anihype/api",
     "db:seed": "npm run db:seed -w @anihype/api",
+    "db:seed:demo": "npm run db:seed:demo -w @anihype/api",
     "sync:season": "npm run sync:season -w @anihype/api"
   },
   "devDependencies": {

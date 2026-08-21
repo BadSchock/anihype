@@ -1,4 +1,11 @@
-import { PrismaClient, RoleCode } from '@prisma/client';
+import {
+  AnimeSeason,
+  AnimeStatus,
+  EpisodeStatus,
+  HypeTransactionReason,
+  PrismaClient,
+  RoleCode,
+} from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
@@ -221,6 +228,74 @@ const DEMO_USERS = [
 
 const DEMO_PASSWORD = 'Demo1234!';
 
+const DEMO_ANIMES = [
+  {
+    slug: 'demo-frieren',
+    titleRomaji: 'Sousou no Frieren',
+    titleEnglish: 'Frieren: Beyond Journey\'s End',
+    status: AnimeStatus.FINISHED,
+    season: AnimeSeason.FALL,
+    seasonYear: 2023,
+    popularityScore: 9900,
+    coverImageUrl: 'https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/bx154587-JgZ016GIntkY.jpg',
+  },
+  {
+    slug: 'demo-jujutsu-kaisen',
+    titleRomaji: 'Jujutsu Kaisen',
+    titleEnglish: 'Jujutsu Kaisen',
+    status: AnimeStatus.AIRING,
+    season: AnimeSeason.FALL,
+    seasonYear: 2023,
+    popularityScore: 9800,
+    coverImageUrl: 'https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/bx113415-bYWSx1YgO97C.jpg',
+  },
+  {
+    slug: 'demo-dandadan',
+    titleRomaji: 'Dandadan',
+    titleEnglish: 'Dandadan',
+    status: AnimeStatus.AIRING,
+    season: AnimeSeason.FALL,
+    seasonYear: 2024,
+    popularityScore: 9700,
+    coverImageUrl: 'https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/bx171018-4Apiwd7qnrSH.jpg',
+  },
+  {
+    slug: 'demo-solo-leveling',
+    titleRomaji: 'Ore dake Level Up na Ken',
+    titleEnglish: 'Solo Leveling',
+    status: AnimeStatus.FINISHED,
+    season: AnimeSeason.WINTER,
+    seasonYear: 2024,
+    popularityScore: 9600,
+    coverImageUrl: 'https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/bx151807-5Oj5Fxg832Bg.jpg',
+  },
+  {
+    slug: 'demo-spy-x-family',
+    titleRomaji: 'Spy x Family',
+    titleEnglish: 'Spy x Family',
+    status: AnimeStatus.AIRING,
+    season: AnimeSeason.SPRING,
+    seasonYear: 2022,
+    popularityScore: 9500,
+    coverImageUrl: 'https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/bx140960-5FZLKN6P267F.jpg',
+  },
+] as const;
+
+const DEMO_EPISODES_PER_ANIME = 4;
+
+const DEMO_COMMENTS = [
+  'Episódio insano! Animação de outro nível.',
+  'Esse plot twist pegou todo mundo de surpresa.',
+  'Hypômetro merecido — nota 9 fácil.',
+  'Alguém mais chorou nessa cena?',
+  'Melhor episódio da temporada até agora.',
+  'Ritmo perfeito, sem filler.',
+  'Personagem principal evoluiu demais aqui.',
+  'Trilha sonora elevou tudo.',
+  'Sem spoiler: final deixou hype pro próximo.',
+  'Comentário demo — comunidade ativa no ranking.',
+] as const;
+
 const DEMO_REVIEWS = [
   'Animação impecável e trilha sonora que eleva cada cena.',
   'História engaja do começo ao fim — Hypômetro alto com razão.',
@@ -254,6 +329,71 @@ function demoScore(userIndex: number, animeIndex: number, dim: number): number {
   return Math.min(10, Math.max(4, n + 4));
 }
 
+function daysAgo(days: number): Date {
+  const date = new Date();
+  date.setDate(date.getDate() - days);
+  date.setHours(12, 0, 0, 0);
+  return date;
+}
+
+async function syncProfileHypeLevel(userId: number, hypeXp: number): Promise<void> {
+  const level = await prisma.hypeLevel.findFirst({
+    where: { minXp: { lte: hypeXp } },
+    orderBy: { minXp: 'desc' },
+  });
+
+  await prisma.userProfile.update({
+    where: { userId },
+    data: {
+      hypeXp,
+      ...(level ? { hypeLevelId: level.id } : {}),
+    },
+  });
+}
+
+/** Cria catálogo mínimo quando o banco ainda não tem animes (ex.: antes do sync). */
+async function seedDemoCatalogIfEmpty(): Promise<void> {
+  const existing = await prisma.anime.count({ where: { deletedAt: null } });
+  if (existing > 0) {
+    console.log(`[seed] Demo catalog SKIP — ${existing} anime(s) já no banco`);
+    return;
+  }
+
+  for (const row of DEMO_ANIMES) {
+    const anime = await prisma.anime.create({
+      data: {
+        slug: row.slug,
+        titleRomaji: row.titleRomaji,
+        titleEnglish: row.titleEnglish,
+        status: row.status,
+        season: row.season,
+        seasonYear: row.seasonYear,
+        popularityScore: row.popularityScore,
+        coverImageUrl: row.coverImageUrl,
+        episodeCount: DEMO_EPISODES_PER_ANIME,
+      },
+    });
+
+    for (let ep = 1; ep <= DEMO_EPISODES_PER_ANIME; ep++) {
+      await prisma.episode.create({
+        data: {
+          animeId: anime.id,
+          slug: `${row.slug}-ep-${ep}`,
+          number: ep,
+          title: `Episódio ${ep}`,
+          status: EpisodeStatus.AIRED,
+          airDate: daysAgo(30 - ep * 3),
+          airTimeUtc: daysAgo(30 - ep * 3),
+        },
+      });
+    }
+  }
+
+  console.log(
+    `[seed] Demo catalog OK → ${DEMO_ANIMES.length} animes, ${DEMO_ANIMES.length * DEMO_EPISODES_PER_ANIME} episódios`,
+  );
+}
+
 async function recalculateAnimeAggregates(animeId: number): Promise<void> {
   const agg = await prisma.animeRating.aggregate({
     where: { animeId, deletedAt: null },
@@ -283,18 +423,16 @@ async function recalculateAnimeAggregates(animeId: number): Promise<void> {
   });
 }
 
-async function seedDemoHypometro(): Promise<void> {
+async function seedDemoUsers(): Promise<number[]> {
   const userRole = await prisma.role.findUnique({ where: { code: RoleCode.USER } });
   if (!userRole) throw new Error('Role USER não encontrada');
 
   const passwordHash = await bcrypt.hash(DEMO_PASSWORD, BCRYPT_ROUNDS);
   const userIds: number[] = [];
 
-  for (let i = 0; i < DEMO_USERS.length; i++) {
-    const demo = DEMO_USERS[i]!;
+  for (const demo of DEMO_USERS) {
     const email = demo.email.toLowerCase();
     const username = demo.username.toLowerCase();
-    const hypeXp = 80 + i * 95; // spread for /ranking Membros
 
     const user = await prisma.user.upsert({
       where: { email },
@@ -306,7 +444,7 @@ async function seedDemoHypometro(): Promise<void> {
         emailVerified: true,
         emailVerifiedAt: new Date(),
         roles: { create: [{ roleId: userRole.id }] },
-        profile: { create: { hypeXp } },
+        profile: { create: {} },
       },
       update: {
         passwordHash,
@@ -317,33 +455,29 @@ async function seedDemoHypometro(): Promise<void> {
 
     await prisma.userProfile.upsert({
       where: { userId: user.id },
-      create: { userId: user.id, hypeXp },
-      update: { hypeXp },
+      create: { userId: user.id, hypeXp: 0 },
+      update: {},
     });
-
-    const level = await prisma.hypeLevel.findFirst({
-      where: { minXp: { lte: hypeXp } },
-      orderBy: { minXp: 'desc' },
-    });
-    if (level) {
-      await prisma.userProfile.update({
-        where: { userId: user.id },
-        data: { hypeLevelId: level.id },
-      });
-    }
 
     userIds.push(user.id);
   }
 
+  console.log(
+    `[seed] Demo users OK → ${userIds.length} contas (senha: ${DEMO_PASSWORD})`,
+  );
+  return userIds;
+}
+
+async function seedDemoHypometro(userIds: number[]): Promise<void> {
   const animes = await prisma.anime.findMany({
     where: { deletedAt: null },
     orderBy: [{ popularityScore: 'desc' }, { id: 'asc' }],
     take: 20,
-    select: { id: true, slug: true, titleRomaji: true },
+    select: { id: true },
   });
 
   if (animes.length === 0) {
-    console.log('[seed] Demo Hypômetro SKIP — nenhum anime no banco (rode o sync antes)');
+    console.log('[seed] Demo Hypômetro SKIP — nenhum anime no banco');
     return;
   }
 
@@ -385,12 +519,152 @@ async function seedDemoHypometro(): Promise<void> {
   }
 
   console.log(
-    `[seed] Demo Hypômetro OK → ${userIds.length} users (senha: ${DEMO_PASSWORD}), ` +
-      `${animes.length} animes, ${ratingCount} ratings`,
+    `[seed] Demo Hypômetro OK → ${animes.length} animes, ${ratingCount} ratings (10+ por anime)`,
   );
 }
 
+/** Comentários + Hype XP com datas variadas (ranking Membros: semana / mês / all). */
+async function seedDemoCommunity(userIds: number[]): Promise<void> {
+  const episodes = await prisma.episode.findMany({
+    where: { deletedAt: null },
+    orderBy: [{ airTimeUtc: 'desc' }, { id: 'asc' }],
+    take: 24,
+    select: { id: true, number: true, animeId: true },
+  });
+
+  if (episodes.length === 0) {
+    console.log('[seed] Demo community SKIP — sem episódios');
+    return;
+  }
+
+  await prisma.commentLike.deleteMany({
+    where: { comment: { userId: { in: userIds } } },
+  });
+  await prisma.comment.deleteMany({ where: { userId: { in: userIds } } });
+  await prisma.hypeTransaction.deleteMany({ where: { userId: { in: userIds } } });
+
+  let commentCount = 0;
+  let txCount = 0;
+
+  for (let i = 0; i < userIds.length; i++) {
+    const userId = userIds[i]!;
+    const commentsForUser = 2 + (i % 3);
+
+    for (let c = 0; c < commentsForUser; c++) {
+      const episode = episodes[(i + c) % episodes.length]!;
+      const daysBack = 1 + ((i + c) % 6); // última semana
+      const createdAt = daysAgo(daysBack);
+      const content = DEMO_COMMENTS[(i + c) % DEMO_COMMENTS.length]!;
+
+      const comment = await prisma.comment.create({
+        data: {
+          userId,
+          episodeId: episode.id,
+          content,
+          isSpoiler: c === 0 && i % 4 === 0,
+          createdAt,
+        },
+      });
+      commentCount += 1;
+
+      await prisma.hypeTransaction.create({
+        data: {
+          userId,
+          reason: HypeTransactionReason.COMMENT_POSTED,
+          referenceId: comment.id,
+          deltaPoints: 5,
+          createdAt,
+        },
+      });
+      txCount += 1;
+
+      const likerId = userIds[(i + 1) % userIds.length]!;
+      if (likerId !== userId) {
+        await prisma.commentLike.create({
+          data: { userId: likerId, commentId: comment.id },
+        });
+        await prisma.hypeTransaction.create({
+          data: {
+            userId,
+            reason: HypeTransactionReason.LIKE_RECEIVED,
+            referenceId: comment.id,
+            deltaPoints: 2,
+            createdAt: daysAgo(Math.max(1, daysBack - 1)),
+          },
+        });
+        txCount += 1;
+      }
+    }
+
+    // XP extra no mês (fora da janela de 7 dias) para testar filtro "Esse mês"
+    if (i % 2 === 0) {
+      await prisma.hypeTransaction.create({
+        data: {
+          userId,
+          reason: HypeTransactionReason.DAILY_LOGIN,
+          deltaPoints: 10,
+          createdAt: daysAgo(12 + (i % 10)),
+        },
+      });
+      txCount += 1;
+    }
+
+    const ratings = await prisma.animeRating.findMany({
+      where: { userId, deletedAt: null },
+      take: 3,
+      select: { id: true },
+    });
+
+    for (const rating of ratings) {
+      const existing = await prisma.hypeTransaction.findFirst({
+        where: {
+          userId,
+          reason: HypeTransactionReason.RATING_POSTED,
+          referenceId: rating.id,
+        },
+      });
+      if (existing) continue;
+
+      await prisma.hypeTransaction.create({
+        data: {
+          userId,
+          reason: HypeTransactionReason.RATING_POSTED,
+          referenceId: rating.id,
+          deltaPoints: 10,
+          createdAt: daysAgo(3 + (i % 4)),
+        },
+      });
+      txCount += 1;
+    }
+
+    const totalXp = await prisma.hypeTransaction.aggregate({
+      where: { userId },
+      _sum: { deltaPoints: true },
+    });
+    const hypeXp = totalXp._sum.deltaPoints ?? 0;
+    await syncProfileHypeLevel(userId, hypeXp);
+  }
+
+  console.log(
+    `[seed] Demo community OK → ${commentCount} comentários, ${txCount} transações de Hype XP`,
+  );
+}
+
+async function seedDemoRanking(): Promise<void> {
+  await seedDemoCatalogIfEmpty();
+  const userIds = await seedDemoUsers();
+  await seedDemoHypometro(userIds);
+  await seedDemoCommunity(userIds);
+}
+
 async function main(): Promise<void> {
+  const demoOnly = process.env.SEED_DEMO_ONLY === '1' || process.argv.includes('--demo');
+
+  if (demoOnly) {
+    await seedDemoRanking();
+    return;
+  }
+
   await seedRoles();
   console.log('[seed] Roles OK');
   await seedBadges();
@@ -398,7 +672,7 @@ async function main(): Promise<void> {
   await seedHypeLevels();
   console.log('[seed] Hype levels OK');
   await seedDevAdminUser();
-  await seedDemoHypometro();
+  await seedDemoRanking();
 }
 
 main()
