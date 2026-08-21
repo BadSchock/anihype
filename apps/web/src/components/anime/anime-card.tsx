@@ -3,14 +3,38 @@ import Image from 'next/image';
 import { Zap } from 'lucide-react';
 import { cn } from '@anihype/ui';
 import type { AnimeListItem } from '@/types/api';
-import { Badge } from '@/components/ui/badge';
 
-const STATUS_LABEL: Record<string, { label: string; variant: 'green' | 'yellow' | 'default' | 'blue' }> = {
-  AIRING: { label: 'Em exibição', variant: 'green' },
-  FINISHED: { label: 'Finalizado', variant: 'default' },
-  NOT_YET_AIRED: { label: 'Em breve', variant: 'yellow' },
-  HIATUS: { label: 'Hiato', variant: 'yellow' },
-  CANCELLED: { label: 'Cancelado', variant: 'default' },
+const SEASON_PT: Record<string, string> = {
+  WINTER: 'Inverno',
+  SPRING: 'Primavera',
+  SUMMER: 'Verão',
+  FALL: 'Outono',
+};
+
+const STATUS_STYLE: Record<
+  string,
+  { label: string; className: string }
+> = {
+  AIRING: {
+    label: 'Em exibição',
+    className: 'bg-green-500/15 text-green-400',
+  },
+  NOT_YET_AIRED: {
+    label: 'Em breve',
+    className: 'bg-orange-500/15 text-orange-400',
+  },
+  FINISHED: {
+    label: 'Finalizado',
+    className: 'bg-gray-500/20 text-gray-400',
+  },
+  HIATUS: {
+    label: 'Hiato',
+    className: 'bg-amber-500/15 text-amber-400',
+  },
+  CANCELLED: {
+    label: 'Cancelado',
+    className: 'bg-red-500/15 text-red-400',
+  },
 };
 
 interface AnimeCardProps {
@@ -19,17 +43,30 @@ interface AnimeCardProps {
 }
 
 export function AnimeCard({ anime, className }: AnimeCardProps) {
-  const statusInfo = STATUS_LABEL[anime.status] ?? { label: anime.status, variant: 'default' as const };
+  const status =
+    STATUS_STYLE[anime.status] ?? {
+      label: anime.status,
+      className: 'bg-muted text-muted-foreground',
+    };
+
+  const seasonLabel =
+    anime.seasonYear && anime.season
+      ? `${SEASON_PT[anime.season] ?? anime.season} ${anime.seasonYear}`
+      : anime.seasonYear
+        ? String(anime.seasonYear)
+        : null;
+
+  const hasHypometro =
+    anime.ratingAverage != null && anime.ratingCount != null && anime.ratingCount >= 1;
 
   return (
     <Link
       href={`/anime/${anime.slug}`}
       className={cn(
-        'card card-hover group flex flex-col overflow-hidden',
+        'card card-hover group flex min-w-0 w-full flex-col overflow-hidden',
         className,
       )}
     >
-      {/* Cover */}
       <div className="relative aspect-[2/3] w-full overflow-hidden bg-muted">
         {anime.coverImageUrl ? (
           <Image
@@ -44,24 +81,28 @@ export function AnimeCard({ anime, className }: AnimeCardProps) {
             <span className="text-xs text-muted-foreground">Sem imagem</span>
           </div>
         )}
-        <div className="absolute bottom-2 left-2">
-          <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>
-        </div>
       </div>
 
-      {/* Info */}
-      <div className="flex flex-1 flex-col gap-1 p-3">
-        <h3 className="line-clamp-2 text-sm font-semibold text-foreground leading-snug">
+      <div className="flex flex-1 flex-col gap-1.5 p-3">
+        <span
+          className={cn(
+            'w-fit rounded-full px-2.5 py-0.5 text-[0.6875rem] font-semibold tracking-wide',
+            status.className,
+          )}
+        >
+          {status.label}
+        </span>
+
+        <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-foreground">
           {anime.titleEnglish ?? anime.titleRomaji}
         </h3>
+
         <p className="text-xs text-muted-foreground">
-          {anime.seasonYear && anime.season
-            ? `${anime.season} ${anime.seasonYear}`
-            : anime.seasonYear ?? '—'}
-          {anime.episodeCount ? ` • ${anime.episodeCount} eps` : ''}
+          {seasonLabel ?? '—'}
+          {anime.episodeCount ? ` · ${anime.episodeCount} eps` : ''}
         </p>
-        <div className="mt-auto flex items-center gap-2">
-          {anime.ratingAverage != null && anime.ratingCount != null && anime.ratingCount >= 1 ? (
+        <div className="mt-auto pt-0.5">
+          {hasHypometro ? (
             <p
               className="inline-flex items-center gap-1 text-xs font-bold text-primary"
               title={`Hypômetro · ${anime.ratingCount} avaliação(ões)`}
@@ -69,7 +110,9 @@ export function AnimeCard({ anime, className }: AnimeCardProps) {
               <Zap className="h-3 w-3" aria-hidden />
               {Number(anime.ratingAverage).toFixed(1)}
             </p>
-          ) : null}
+          ) : (
+            <p className="text-xs text-muted-foreground/70">Sem Hypômetro</p>
+          )}
         </div>
       </div>
     </Link>
@@ -78,11 +121,18 @@ export function AnimeCard({ anime, className }: AnimeCardProps) {
 
 export function AnimeCardSkeleton({ className }: { className?: string }) {
   return (
-    <div className={cn('flex flex-col overflow-hidden rounded-xl bg-muted border border-border', className)}>
+    <div
+      className={cn(
+        'flex flex-col overflow-hidden rounded-xl border border-border bg-muted',
+        className,
+      )}
+    >
       <div className="aspect-[2/3] w-full shimmer" />
-      <div className="flex flex-col gap-2 p-3">
+      <div className="flex flex-col gap-1.5 p-3">
+        <div className="h-5 w-20 rounded-full shimmer" />
         <div className="h-4 w-3/4 rounded shimmer" />
         <div className="h-3 w-1/2 rounded shimmer" />
+        <div className="mt-auto h-3 w-12 rounded shimmer" />
       </div>
     </div>
   );

@@ -11,6 +11,7 @@ import type {
   HotComment,
   TrendingEpisode,
   EpisodeWithAnime,
+  Genre,
   MyRating,
   PaginatedResponse,
   SeasonalHighlight,
@@ -124,13 +125,17 @@ export function getAnimeList(params: Record<string, string | number | undefined>
   const qs = new URLSearchParams(
     Object.fromEntries(
       Object.entries(params)
-        .filter(([, v]) => v !== undefined)
+        .filter(([, v]) => v !== undefined && v !== '')
         .map(([k, v]) => [k, String(v)]),
     ),
   ).toString();
   return request<PaginatedResponse<AnimeListItem>>(`/anime${qs ? `?${qs}` : ''}`, {
     skipAuth: true,
   });
+}
+
+export function getGenres() {
+  return request<Genre[]>(`/genres`, { skipAuth: true });
 }
 
 export function getAnimeBySlug(slug: string) {

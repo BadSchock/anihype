@@ -33,14 +33,30 @@ export class AnimeQueryDto extends PaginationDto {
   @Max(2100)
   seasonYear?: number;
 
-  @ApiPropertyOptional({ description: 'ID de gênero para filtrar' })
+  @ApiPropertyOptional({ description: 'ID de gênero para filtrar (legado; um único id)' })
   @IsOptional()
   @Type(() => Number)
   @IsInt()
   genreId?: number;
 
+  @ApiPropertyOptional({
+    description: 'CSV de slugs de gênero (AND). Ex: acao,romance',
+    example: 'action,romance',
+  })
+  @IsOptional()
+  @IsString()
+  genre?: string;
+
+  @ApiPropertyOptional({
+    description: 'CSV de IDs de gênero (AND). Ex: 1,2,3',
+    example: '1,2',
+  })
+  @IsOptional()
+  @IsString()
+  genreIds?: string;
+
   @ApiPropertyOptional({ description: 'Ordernar por: popular | score | recent | title', default: 'popular' })
   @IsOptional()
   @IsString()
-  orderBy?: 'popular' | 'score' | 'recent' | 'title';
+  orderBy?: 'popular' | 'score' | 'recent' | 'title' | 'rating';
 }
