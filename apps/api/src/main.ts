@@ -4,7 +4,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 import { AppModule } from './app.module';
 import { AppLogger } from './common/logger';
-import { createCorsOriginChecker, parseCorsOrigins } from './config/cors.util';
+import { buildCorsOptions, parseCorsOrigins } from './config/cors.util';
 
 async function bootstrap() {
   const logger = new AppLogger();
@@ -20,12 +20,7 @@ async function bootstrap() {
   const corsOrigins = parseCorsOrigins(process.env['CORS_ORIGIN']);
   const nodeEnv = process.env['NODE_ENV'] ?? 'development';
 
-  app.enableCors({
-    origin: createCorsOriginChecker(corsOrigins),
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-  });
+  app.enableCors(buildCorsOptions(corsOrigins));
 
   app.setGlobalPrefix('api/v1');
 
