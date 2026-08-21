@@ -250,6 +250,55 @@ export interface AwardedBadge {
   rarityColor: string | null;
 }
 
+export interface AnimeRankingItem {
+  position: number;
+  id: number;
+  slug: string;
+  titleRomaji: string;
+  titleEnglish: string | null;
+  coverImageUrl: string | null;
+  bannerImageUrl: string | null;
+  status: string;
+  season: string | null;
+  seasonYear: number | null;
+  ratingAverage: number | null;
+  ratingCount: number;
+}
+
+export interface AnimeRankingResponse {
+  items: AnimeRankingItem[];
+}
+
+export type UserRankingPeriod = 'week' | 'month' | 'all';
+
+export interface UserRankingItem {
+  position: number;
+  userId: number;
+  username: string;
+  displayName: string | null;
+  avatarUrl: string | null;
+  hypeXp: number;
+  level: { tierOrder: number; displayName: string | null; minXp: number } | null;
+  equippedBadge: EquippedBadge | null;
+  /** Cosméticos de perfil (V1.1) — null até existir inventário/equip. */
+  profileFrameColor: string | null;
+  profileBackgroundUrl: string | null;
+}
+
+export interface UserRankingMe {
+  position: number;
+  hypeXp: number;
+  percentile: number;
+  xpToNextPercentile: number;
+  motivational: string;
+}
+
+export interface UserRankingResponse {
+  period: UserRankingPeriod;
+  items: UserRankingItem[];
+  me: UserRankingMe | null;
+}
+
 export interface Comment {
   id: number;
   episodeId: number;

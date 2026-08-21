@@ -29,7 +29,9 @@ import type {
   HypeStats,
   EquippedBadge,
   UserBadgesResponse,
-  AwardedBadge,
+  AnimeRankingResponse,
+  UserRankingResponse,
+  UserRankingPeriod,
 } from '@/types/api';
 import { useAuthStore } from '@/stores/auth.store';
 
@@ -410,6 +412,16 @@ export function getUserFollowing(username: string, page = 1, limit = 24) {
 
 export function getUserHype(username: string) {
   return request<HypeStats>(`/users/${username}/hype`, { skipAuth: true });
+}
+
+// ─── Ranking ─────────────────────────────────────────────────────────────────
+
+export function getAnimeRanking(limit = 50) {
+  return request<AnimeRankingResponse>(`/anime/ranking?limit=${limit}`, { skipAuth: true });
+}
+
+export function getUserRanking(period: UserRankingPeriod = 'all', limit = 50) {
+  return request<UserRankingResponse>(`/users/ranking?period=${period}&limit=${limit}`);
 }
 
 // ─── Admin — Anime ────────────────────────────────────────────────────────────

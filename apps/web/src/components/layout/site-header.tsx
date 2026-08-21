@@ -15,6 +15,7 @@ const NAV_LINKS = [
   { href: '/', label: 'Inicio' },
   { href: '/feed', label: 'Feed', authOnly: true },
   { href: '/anime', label: 'Animes' },
+  { href: '/ranking', label: 'Ranking' },
   { href: '/calendar', label: 'Calendario' },
 ] as const;
 

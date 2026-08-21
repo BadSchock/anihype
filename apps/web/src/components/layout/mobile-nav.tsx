@@ -11,6 +11,7 @@ import { buildLoginUrl } from '@/lib/auth-url';
 const MOBILE_NAV = [
   { href: '/', label: 'Início', icon: '⚡' },
   { href: '/anime', label: 'Animes', icon: '🎬' },
+  { href: '/ranking', label: 'Ranking', icon: '🏆' },
   { href: '/calendar', label: 'Calendário', icon: '📅' },
 ] as const;
 
