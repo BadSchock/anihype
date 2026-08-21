@@ -9,6 +9,7 @@ import { PaginatedResult } from '../../common/dto/pagination.dto';
 import { HypeService } from '../hype/hype.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { BadgesService } from '../badges/badges.service';
+import { censorText } from '../../common/moderation';
 
 @Injectable()
 export class CommentsService {
@@ -59,10 +60,12 @@ export class CommentsService {
   }
 
   async create(dto: CreateCommentDto, userId: number): Promise<CommentDto> {
+    const { text: content } = censorText(dto.content.trim());
+
     const comment = await this.repo.create({
       episode: { connect: { id: dto.episodeId } },
       user: { connect: { id: userId } },
-      content: dto.content,
+      content,
       isSpoiler: dto.isSpoiler ?? false,
       ...(dto.parentId && { parent: { connect: { id: dto.parentId } } }),
     });
@@ -87,7 +90,7 @@ export class CommentsService {
     this.assertOwner(comment, userId);
 
     const updated = await this.repo.update(id, {
-      ...(dto.content !== undefined && { content: dto.content }),
+      ...(dto.content !== undefined && { content: censorText(dto.content.trim()).text }),
       ...(dto.isSpoiler !== undefined && { isSpoiler: dto.isSpoiler }),
       editedAt: new Date(),
     });
@@ -155,7 +158,7 @@ export class CommentsService {
           : null,
       },
       parentId: c.parentId ?? null,
-      content: c.content,
+      content: censorText(c.content).text,
       isSpoiler: c.isSpoiler,
       status: c.status,
       likeCount: c._count.likes,

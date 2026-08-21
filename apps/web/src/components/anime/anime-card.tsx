@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import { Zap } from 'lucide-react';
 import { cn } from '@anihype/ui';
 import type { AnimeListItem } from '@/types/api';
 import { Badge } from '@/components/ui/badge';
@@ -60,13 +61,13 @@ export function AnimeCard({ anime, className }: AnimeCardProps) {
           {anime.episodeCount ? ` • ${anime.episodeCount} eps` : ''}
         </p>
         <div className="mt-auto flex items-center gap-2">
-          {anime.ratingAverage && anime.ratingCount && anime.ratingCount >= 1 ? (
-            <p className="text-xs font-bold text-purple-400" title={`${anime.ratingCount} avaliação(ões) AniHype`}>
-              ⚡ {Number(anime.ratingAverage).toFixed(1)}
-            </p>
-          ) : anime.averageScore ? (
-            <p className="text-xs font-medium text-yellow-400/60" title="Score AniList">
-              ★ {(anime.averageScore / 10).toFixed(1)}
+          {anime.ratingAverage != null && anime.ratingCount != null && anime.ratingCount >= 1 ? (
+            <p
+              className="inline-flex items-center gap-1 text-xs font-bold text-primary"
+              title={`Hypômetro · ${anime.ratingCount} avaliação(ões)`}
+            >
+              <Zap className="h-3 w-3" aria-hidden />
+              {Number(anime.ratingAverage).toFixed(1)}
             </p>
           ) : null}
         </div>

@@ -11,23 +11,23 @@
     --card-foreground: 224 71% 4%;
     --popover: 0 0% 100%;
     --popover-foreground: 224 71% 4%;
-    --primary: 262 83% 58%;
+    --primary: 262 72% 46%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 217 91% 60%;
+    --secondary: 217 91% 50%;
     --secondary-foreground: 0 0% 100%;
     --muted: 220 14% 96%;
-    --muted-foreground: 220 9% 46%;
-    --accent: 262 83% 58%;
+    --muted-foreground: 220 12% 38%;
+    --accent: 262 72% 46%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
     --border: 220 13% 91%;
     --input: 220 13% 91%;
-    --ring: 262 83% 58%;
+    --ring: 262 72% 46%;
     --radius: 0.75rem;
 
     --surface-overlay: 0 0% 0%;
-    --hero-glow: 262 83% 58%;
+    --hero-glow: 262 72% 46%;
   }
 
   /* ─── Tema escuro ─────────────────────────────────────────────────────────── */

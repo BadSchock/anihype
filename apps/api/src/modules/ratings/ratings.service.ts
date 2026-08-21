@@ -1,11 +1,20 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { HypeTransactionReason, Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateRatingDto } from './dto/rating.dto';
 import { HypeService } from '../hype/hype.service';
 import { BadgesService } from '../badges/badges.service';
+import { censorText } from '../../common/moderation';
 
 const MIN_RATINGS_FOR_RANKING = 10;
+
+export type RatingsSort = 'recent' | 'score';
+
+function parseSort(sort?: string): RatingsSort {
+  if (!sort || sort === 'recent') return 'recent';
+  if (sort === 'score') return 'score';
+  throw new BadRequestException('sort inválido. Use recent ou score.');
+}
 
 @Injectable()
 export class RatingsService {
@@ -43,6 +52,14 @@ export class RatingsService {
       RatingsService.computeFinalScore(dto).toFixed(2),
     );
 
+    let reviewText: string | null = dto.reviewText?.trim() ? dto.reviewText.trim() : null;
+    let contentCensored = false;
+    if (reviewText) {
+      const result = censorText(reviewText);
+      reviewText = result.text;
+      contentCensored = result.censored;
+    }
+
     const rating = await this.prisma.animeRating.upsert({
       where: { userId_animeId: { userId, animeId: anime.id } },
       create: {
@@ -54,7 +71,7 @@ export class RatingsService {
         sound: dto.sound,
         hype: dto.hype,
         finalScore,
-        reviewText: dto.reviewText ?? null,
+        reviewText,
         containsSpoiler: dto.containsSpoiler ?? false,
       },
       update: {
@@ -64,7 +81,7 @@ export class RatingsService {
         sound: dto.sound,
         hype: dto.hype,
         finalScore,
-        reviewText: dto.reviewText ?? null,
+        reviewText,
         containsSpoiler: dto.containsSpoiler ?? false,
         deletedAt: null,
       },
@@ -86,6 +103,7 @@ export class RatingsService {
       ...rating,
       badge: RatingsService.getBadge(Number(finalScore)),
       awardedBadges,
+      contentCensored,
     };
   }
 
@@ -102,7 +120,15 @@ export class RatingsService {
 
     if (!rating) return null;
 
-    return { ...rating, badge: RatingsService.getBadge(Number(rating.finalScore)) };
+    const reviewText = rating.reviewText
+      ? censorText(rating.reviewText).text
+      : rating.reviewText;
+
+    return {
+      ...rating,
+      reviewText,
+      badge: RatingsService.getBadge(Number(rating.finalScore)),
+    };
   }
 
   async deleteMyRating(userId: number, animeSlug: string) {
@@ -121,7 +147,12 @@ export class RatingsService {
     return { message: 'Avaliação removida com sucesso.' };
   }
 
-  async getAnimeRatings(animeSlug: string, page = 1, limit = 20) {
+  async getAnimeRatings(
+    animeSlug: string,
+    page = 1,
+    limit = 20,
+    sort: string = 'recent',
+  ) {
     const anime = await this.prisma.anime.findFirst({
       where: { slug: animeSlug, deletedAt: null },
       select: {
@@ -137,6 +168,12 @@ export class RatingsService {
     });
     if (!anime) throw new NotFoundException('Anime não encontrado');
 
+    const sortKey = parseSort(sort);
+    const orderBy: Prisma.AnimeRatingOrderByWithRelationInput[] =
+      sortKey === 'score'
+        ? [{ finalScore: 'desc' }, { createdAt: 'desc' }]
+        : [{ createdAt: 'desc' }];
+
     const skip = (page - 1) * limit;
 
     const [reviews, total] = await Promise.all([
@@ -148,6 +185,7 @@ export class RatingsService {
               id: true,
               username: true,
               displayName: true,
+              avatarUrl: true,
               profile: {
                 select: {
                   equippedBadge: {
@@ -164,7 +202,7 @@ export class RatingsService {
             },
           },
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy,
         skip,
         take: limit,
       }),
@@ -199,7 +237,7 @@ export class RatingsService {
         sound: r.sound,
         hype: r.hype,
         finalScore: Number(r.finalScore),
-        reviewText: r.reviewText,
+        reviewText: r.reviewText ? censorText(r.reviewText).text : r.reviewText,
         containsSpoiler: r.containsSpoiler,
         createdAt: r.createdAt,
         updatedAt: r.updatedAt,
@@ -208,6 +246,7 @@ export class RatingsService {
           id: r.user.id,
           username: r.user.username,
           displayName: r.user.displayName,
+          avatarUrl: r.user.avatarUrl ?? null,
           equippedBadge: r.user.profile?.equippedBadge ?? null,
         },
       })),
@@ -216,6 +255,7 @@ export class RatingsService {
         page,
         limit,
         totalPages: Math.ceil(total / limit),
+        sort: sortKey,
       },
     };
   }
@@ -247,7 +287,7 @@ export class RatingsService {
     return {
       id: rating.id,
       finalScore: Number(rating.finalScore),
-      reviewText: rating.reviewText,
+      reviewText: rating.reviewText ? censorText(rating.reviewText).text : rating.reviewText,
       containsSpoiler: rating.containsSpoiler,
       badge: RatingsService.getBadge(Number(rating.finalScore)),
       user: rating.user,

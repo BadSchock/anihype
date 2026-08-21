@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getAnimeBySlug, getEpisodeByNumber } from '@/services/api';
 import { CommentsSection } from '@/components/comments/comments-section';
+import { EpisodeHypometerCta } from '@/components/ratings/episode-hypometer-cta';
 import { EpisodeHero } from './_components/episode-hero';
 
 interface Props {
@@ -66,6 +67,10 @@ export default async function EpisodePage({ params }: Props) {
         nextEpisode={nextEpisode}
       />
       <div className="mx-auto max-w-4xl px-4 pb-10 sm:px-6">
+        <EpisodeHypometerCta
+          slug={slug}
+          animeTitle={anime.titleEnglish ?? anime.titleRomaji}
+        />
         <CommentsSection episodeId={episode.id} />
       </div>
     </>

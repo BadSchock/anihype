@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
+import { Zap } from 'lucide-react';
 import { getAnimeBySlug } from '@/services/api';
 import { Badge } from '@/components/ui/badge';
 import { AnimeEpisodesClient } from './_components/anime-episodes-client';
@@ -136,9 +137,15 @@ export default async function AnimePage({ params }: Props) {
               {anime.episodeCount && <span>{anime.episodeCount} episódios</span>}
               {anime.episodeDuration && <span>{anime.episodeDuration} min/ep</span>}
               {mainStudio && <span>{mainStudio.name}</span>}
-              {anime.averageScore && (
-                <span className="text-yellow-400 font-medium">
-                  ★ {(anime.averageScore / 10).toFixed(1)}
+              {anime.ratingAverage != null &&
+                anime.ratingCount != null &&
+                anime.ratingCount >= 1 && (
+                <span
+                  className="inline-flex items-center gap-1 font-semibold text-primary"
+                  title="Hypômetro da comunidade"
+                >
+                  <Zap className="h-3.5 w-3.5" aria-hidden />
+                  {Number(anime.ratingAverage).toFixed(1)}
                 </span>
               )}
             </div>
@@ -185,7 +192,7 @@ export default async function AnimePage({ params }: Props) {
         )}
 
         {/* Avaliações */}
-        <section className="mt-10">
+        <section id="hypometro" className="mt-10 scroll-mt-24">
           <AnimeRatingSection slug={slug} />
         </section>
 

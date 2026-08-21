@@ -73,6 +73,7 @@ export interface ReviewUser {
   username: string;
   displayName?: string | null;
   equippedBadge?: EquippedBadge | null;
+  avatarUrl?: string | null;
 }
 
 export interface AnimeReview {
@@ -111,6 +112,8 @@ export interface MyRating {
   containsSpoiler: boolean;
   badge: RatingBadge;
   awardedBadges?: AwardedBadge[];
+  createdAt?: string;
+  contentCensored?: boolean;
 }
 
 export interface AnimeDetail extends AnimeListItem {
@@ -200,6 +203,7 @@ export interface PaginationMeta {
   limit: number;
   total: number;
   totalPages: number;
+  sort?: 'recent' | 'score';
 }
 
 export interface PaginatedResponse<T> {
