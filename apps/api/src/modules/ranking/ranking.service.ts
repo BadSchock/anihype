@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { publicAnimeWhere } from '../../common/content/public-anime';
 
 export const MIN_RATINGS_FOR_ANIME_RANKING = 10;
 
@@ -15,6 +16,7 @@ export class RankingService {
     const rows = await this.prisma.anime.findMany({
       where: {
         deletedAt: null,
+        ...publicAnimeWhere(),
         ratingCount: { gte: MIN_RATINGS_FOR_ANIME_RANKING },
         ratingAverage: { not: null },
       },

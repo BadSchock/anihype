@@ -1,4 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { cleanSynopsis } from '../../common/content/synopsis';
+import { TranslateService } from '../translate/translate.service';
 import { AnimeRepository, AnimeWithRelations } from './anime.repository';
 import { AnimeQueryDto } from './dto/anime-query.dto';
 import {
@@ -17,7 +19,10 @@ import {
 
 @Injectable()
 export class AnimeService {
-  constructor(private readonly repo: AnimeRepository) {}
+  constructor(
+    private readonly repo: AnimeRepository,
+    private readonly translate: TranslateService,
+  ) {}
 
   async findMany(query: AnimeQueryDto): Promise<PaginatedResult<AnimeListItemDto>> {
     const resolved = await this.resolveGenreFilter(query);
@@ -40,7 +45,13 @@ export class AnimeService {
     if (!anime) {
       throw new NotFoundException(`Anime "${idOrSlug}" não encontrado.`);
     }
-    return this.toDetail(anime);
+
+    const synopsis = await this.translate.toPortugueseSynopsis(anime.synopsis);
+    if (synopsis && synopsis !== anime.synopsis) {
+      await this.repo.updateSynopsis(anime.id, synopsis);
+    }
+
+    return this.toDetail({ ...anime, synopsis });
   }
 
   private async resolveGenreFilter(
@@ -85,7 +96,7 @@ export class AnimeService {
       titleRomaji: a.titleRomaji,
       titleEnglish: a.titleEnglish,
       titleNative: a.titleNative,
-      synopsis: a.synopsis,
+      synopsis: cleanSynopsis(a.synopsis),
       coverImageUrl: a.coverImageUrl,
       bannerImageUrl: a.bannerImageUrl,
       status: a.status,

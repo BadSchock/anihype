@@ -181,7 +181,7 @@ export default async function AnimePage({ params }: Props) {
         {anime.synopsis && (
           <section className="mt-8">
             <h2 className="mb-2 text-lg font-bold text-foreground">Sinopse</h2>
-            <p className="leading-relaxed text-foreground/80 text-sm sm:text-base">{anime.synopsis}</p>
+            <p className="whitespace-pre-line text-sm leading-relaxed text-foreground/80 sm:text-base">{anime.synopsis}</p>
           </section>
         )}
 

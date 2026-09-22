@@ -33,23 +33,23 @@ export function CommunitySection() {
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-60" />
             <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500" />
           </span>
-          <h2 className="text-xl font-bold text-foreground">Comunidade em alta</h2>
+          <h2 className="text-2xl font-bold text-foreground sm:text-xl">Comunidade em alta</h2>
         </div>
         <p className="mt-1 text-sm text-muted-foreground">
           Onde a galera está comentando e reagindo esta semana.
         </p>
       </div>
 
-      <div className="grid gap-8 lg:grid-cols-5">
-        <div className="lg:col-span-3">
-          <h3 className="mb-3 text-sm font-semibold text-purple-300">Episódios em discussão</h3>
+      <div className="grid min-w-0 gap-8 lg:grid-cols-5">
+        <div className="min-w-0 lg:col-span-3">
+          <h3 className="mb-3 text-base font-semibold text-purple-300 sm:text-sm">Episódios em discussão</h3>
 
           {trending.isError && (
             <ErrorState message="Não foi possível carregar episódios em alta." onRetry={() => trending.refetch()} />
           )}
 
           {trending.isLoading && (
-            <div className="flex gap-3 overflow-hidden">
+            <div className="flex w-full min-w-0 gap-3 overflow-x-auto">
               {Array.from({ length: 4 }).map((_, i) => (
                 <EpisodeCarouselSkeleton key={i} />
               ))}
@@ -81,8 +81,8 @@ export function CommunitySection() {
           )}
         </div>
 
-        <div className="lg:col-span-2">
-          <h3 className="mb-3 text-sm font-semibold text-purple-300">Comentários em destaque</h3>
+        <div className="min-w-0 lg:col-span-2">
+          <h3 className="mb-3 text-base font-semibold text-purple-300 sm:text-sm">Comentários em destaque</h3>
 
           {hotComments.isError && (
             <ErrorState message="Não foi possível carregar comentários." onRetry={() => hotComments.refetch()} />
@@ -119,7 +119,7 @@ export function CommunitySection() {
                         avatarUrl={comment.author.avatarUrl}
                         size="sm"
                       />
-                      <span className="text-xs font-medium text-foreground">
+                      <span className="text-sm font-medium text-foreground sm:text-xs">
                         @{comment.author.username}
                       </span>
                       {comment.author.equippedBadge && (
@@ -130,10 +130,10 @@ export function CommunitySection() {
                         {comment.replyCount > 0 && ` · ${comment.replyCount} resp.`}
                       </span>
                     </div>
-                    <p className="line-clamp-2 text-sm text-foreground/85 group-hover:text-foreground">
+                    <p className="line-clamp-3 text-base leading-snug text-foreground/85 group-hover:text-foreground sm:line-clamp-2 sm:text-sm">
                       {comment.isSpoiler ? '🛡 Spoiler — toque para ver na página' : comment.content}
                     </p>
-                    <p className="mt-2 text-[11px] font-medium text-purple-400">
+                    <p className="mt-2 text-sm font-medium text-purple-400 sm:text-xs">
                       {animeTitle} · Ep {comment.episode.number}
                     </p>
                   </Link>

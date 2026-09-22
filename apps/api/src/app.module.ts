@@ -27,6 +27,7 @@ import { FeedModule } from './modules/feed/feed.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { BadgesModule } from './modules/badges/badges.module';
 import { RankingModule } from './modules/ranking/ranking.module';
+import { TranslateModule } from './modules/translate/translate.module';
 import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
 
 @Module({
@@ -64,6 +65,7 @@ import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
     FeedModule,
     NotificationsModule,
     RankingModule,
+    TranslateModule,
   ],
   providers: [
     // Exception filter global

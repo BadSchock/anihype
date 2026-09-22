@@ -9,7 +9,7 @@ import { HomeSectionsSkeleton } from './_sections/home-sections-skeleton';
 
 export default function HomePage() {
   return (
-    <div className="flex flex-col gap-10">
+    <div className="flex w-full min-w-0 flex-col gap-10 [&>*]:w-full [&>*]:min-w-0">
       <HeroSection />
 
       <Suspense fallback={<HomeSectionsSkeleton />}>

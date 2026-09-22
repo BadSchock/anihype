@@ -3,6 +3,7 @@ import { HypeTransactionReason } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { HypeService } from '../hype/hype.service';
 import { BadgesService } from '../badges/badges.service';
+import { publicAnimeWhere } from '../../common/content/public-anime';
 
 const ANIME_SELECT = {
   id: true,
@@ -28,7 +29,7 @@ export class AnimeFollowService {
 
   private async resolveAnime(slug: string) {
     const anime = await this.prisma.anime.findFirst({
-      where: { slug, deletedAt: null },
+      where: { slug, deletedAt: null, ...publicAnimeWhere() },
       select: { id: true },
     });
     if (!anime) throw new NotFoundException('Anime não encontrado');
@@ -125,13 +126,13 @@ export class AnimeFollowService {
 
     const [rows, total] = await Promise.all([
       this.prisma.animeFollow.findMany({
-        where: { userId },
+        where: { userId, anime: publicAnimeWhere() },
         include: { anime: { select: ANIME_SELECT } },
         orderBy: { createdAt: 'desc' },
         skip,
         take: limit,
       }),
-      this.prisma.animeFollow.count({ where: { userId } }),
+      this.prisma.animeFollow.count({ where: { userId, anime: publicAnimeWhere() } }),
     ]);
 
     return {

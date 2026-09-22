@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { NotificationChannelKind, Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
+import { isExplicitAdult } from '../../common/content/public-anime';
 
 export interface CreateNotificationInput {
   userId: number;
@@ -133,11 +134,25 @@ export class NotificationsService {
         title: true,
         animeId: true,
         anime: {
-          select: { slug: true, titleEnglish: true, titleRomaji: true },
+          select: {
+            slug: true,
+            titleEnglish: true,
+            titleRomaji: true,
+            isAdult: true,
+            genres: { select: { genre: { select: { slug: true } } } },
+          },
         },
       },
     });
     if (!episode) return;
+    if (
+      isExplicitAdult({
+        isAdult: episode.anime.isAdult,
+        genres: episode.anime.genres.map((row) => row.genre.slug),
+      })
+    ) {
+      return;
+    }
 
     const followers = await this.prisma.animeFollow.findMany({
       where: { animeId: episode.animeId, notifyOnEpisode: true },

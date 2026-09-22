@@ -3,17 +3,18 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { Calendar, Clapperboard, Trophy, UserRound, Zap, type LucideIcon } from 'lucide-react';
 import { cn } from '@anihype/ui';
 import { useAuthHydrated } from '@/hooks/use-auth-hydrated';
 import { useLogout } from '@/hooks/use-auth';
 import { buildLoginUrl } from '@/lib/auth-url';
 
-const MOBILE_NAV = [
-  { href: '/', label: 'Início', icon: '⚡' },
-  { href: '/anime', label: 'Animes', icon: '🎬' },
-  { href: '/ranking', label: 'Ranking', icon: '🏆' },
-  { href: '/calendar', label: 'Calendário', icon: '📅' },
-] as const;
+const MOBILE_NAV: { href: string; label: string; icon: LucideIcon }[] = [
+  { href: '/', label: 'Início', icon: Zap },
+  { href: '/anime', label: 'Animes', icon: Clapperboard },
+  { href: '/ranking', label: 'Ranking', icon: Trophy },
+  { href: '/calendar', label: 'Calendário', icon: Calendar },
+];
 
 function UserMobileNavItem() {
   const pathname = usePathname();
@@ -35,11 +36,15 @@ function UserMobileNavItem() {
       <Link
         href={buildLoginUrl(pathname)}
         className={cn(
-          'flex flex-1 flex-col items-center justify-center gap-1 text-[10px] font-medium transition-colors',
+          'flex flex-1 flex-col items-center justify-center gap-1 text-xs font-medium transition-colors',
           pathname === '/login' ? 'text-primary' : 'text-muted-foreground hover:text-foreground',
         )}
       >
-        <span className="text-lg leading-none">👤</span>
+        <UserRound
+          aria-hidden
+          className="h-[22px] w-[22px]"
+          strokeWidth={pathname === '/login' ? 2.25 : 1.75}
+        />
         Entrar
       </Link>
     );
@@ -51,7 +56,7 @@ function UserMobileNavItem() {
         type="button"
         onClick={() => setMenuOpen((open) => !open)}
         className={cn(
-          'flex h-full w-full flex-col items-center justify-center gap-1 text-[10px] font-medium transition-colors',
+          'flex h-full w-full flex-col items-center justify-center gap-1 text-xs font-medium transition-colors',
           pathname.startsWith('/u/') || menuOpen
             ? 'text-primary'
             : 'text-muted-foreground hover:text-foreground',
@@ -124,19 +129,25 @@ export function MobileNav() {
       className="fixed bottom-0 left-0 right-0 z-50 flex h-16 items-stretch border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom,0px)] backdrop-blur-md sm:hidden"
       aria-label="Navegação mobile"
     >
-      {MOBILE_NAV.map((l) => {
-        const active = pathname === l.href || (l.href !== '/' && pathname.startsWith(l.href));
+      {MOBILE_NAV.map((item) => {
+        const active = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
+        const Icon = item.icon;
         return (
           <Link
-            key={l.href}
-            href={l.href}
+            key={item.href}
+            href={item.href}
+            aria-current={active ? 'page' : undefined}
             className={cn(
-              'flex flex-1 flex-col items-center justify-center gap-1 text-[10px] font-medium transition-colors',
+              'flex flex-1 flex-col items-center justify-center gap-1 text-xs font-medium transition-colors',
               active ? 'text-primary' : 'text-muted-foreground hover:text-foreground',
             )}
           >
-            <span className="text-lg leading-none">{l.icon}</span>
-            {l.label}
+            <Icon
+              aria-hidden
+              className="h-[22px] w-[22px]"
+              strokeWidth={active ? 2.25 : 1.75}
+            />
+            {item.label}
           </Link>
         );
       })}

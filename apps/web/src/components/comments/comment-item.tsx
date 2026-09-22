@@ -9,6 +9,7 @@ import { UserAvatar } from '@/components/user/user-avatar';
 import { EquippedBadgeChip } from '@/components/badges/equipped-badge-chip';
 import type { Comment } from '@/types/api';
 import { censorText } from '@/lib/censor-text';
+import { translateText } from '@/services/api';
 
 interface CommentItemProps {
   comment: Comment;
@@ -41,6 +42,11 @@ export function CommentItem({
   const router = useRouter();
   const pathname = usePathname();
   const [spoilerRevealed, setSpoilerRevealed] = useState(false);
+  const [translation, setTranslation] = useState<string | null>(null);
+  const [showTranslation, setShowTranslation] = useState(false);
+  const [translating, setTranslating] = useState(false);
+  const [translateError, setTranslateError] = useState<string | null>(null);
+  const [alreadyInTarget, setAlreadyInTarget] = useState(false);
   const [repliesOpenLocal, setRepliesOpenLocal] = useState(false);
   const repliesOpen = repliesOpenProp ?? repliesOpenLocal;
   const setRepliesOpen = onToggleReplies ?? (() => setRepliesOpenLocal((open) => !open));
@@ -60,6 +66,28 @@ export function CommentItem({
   };
 
   const safeContent = censorText(comment.content);
+  const canTranslate = !comment.isSpoiler || spoilerRevealed;
+
+  const handleTranslate = async () => {
+    if (!canTranslate) return;
+    if (translation) {
+      setShowTranslation((open) => !open);
+      setTranslateError(null);
+      return;
+    }
+    setTranslating(true);
+    setTranslateError(null);
+    try {
+      const result = await translateText(safeContent, 'pt');
+      setTranslation(result.translatedText);
+      setAlreadyInTarget(result.alreadyInTarget);
+      setShowTranslation(true);
+    } catch {
+      setTranslateError('Não foi possível traduzir agora.');
+    } finally {
+      setTranslating(false);
+    }
+  };
 
   return (
     <div className={`flex gap-3 ${nested ? '' : ''}`}>
@@ -92,7 +120,7 @@ export function CommentItem({
                 userSelect: spoilerRevealed ? 'text' : 'none',
               }}
             >
-              {safeContent}
+              {showTranslation && translation ? translation : safeContent}
             </p>
             {!spoilerRevealed && (
               <button
@@ -106,7 +134,9 @@ export function CommentItem({
             )}
           </div>
         ) : (
-          <p className="text-sm leading-relaxed text-foreground/90">{safeContent}</p>
+          <p className="text-sm leading-relaxed text-foreground/90">
+            {showTranslation && translation ? translation : safeContent}
+          </p>
         )}
 
         <div className="mt-1 flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
@@ -120,6 +150,17 @@ export function CommentItem({
           >
             ♥ {comment.likeCount > 0 ? comment.likeCount : ''}
           </button>
+
+          {canTranslate && (
+            <button
+              type="button"
+              onClick={handleTranslate}
+              disabled={translating}
+              className="transition-colors hover:text-foreground disabled:opacity-60"
+            >
+              {translating ? 'Traduzindo...' : showTranslation ? 'Ver original' : 'Traduzir'}
+            </button>
+          )}
 
           {onReply && isAuthenticated && (
             <button
@@ -143,6 +184,14 @@ export function CommentItem({
             </button>
           )}
         </div>
+
+        {showTranslation && translation && !alreadyInTarget && (
+          <p className="text-[11px] text-muted-foreground">Tradução automática</p>
+        )}
+        {showTranslation && alreadyInTarget && (
+          <p className="text-[11px] text-muted-foreground">Este comentário já está em português.</p>
+        )}
+        {translateError && <p className="text-[11px] text-red-400">{translateError}</p>}
 
         {repliesOpen && (
           <div className="mt-3 flex flex-col gap-4 border-l-2 border-purple-500/20 pl-4">

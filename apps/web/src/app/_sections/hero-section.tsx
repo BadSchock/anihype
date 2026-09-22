@@ -9,8 +9,12 @@ import { getHeroHighlight } from '@/services/api';
 function DefaultHero() {
   return (
     <section className="relative -mx-4 -mt-6 overflow-hidden sm:-mx-6">
-      <div className="relative bg-gradient-to-br from-purple-100/80 via-background to-background dark:from-purple-900/40 dark:via-background">
-        <div className="relative mx-auto min-h-[14.5rem] max-w-6xl sm:min-h-[22rem] lg:min-h-[23.5rem]">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-gradient-to-br from-purple-100/80 via-background to-background [mask-image:linear-gradient(to_bottom,#000_72%,transparent)] [-webkit-mask-image:linear-gradient(to_bottom,#000_72%,transparent)] dark:from-purple-900/40 dark:via-background sm:[mask-image:linear-gradient(to_bottom,#000_50%,transparent)] sm:[-webkit-mask-image:linear-gradient(to_bottom,#000_50%,transparent)]"
+      />
+      <div className="relative">
+        <div className="relative mx-auto min-h-[17rem] max-w-6xl sm:min-h-[22rem] lg:min-h-[23.5rem]">
           <div className="relative z-10 px-4 pb-4 pt-8 text-left sm:max-w-xl sm:px-6 sm:pb-14 sm:pt-14 lg:max-w-2xl lg:pt-16">
             <h1 className="text-[clamp(1.7rem,7.6vw,2.25rem)] font-extrabold leading-[1.12] tracking-tight text-foreground sm:text-5xl sm:leading-none">
               <span className="block sm:inline">Viva o hype da</span>{' '}
@@ -26,14 +30,14 @@ function DefaultHero() {
             A caixa é maior que o Hero e deslocada para baixo/direita para
             a base encostar no chão e a margem transparente sair do quadro.
           */}
-          <div className="pointer-events-none absolute -bottom-[6.4rem] -right-28 h-[21.16rem] w-[21.16rem] sm:-bottom-[8.14rem] sm:-right-10 sm:h-[36rem] sm:w-[36rem]">
+          <div className="pointer-events-none absolute -bottom-4 -right-6 h-52 w-52 sm:-bottom-[8.14rem] sm:-right-10 sm:h-[36rem] sm:w-[36rem]">
             <Image
               src="/mascote-anihype.png"
               alt="Mascote do AniHype"
               fill
               priority
-              sizes="(max-width: 639px) 340px, 576px"
-              className="object-contain"
+              sizes="(max-width: 639px) 208px, 576px"
+              className="object-contain [mask-image:linear-gradient(to_bottom,#000_68%,transparent_90%)] [-webkit-mask-image:linear-gradient(to_bottom,#000_68%,transparent_90%)] [mask-repeat:no-repeat] [mask-size:100%_100%] [-webkit-mask-repeat:no-repeat] [-webkit-mask-size:100%_100%] sm:[mask-image:linear-gradient(to_bottom,#000_60%,transparent_76%)] sm:[-webkit-mask-image:linear-gradient(to_bottom,#000_60%,transparent_76%)]"
             />
           </div>
         </div>

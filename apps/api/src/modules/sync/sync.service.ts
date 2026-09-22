@@ -4,6 +4,8 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { AniListService } from '../providers/anilist/anilist.service';
 import { JikanService } from '../providers/jikan/jikan.service';
 import { AnimeService } from '../anime/anime.service';
+import { isExplicitAdult } from '../../common/content/public-anime';
+import { TranslateService } from '../translate/translate.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { AnimeProviderResult, NormalizedAnime, NormalizedEpisode } from '../providers/provider.types';
 
@@ -54,6 +56,7 @@ export class SyncService {
     private readonly anilist: AniListService,
     private readonly jikan: JikanService,
     private readonly notificationsService: NotificationsService,
+    private readonly translate: TranslateService,
   ) {}
 
   // ---------------------------------------------------------------------------
@@ -274,7 +277,7 @@ export class SyncService {
         titleRomaji: n.titleRomaji,
         titleEnglish: n.titleEnglish,
         titleNative: n.titleNative,
-        synopsis: n.synopsis,
+        synopsis: await this.translate.toPortugueseSynopsis(n.synopsis),
         coverImageUrl: n.coverImageUrl,
         bannerImageUrl: n.bannerImageUrl,
         status: this.mapAnimeStatus(n.status),
@@ -287,7 +290,7 @@ export class SyncService {
         averageScore: n.averageScore ? new Prisma.Decimal(n.averageScore) : null,
         popularityScore: n.popularityScore,
         trailerUrl: n.trailerUrl,
-        isAdult: n.isAdult,
+        isAdult: isExplicitAdult(n),
         genres: {
           create: await this.resolveGenreConnects(n.genres),
         },
@@ -310,7 +313,8 @@ export class SyncService {
     const data: Prisma.AnimeUpdateInput = {
       titleEnglish: n.titleEnglish,
       titleNative: n.titleNative,
-      synopsis: n.synopsis,
+      synopsis: await this.translate.toPortugueseSynopsis(n.synopsis),
+      isAdult: isExplicitAdult(n),
       status: this.mapAnimeStatus(n.status),
       episodeCount: n.episodeCount,
       averageScore: n.averageScore ? new Prisma.Decimal(n.averageScore) : null,

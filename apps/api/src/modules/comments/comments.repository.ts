@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CommentQueryDto } from './dto/comment-query.dto';
 import { PaginatedResult, paginate } from '../../common/dto/pagination.dto';
+import { publicAnimeWhere } from '../../common/content/public-anime';
 
 const commentInclude = {
   user: {
@@ -125,6 +126,7 @@ export class CommentsRepository {
         deletedAt: null,
         parentId: null,
         createdAt: { gte: since },
+        episode: { anime: publicAnimeWhere() },
       },
       include: {
         user: {

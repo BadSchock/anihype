@@ -12,7 +12,7 @@ export function TodaySection() {
   return (
     <section>
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-xl font-bold text-foreground">Lançamentos de Hoje</h2>
+        <h2 className="text-2xl font-bold text-foreground sm:text-xl">Lançamentos de Hoje</h2>
         <Link href="/calendar" className="text-sm text-purple-400 hover:underline">
           Ver todos →
         </Link>
@@ -23,7 +23,7 @@ export function TodaySection() {
       )}
 
       {isLoading && (
-        <div className="flex gap-3 overflow-hidden">
+        <div className="flex w-full min-w-0 gap-3 overflow-x-auto">
           {Array.from({ length: 5 }).map((_, i) => (
             <EpisodeCarouselSkeleton key={i} />
           ))}

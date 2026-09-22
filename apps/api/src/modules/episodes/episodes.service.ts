@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { cleanSynopsis } from '../../common/content/synopsis';
 import { EpisodesRepository, EpisodeWithAnime } from './episodes.repository';
 import { EpisodeQueryDto } from './dto/episode-query.dto';
 import { CalendarDayDto, EpisodeDto, EpisodeWithAnimeDto, TrendingEpisodeDto } from './dto/episode-response.dto';
@@ -78,7 +79,7 @@ export class EpisodesService {
       slug: e.slug,
       number: e.number,
       title: e.title ?? null,
-      synopsis: e.synopsis ?? null,
+      synopsis: cleanSynopsis(e.synopsis),
       thumbnailUrl: e.thumbnailUrl ?? null,
       airDate: e.airDate ?? null,
       airTimeUtc: e.airTimeUtc ?? null,

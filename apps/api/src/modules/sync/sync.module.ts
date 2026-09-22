@@ -5,9 +5,10 @@ import { CronService } from './cron.service';
 import { AniListModule } from '../providers/anilist/anilist.module';
 import { JikanModule } from '../providers/jikan/jikan.module';
 import { AnimeModule } from '../anime/anime.module';
+import { TranslateModule } from '../translate/translate.module';
 
 @Module({
-  imports: [AniListModule, JikanModule, AnimeModule],
+  imports: [AniListModule, JikanModule, AnimeModule, TranslateModule],
   controllers: [SyncController],
   providers: [SyncService, CronService],
   exports: [SyncService],

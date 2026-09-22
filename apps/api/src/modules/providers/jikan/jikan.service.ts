@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios, { AxiosInstance } from 'axios';
 import { AnimeProviderResult, NormalizedAnime, NormalizedEpisode } from '../provider.types';
+import { isExplicitAdult } from '../../../common/content/public-anime';
 
 interface JikanAnime {
   mal_id: number;
@@ -80,6 +81,10 @@ export class JikanService {
   }
 
   normalizeAnime(j: JikanAnime): NormalizedAnime {
+    const genres = [
+      ...j.genres.map((g) => g.name),
+      ...(j.explicit_genres ?? []).map((g) => g.name),
+    ];
     return {
       titleRomaji: j.title,
       titleEnglish: j.title_english ?? null,
@@ -98,8 +103,11 @@ export class JikanService {
       averageScore: j.score ? Math.round(j.score * 10) : null,
       popularityScore: j.popularity ?? null,
       trailerUrl: j.trailer?.url ?? null,
-      isAdult: (j.rating ?? '').includes('Hentai'),
-      genres: j.genres.map((g) => g.name),
+      isAdult: isExplicitAdult({
+        isAdult: /hentai|\brx\b/i.test(j.rating ?? ''),
+        genres,
+      }),
+      genres,
       studios: j.studios.map((s) => ({ name: s.name, role: 'main' })),
       externalIds: [{ source: 'mal', externalId: String(j.mal_id) }],
       streamingPlatforms: [],

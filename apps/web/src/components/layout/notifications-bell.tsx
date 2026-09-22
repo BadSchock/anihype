@@ -1,7 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
+import { Bell } from 'lucide-react';
 import {
   useMarkAllNotificationsRead,
   useMarkNotificationRead,
@@ -27,20 +29,55 @@ function notificationHref(n: AppNotification): string | null {
   return null;
 }
 
+function placePanel(anchor: HTMLButtonElement) {
+  const rect = anchor.getBoundingClientRect();
+  const margin = 12;
+  const top = rect.bottom + 8;
+  const maxHeight = Math.max(160, window.innerHeight - top - margin);
+  const maxWidth = window.innerWidth - margin * 2;
+  const width = Math.min(320, maxWidth);
+  const preferredLeft = rect.right - width;
+  const fits = preferredLeft >= margin && preferredLeft + width <= window.innerWidth - margin;
+  if (!fits) {
+    return { top, left: margin, width: maxWidth, maxHeight };
+  }
+  return { top, left: preferredLeft, width, maxHeight };
+}
+
 export function NotificationsBell() {
   const { isAuthenticated } = useAuthHydrated();
   const [open, setOpen] = useState(false);
+  const [panel, setPanel] = useState<{ top: number; left: number; width: number; maxHeight: number } | null>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
   const { data: unread } = useUnreadNotificationCount();
   const { data: list } = useNotifications(1);
   const markRead = useMarkNotificationRead();
   const markAll = useMarkAllNotificationsRead();
 
+  useEffect(() => {
+    if (!open) return;
+    const update = () => {
+      if (buttonRef.current) setPanel(placePanel(buttonRef.current));
+    };
+    update();
+    window.addEventListener('resize', update);
+    window.addEventListener('scroll', update, true);
+    return () => {
+      window.removeEventListener('resize', update);
+      window.removeEventListener('scroll', update, true);
+    };
+  }, [open]);
+
   if (!isAuthenticated) return null;
 
   const count = unread?.unreadCount ?? 0;
 
-  async function handleOpen() {
-    setOpen((v) => !v);
+  function handleOpen() {
+    setOpen((value) => {
+      const next = !value;
+      if (next && buttonRef.current) setPanel(placePanel(buttonRef.current));
+      return next;
+    });
   }
 
   async function handleClickNotification(n: AppNotification) {
@@ -51,22 +88,26 @@ export function NotificationsBell() {
   }
 
   return (
-    <div className="relative">
+    <div>
       <button
+        ref={buttonRef}
         type="button"
-        onClick={() => void handleOpen()}
+        onClick={handleOpen}
         aria-label="Notificações"
-        className="relative btn-ghost px-2.5 py-1.5 text-sm"
+        aria-expanded={open}
+        className="relative inline-flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
       >
-        🔔
+        <Bell className="h-4 w-4" aria-hidden />
         {count > 0 && (
-          <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-purple-600 px-1 text-[10px] font-bold text-white">
+          <span className="absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-purple-600 px-1 text-[10px] font-bold text-white">
             {count > 9 ? '9+' : count}
           </span>
         )}
       </button>
 
-      {open && (
+      {open &&
+        panel &&
+        createPortal(
         <>
           <button
             type="button"
@@ -74,7 +115,10 @@ export function NotificationsBell() {
             aria-label="Fechar notificações"
             onClick={() => setOpen(false)}
           />
-          <div className="absolute right-0 top-full z-50 mt-2 w-80 overflow-hidden rounded-xl border border-border bg-background shadow-xl">
+          <div
+            className="fixed z-50 flex flex-col overflow-hidden rounded-xl border border-border bg-background shadow-xl"
+            style={{ top: panel.top, left: panel.left, width: panel.width, maxHeight: panel.maxHeight }}
+          >
             <div className="flex items-center justify-between border-b border-border px-3 py-2">
               <span className="text-sm font-semibold text-foreground">Notificações</span>
               {count > 0 && (
@@ -87,7 +131,7 @@ export function NotificationsBell() {
                 </button>
               )}
             </div>
-            <div className="max-h-80 overflow-y-auto">
+            <div className="min-h-0 flex-1 overflow-y-auto">
               {!list?.data.length && (
                 <p className="p-4 text-center text-sm text-muted-foreground">Nenhuma notificação.</p>
               )}
@@ -131,7 +175,8 @@ export function NotificationsBell() {
               })}
             </div>
           </div>
-        </>
+        </>,
+        document.body,
       )}
     </div>
   );

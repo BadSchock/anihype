@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { UserFollowService } from '../user-follow/user-follow.service';
+import { publicAnimeWhere } from '../../common/content/public-anime';
 
 export type FeedItemType = 'COMMENT' | 'RATING' | 'ANIME_FOLLOW';
 
@@ -69,6 +70,7 @@ export class FeedService {
           deletedAt: null,
           parentId: null,
           createdAt: { gte: since },
+          episode: { anime: publicAnimeWhere() },
         },
         include: {
           user: { select: USER_SELECT },
@@ -93,6 +95,7 @@ export class FeedService {
           userId: { in: followingIds },
           deletedAt: null,
           createdAt: { gte: since },
+          anime: publicAnimeWhere(),
         },
         include: {
           user: { select: USER_SELECT },
@@ -112,6 +115,7 @@ export class FeedService {
         where: {
           userId: { in: followingIds },
           createdAt: { gte: since },
+          anime: publicAnimeWhere(),
         },
         include: {
           user: { select: USER_SELECT },
@@ -211,6 +215,7 @@ export class FeedService {
           deletedAt: null,
           parentId: null,
           createdAt: { gte: since },
+          episode: { anime: publicAnimeWhere() },
         },
         include: {
           user: { select: USER_SELECT },
@@ -235,6 +240,7 @@ export class FeedService {
           userId: user.id,
           deletedAt: null,
           createdAt: { gte: since },
+          anime: publicAnimeWhere(),
         },
         include: {
           user: { select: USER_SELECT },

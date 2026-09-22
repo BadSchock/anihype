@@ -578,3 +578,16 @@ export function markAllNotificationsRead() {
 export function getFeaturedReview() {
   return request<FeaturedReview | null>('/ratings/featured', { skipAuth: true });
 }
+
+export function translateText(text: string, targetLang: 'pt' | 'en' = 'pt') {
+  return request<{
+    translatedText: string;
+    sourceLang: string;
+    targetLang: 'pt' | 'en';
+    alreadyInTarget: boolean;
+  }>('/translate', {
+    method: 'POST',
+    body: JSON.stringify({ text, targetLang }),
+    skipAuth: true,
+  });
+}

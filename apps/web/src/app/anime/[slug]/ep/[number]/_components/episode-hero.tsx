@@ -25,14 +25,21 @@ export function EpisodeHero({ anime, episode, prevEpisode, nextEpisode }: Props)
 
   const heroImage = episode.thumbnailUrl ?? anime.bannerImageUrl;
   const animeTitle = anime.titleEnglish ?? anime.titleRomaji;
+  const episodeLabel = `Episódio ${episode.number}`;
+  const rawTitle = episode.title?.trim();
+  const titleIsJustTheNumber =
+    !rawTitle ||
+    rawTitle.toLowerCase() === episodeLabel.toLowerCase() ||
+    rawTitle.toLowerCase() === `ep ${episode.number}` ||
+    rawTitle.toLowerCase() === `episode ${episode.number}`;
 
   return (
     <div className="-mx-4 -mt-6 sm:-mx-6">
-      <div className="relative h-56 w-full overflow-hidden sm:h-80">
+      <div className="relative h-56 w-full overflow-hidden sm:h-72">
         {heroImage ? (
           <Image
             src={heroImage}
-            alt={episode.title ?? `Episódio ${episode.number}`}
+            alt=""
             fill
             className="object-cover"
             priority
@@ -41,41 +48,25 @@ export function EpisodeHero({ anime, episode, prevEpisode, nextEpisode }: Props)
         ) : (
           <div className="h-full w-full bg-gradient-to-br from-purple-900/50 to-background" />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-background/10" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
+      </div>
 
-        <div className="absolute inset-x-0 bottom-0 mx-auto max-w-4xl px-4 pb-6 sm:px-6">
-          <nav className="mb-3 flex items-center gap-2 text-sm text-muted-foreground">
-            <Link href={`/anime/${anime.slug}`} className="hover:text-purple-300 transition-colors">
-              {animeTitle}
-            </Link>
-            <span>/</span>
-            <span className="text-foreground/90">Ep {episode.number}</span>
-          </nav>
+      <div className="mx-auto max-w-4xl px-4 pt-5 sm:px-6">
+        <Link
+          href={`/anime/${anime.slug}`}
+          className="block text-lg font-bold leading-snug text-foreground transition-colors hover:text-purple-300 sm:text-xl"
+        >
+          {animeTitle}
+        </Link>
 
-          <div className="flex items-end gap-4">
-            {anime.coverImageUrl && (
-              <Link
-                href={`/anime/${anime.slug}`}
-                className="relative hidden h-24 w-16 flex-shrink-0 overflow-hidden rounded-lg shadow-xl ring-2 ring-purple-500/30 sm:block sm:h-28 sm:w-20"
-              >
-                <Image
-                  src={anime.coverImageUrl}
-                  alt={animeTitle}
-                  fill
-                  className="object-cover"
-                  sizes="80px"
-                />
-              </Link>
-            )}
-
-            <div className="min-w-0 flex-1">
-              <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-purple-600/20 px-3 py-1 text-xs font-bold uppercase tracking-wide text-purple-200 ring-1 ring-purple-500/30">
-                Episódio {episode.number}
-              </div>
-              <h1 className="text-2xl font-extrabold leading-tight text-foreground sm:text-4xl">
-                {episode.title ?? `Episódio ${episode.number}`}
-              </h1>
-              <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+        <div className="mt-3">
+          {!titleIsJustTheNumber && (
+            <p className="mb-1 text-sm font-semibold text-purple-300">{episodeLabel}</p>
+          )}
+          <h1 className="text-2xl font-extrabold leading-tight text-foreground sm:text-3xl">
+            {titleIsJustTheNumber ? episodeLabel : rawTitle}
+          </h1>
+          <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
                 {airDate && <span>{airDate}</span>}
                 {airTimeLabel && <span>{airTimeLabel} (BRT)</span>}
                 {episode.durationMinutes && <span>{episode.durationMinutes} min</span>}
@@ -94,13 +85,11 @@ export function EpisodeHero({ anime, episode, prevEpisode, nextEpisode }: Props)
                 </Badge>
               </div>
             </div>
-          </div>
-        </div>
       </div>
 
       <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6">
         {episode.synopsis && (
-          <p className="text-sm leading-relaxed text-foreground/80 sm:text-base">{episode.synopsis}</p>
+          <p className="whitespace-pre-line text-sm leading-relaxed text-foreground/80 sm:text-base">{episode.synopsis}</p>
         )}
 
         <WhereToWatch links={anime.streamingLinks ?? []} compact />

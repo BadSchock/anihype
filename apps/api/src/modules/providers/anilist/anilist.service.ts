@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios, { AxiosInstance } from 'axios';
 import { AnimeProviderResult, NormalizedAnime, NormalizedEpisode } from '../provider.types';
+import { isExplicitAdult } from '../../../common/content/public-anime';
 
 const ANIME_QUERY = `
 query ($id: Int, $search: String, $page: Int, $perPage: Int) {
@@ -273,7 +274,7 @@ export class AniListService {
         media.trailer?.site === 'youtube'
           ? `https://www.youtube.com/watch?v=${media.trailer.id}`
           : null,
-      isAdult: media.isAdult,
+      isAdult: isExplicitAdult({ isAdult: media.isAdult, genres: media.genres }),
       genres: media.genres,
       studios: media.studios.edges.map((e) => ({
         name: e.node.name,

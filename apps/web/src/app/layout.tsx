@@ -90,7 +90,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
           <main
             id="main"
-            className="mx-auto max-w-7xl px-4 py-6 sm:px-6 pb-[calc(5rem+env(safe-area-inset-bottom,0px))] sm:pb-6"
+            className="mx-auto w-full min-w-0 max-w-7xl overflow-x-clip px-4 py-6 pb-[calc(5rem+env(safe-area-inset-bottom,0px))] [contain:inline-size] sm:px-6 sm:pb-6"
           >
             {children}
           </main>

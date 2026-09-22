@@ -2,6 +2,8 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateHighlightDto, UpdateHighlightDto } from './dto/highlight.dto';
+import { publicAnimeWhere } from '../../common/content/public-anime';
+import { cleanSynopsis } from '../../common/content/synopsis';
 
 const animeSelect = {
   id: true,
@@ -26,6 +28,7 @@ export class HighlightsService {
       where: {
         published: true,
         isFeatured: true,
+        anime: publicAnimeWhere(),
         AND: [
           { OR: [{ visibleFrom: null }, { visibleFrom: { lte: now } }] },
           { OR: [{ visibleUntil: null }, { visibleUntil: { gte: now } }] },
@@ -58,7 +61,7 @@ export class HighlightsService {
       data: {
         animeId: dto.animeId,
         title: dto.title ?? anime.titleEnglish ?? anime.titleRomaji,
-        subtitle: dto.subtitle ?? anime.synopsis?.slice(0, 140) ?? null,
+        subtitle: dto.subtitle ?? cleanSynopsis(anime.synopsis)?.slice(0, 140) ?? null,
         imageUrl: dto.imageUrl ?? anime.bannerImageUrl ?? anime.coverImageUrl,
         ctaLabel: dto.ctaLabel ?? 'Ver anime',
         destination: dto.destination ?? `/anime/${anime.slug}`,

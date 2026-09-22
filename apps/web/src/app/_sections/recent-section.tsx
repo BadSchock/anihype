@@ -13,7 +13,7 @@ export function RecentSection() {
   return (
     <section>
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-xl font-bold text-foreground">Últimos adicionados</h2>
+        <h2 className="text-2xl font-bold text-foreground sm:text-xl">Últimos adicionados</h2>
         <Link href="/calendar" className="text-sm text-purple-400 hover:underline">
           Ver calendário →
         </Link>
@@ -28,7 +28,7 @@ export function RecentSection() {
           {Array.from({ length: 2 }).map((_, i) => (
             <div key={i}>
               <div className="mb-3 h-4 w-28 animate-pulse rounded bg-muted" />
-              <div className="flex gap-3 overflow-hidden">
+              <div className="flex w-full min-w-0 gap-3 overflow-x-auto">
                 {Array.from({ length: 4 }).map((__, j) => (
                   <EpisodeCarouselSkeleton key={j} />
                 ))}

@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { SetTopAnimeDto } from './dto/top-anime.dto';
+import { publicAnimeWhere } from '../../common/content/public-anime';
 
 const ANIME_SELECT = {
   id: true,
@@ -27,7 +28,7 @@ export class TopAnimeService {
     if (!user) throw new NotFoundException('Usuário não encontrado');
 
     const rows = await this.prisma.userTopAnime.findMany({
-      where: { userId: user.id },
+      where: { userId: user.id, anime: publicAnimeWhere() },
       include: { anime: { select: ANIME_SELECT } },
       orderBy: { position: 'asc' },
     });
@@ -55,7 +56,7 @@ export class TopAnimeService {
 
     if (animeIds.length > 0) {
       const found = await this.prisma.anime.count({
-        where: { id: { in: animeIds }, deletedAt: null },
+        where: { id: { in: animeIds }, deletedAt: null, ...publicAnimeWhere() },
       });
       if (found !== animeIds.length) throw new NotFoundException('Um ou mais animes não encontrados');
     }
@@ -79,7 +80,7 @@ export class TopAnimeService {
 
   private async getTopAnimeByUserId(userId: number) {
     const rows = await this.prisma.userTopAnime.findMany({
-      where: { userId },
+      where: { userId, anime: publicAnimeWhere() },
       include: { anime: { select: ANIME_SELECT } },
       orderBy: { position: 'asc' },
     });

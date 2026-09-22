@@ -80,10 +80,10 @@ function EpisodeCarouselCard({
   return (
     <Link
       href={`/anime/${episode.anime.slug}/ep/${episode.number}`}
-      className="group relative flex w-44 flex-shrink-0 flex-col overflow-hidden rounded-xl border border-border bg-card transition-all duration-200 hover:border-purple-500/50 hover:shadow-lg hover:shadow-purple-900/20 hover:-translate-y-0.5 sm:w-52"
+      className="group relative flex w-[min(78vw,18rem)] flex-shrink-0 snap-start flex-col overflow-hidden rounded-xl border border-border bg-card transition-all duration-200 hover:border-purple-500/50 hover:shadow-lg hover:shadow-purple-900/20 hover:-translate-y-0.5 sm:w-52"
     >
       {/* Imagem */}
-      <div className="relative h-44 w-full overflow-hidden bg-muted sm:h-52">
+      <div className="relative h-52 w-full overflow-hidden bg-muted sm:h-52">
         {cover ? (
           <Image
             src={cover}
@@ -104,27 +104,27 @@ function EpisodeCarouselCard({
         {renderBadge?.(episode)}
 
         {/* Badge de episódio */}
-        <div className="absolute bottom-2 left-2 rounded-md bg-black/70 px-1.5 py-0.5 text-[10px] font-bold text-white backdrop-blur-sm">
+        <div className="absolute bottom-2 left-2 rounded-md bg-black/70 px-2 py-0.5 text-xs font-bold text-white backdrop-blur-sm">
           EP {episode.number}
         </div>
 
         {/* Horário */}
         {airedAt && (
-          <div className="absolute bottom-2 right-2 rounded-md bg-purple-600/80 px-1.5 py-0.5 text-[10px] font-semibold text-white backdrop-blur-sm">
+          <div className="absolute bottom-2 right-2 rounded-md bg-purple-600/80 px-2 py-0.5 text-xs font-semibold text-white backdrop-blur-sm">
             {formatAirTimeBrt(airedAt)}
           </div>
         )}
       </div>
 
       {/* Info */}
-      <div className="flex min-h-[2.5rem] flex-col gap-0.5 p-3">
+      <div className="flex min-h-[2.5rem] flex-col gap-1 p-3">
         <p
-          className="line-clamp-2 text-[11px] font-semibold leading-snug text-purple-400"
+          className="line-clamp-2 text-sm font-semibold leading-snug text-purple-400 sm:text-xs"
           title={episode.anime.titleEnglish ?? episode.anime.titleRomaji}
         >
           {episode.anime.titleEnglish ?? episode.anime.titleRomaji}
         </p>
-        <p className="line-clamp-1 text-xs font-medium text-foreground">
+        <p className="line-clamp-2 text-base font-medium leading-snug text-foreground sm:line-clamp-1 sm:text-sm">
           {episode.title ? episode.title : `Episódio ${episode.number}`}
         </p>
       </div>
@@ -134,8 +134,8 @@ function EpisodeCarouselCard({
 
 export function EpisodeCarouselSkeleton() {
   return (
-    <div className="flex w-44 flex-shrink-0 flex-col overflow-hidden rounded-xl border border-border bg-card sm:w-52">
-      <div className="h-44 w-full shimmer sm:h-52" />
+    <div className="flex w-[min(78vw,18rem)] flex-shrink-0 flex-col overflow-hidden rounded-xl border border-border bg-card sm:w-52">
+      <div className="h-52 w-full shimmer" />
       <div className="flex flex-col gap-1.5 p-3">
         <div className="h-3 w-2/3 rounded shimmer" />
         <div className="h-3 w-4/5 rounded shimmer" />
@@ -154,7 +154,7 @@ export function EpisodeCarousel({ episodes, className, renderBadge }: EpisodeCar
   return (
     <div
       className={cn(
-        'flex gap-3 overflow-x-auto pb-3',
+        'flex w-full min-w-0 max-w-full snap-x snap-mandatory gap-3 overflow-x-auto pb-3',
         // Esconde a scrollbar mas mantém funcional
         '[&::-webkit-scrollbar]:h-1 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-purple-500/30',
         className,

@@ -47,7 +47,7 @@ export function FeaturedReviewSection() {
               {review.badge.emoji} {review.finalScore.toFixed(1)}
             </span>
           </div>
-          <p className="line-clamp-4 text-sm leading-relaxed text-foreground/85">
+          <p className="line-clamp-4 text-base leading-relaxed text-foreground/85 sm:text-sm">
             {review.containsSpoiler ? '🛡 Review com spoiler — leia na página do anime' : review.reviewText}
           </p>
           <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">

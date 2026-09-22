@@ -3,6 +3,7 @@ import { EpisodeStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { EpisodeQueryDto } from './dto/episode-query.dto';
 import { PaginatedResult, paginate } from '../../common/dto/pagination.dto';
+import { publicAnimeWhere } from '../../common/content/public-anime';
 
 const episodeInclude = {
   anime: {
@@ -32,6 +33,7 @@ export class EpisodesRepository {
     const where: Prisma.EpisodeWhereInput = {
       animeId,
       deletedAt: null,
+      anime: publicAnimeWhere(),
       ...(status && { status }),
       ...(numberFrom && { number: { gte: numberFrom } }),
     };
@@ -52,21 +54,21 @@ export class EpisodesRepository {
 
   async findById(id: number): Promise<EpisodeWithAnime | null> {
     return this.prisma.episode.findFirst({
-      where: { id, deletedAt: null },
+      where: { id, deletedAt: null, anime: publicAnimeWhere() },
       include: episodeInclude,
     });
   }
 
   async findByAnimeAndNumber(animeId: number, number: number): Promise<EpisodeWithAnime | null> {
     return this.prisma.episode.findFirst({
-      where: { animeId, number, deletedAt: null },
+      where: { animeId, number, deletedAt: null, anime: publicAnimeWhere() },
       include: episodeInclude,
     });
   }
 
   async findByAnimeAndSlug(animeId: number, slug: string): Promise<EpisodeWithAnime | null> {
     return this.prisma.episode.findFirst({
-      where: { animeId, slug, deletedAt: null },
+      where: { animeId, slug, deletedAt: null, anime: publicAnimeWhere() },
       include: episodeInclude,
     });
   }
@@ -79,6 +81,7 @@ export class EpisodesRepository {
     return this.prisma.episode.findMany({
       where: {
         deletedAt: null,
+        anime: publicAnimeWhere(),
         status: { not: EpisodeStatus.UNKNOWN },
         airDate: { gte: start, lt: end },
       },
@@ -97,6 +100,7 @@ export class EpisodesRepository {
     return this.prisma.episode.findMany({
       where: {
         deletedAt: null,
+        anime: publicAnimeWhere(),
         airDate: { gte: start, lt: end },
       },
       include: episodeInclude,
@@ -111,6 +115,7 @@ export class EpisodesRepository {
     return this.prisma.episode.findMany({
       where: {
         deletedAt: null,
+        anime: publicAnimeWhere(),
         OR: [
           {
             airTimeUtc: { not: null, gte: rangeStart, lte: now },
@@ -158,6 +163,7 @@ export class EpisodesRepository {
       where: {
         deletedAt: null,
         createdAt: { gte: since },
+        episode: { anime: publicAnimeWhere() },
       },
       _count: { id: true },
       orderBy: { _count: { id: 'desc' } },
@@ -168,7 +174,7 @@ export class EpisodesRepository {
 
     const countMap = new Map(grouped.map((g) => [g.episodeId, g._count.id]));
     const episodes = await this.prisma.episode.findMany({
-      where: { id: { in: grouped.map((g) => g.episodeId) }, deletedAt: null },
+      where: { id: { in: grouped.map((g) => g.episodeId) }, deletedAt: null, anime: publicAnimeWhere() },
       include: episodeInclude,
     });
 

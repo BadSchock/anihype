@@ -4,6 +4,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { AnimeQueryDto } from './dto/anime-query.dto';
 import { PaginatedResult, paginate } from '../../common/dto/pagination.dto';
 import { buildGenreAndConditions } from './genre-filter.util';
+import { publicAnimeWhere } from '../../common/content/public-anime';
 
 const animeInclude = {
   genres: {
@@ -43,6 +44,7 @@ export class AnimeRepository {
 
     const where: Prisma.AnimeWhereInput = {
       deletedAt: null,
+      ...publicAnimeWhere(),
       ...(status && { status }),
       ...(format && { format }),
       ...(season && { season }),
@@ -69,6 +71,7 @@ export class AnimeRepository {
 
   async findAllGenres(): Promise<{ id: number; name: string; slug: string }[]> {
     return this.prisma.genre.findMany({
+      where: { slug: { not: 'hentai' } },
       select: { id: true, name: true, slug: true },
       orderBy: { name: 'asc' },
     });
@@ -85,14 +88,14 @@ export class AnimeRepository {
 
   async findById(id: number): Promise<AnimeWithRelations | null> {
     return this.prisma.anime.findFirst({
-      where: { id, deletedAt: null },
+      where: { id, deletedAt: null, ...publicAnimeWhere() },
       include: animeInclude,
     });
   }
 
   async findBySlug(slug: string): Promise<AnimeWithRelations | null> {
     return this.prisma.anime.findFirst({
-      where: { slug, deletedAt: null },
+      where: { slug, deletedAt: null, ...publicAnimeWhere() },
       include: animeInclude,
     });
   }
@@ -103,6 +106,10 @@ export class AnimeRepository {
       return this.findById(asNumber);
     }
     return this.findBySlug(idOrSlug);
+  }
+
+  async updateSynopsis(id: number, synopsis: string): Promise<void> {
+    await this.prisma.anime.update({ where: { id }, data: { synopsis } });
   }
 
   async existsBySlug(slug: string, excludeId?: number): Promise<boolean> {

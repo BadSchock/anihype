@@ -5,6 +5,7 @@ import { CreateRatingDto } from './dto/rating.dto';
 import { HypeService } from '../hype/hype.service';
 import { BadgesService } from '../badges/badges.service';
 import { censorText } from '../../common/moderation';
+import { publicAnimeWhere } from '../../common/content/public-anime';
 
 const MIN_RATINGS_FOR_RANKING = 10;
 
@@ -39,7 +40,7 @@ export class RatingsService {
 
   async upsertRating(userId: number, animeSlug: string, dto: CreateRatingDto) {
     const anime = await this.prisma.anime.findFirst({
-      where: { slug: animeSlug, deletedAt: null },
+      where: { slug: animeSlug, deletedAt: null, ...publicAnimeWhere() },
       select: { id: true },
     });
     if (!anime) throw new NotFoundException('Anime não encontrado');
@@ -109,7 +110,7 @@ export class RatingsService {
 
   async getMyRating(userId: number, animeSlug: string) {
     const anime = await this.prisma.anime.findFirst({
-      where: { slug: animeSlug, deletedAt: null },
+      where: { slug: animeSlug, deletedAt: null, ...publicAnimeWhere() },
       select: { id: true },
     });
     if (!anime) throw new NotFoundException('Anime não encontrado');
@@ -133,7 +134,7 @@ export class RatingsService {
 
   async deleteMyRating(userId: number, animeSlug: string) {
     const anime = await this.prisma.anime.findFirst({
-      where: { slug: animeSlug, deletedAt: null },
+      where: { slug: animeSlug, deletedAt: null, ...publicAnimeWhere() },
       select: { id: true },
     });
     if (!anime) throw new NotFoundException('Anime não encontrado');
@@ -154,7 +155,7 @@ export class RatingsService {
     sort: string = 'recent',
   ) {
     const anime = await this.prisma.anime.findFirst({
-      where: { slug: animeSlug, deletedAt: null },
+      where: { slug: animeSlug, deletedAt: null, ...publicAnimeWhere() },
       select: {
         id: true,
         ratingCount: true,
@@ -267,6 +268,7 @@ export class RatingsService {
         reviewText: { not: null },
         NOT: { reviewText: '' },
         finalScore: { gte: new Prisma.Decimal('7.0') },
+        anime: publicAnimeWhere(),
       },
       orderBy: [{ finalScore: 'desc' }, { createdAt: 'desc' }],
       include: {

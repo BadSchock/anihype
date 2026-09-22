@@ -61,6 +61,8 @@
   *, *::before, *::after { box-sizing: border-box; }
 
   html {
+    max-width: 100%;
+    overflow-x: hidden;
     scroll-behavior: smooth;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
@@ -69,6 +71,7 @@
 
   body {
     @apply bg-background text-foreground antialiased;
+    overflow-x: hidden;
     font-feature-settings: "rlig" 1, "calt" 1, "ss01" 1;
     background-image:
       radial-gradient(ellipse 80% 50% at 50% -10%, hsl(var(--hero-glow) / 0.08) 0%, transparent 70%);

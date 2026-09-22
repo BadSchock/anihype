@@ -93,7 +93,7 @@ export function AnimeCard({ anime, className }: AnimeCardProps) {
           {status.label}
         </span>
 
-        <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-foreground">
+        <h3 className="line-clamp-2 text-base font-semibold leading-snug text-foreground sm:text-sm">
           {anime.titleEnglish ?? anime.titleRomaji}
         </h3>
 
