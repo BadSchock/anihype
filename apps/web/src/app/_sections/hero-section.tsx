@@ -9,14 +9,33 @@ import { getHeroHighlight } from '@/services/api';
 function DefaultHero() {
   return (
     <section className="relative -mx-4 -mt-6 overflow-hidden sm:-mx-6">
-      <div className="bg-gradient-to-br from-purple-100/80 via-background to-background px-4 py-14 dark:from-purple-900/40 dark:via-background sm:px-6 sm:py-20">
-        <div className="mx-auto max-w-2xl text-center">
-          <h1 className="text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl">
-            Viva o hype da <span className="text-gradient">temporada</span>
-          </h1>
-          <p className="mt-4 text-lg text-muted-foreground">
-            Acompanhe lançamentos, discuta episódios e conecte-se com a comunidade brasileira de anime.
-          </p>
+      <div className="relative bg-gradient-to-br from-purple-100/80 via-background to-background dark:from-purple-900/40 dark:via-background">
+        <div className="relative mx-auto min-h-[14.5rem] max-w-6xl sm:min-h-[22rem] lg:min-h-[23.5rem]">
+          <div className="relative z-10 px-4 pb-4 pt-8 text-left sm:max-w-xl sm:px-6 sm:pb-14 sm:pt-14 lg:max-w-2xl lg:pt-16">
+            <h1 className="text-[clamp(1.7rem,7.6vw,2.25rem)] font-extrabold leading-[1.12] tracking-tight text-foreground sm:text-5xl sm:leading-none">
+              <span className="block sm:inline">Viva o hype da</span>{' '}
+              <span className="text-gradient">temporada</span>
+            </h1>
+            <p className="mt-3 max-w-[65%] text-base leading-snug text-muted-foreground sm:mt-4 sm:max-w-none sm:text-lg sm:leading-normal">
+              Acompanhe lançamentos, discuta episódios e conecte-se com a comunidade brasileira de anime.
+            </p>
+          </div>
+
+          {/*
+            O PNG é 2000×2000 com a personagem no miolo (~55% da altura).
+            A caixa é maior que o Hero e deslocada para baixo/direita para
+            a base encostar no chão e a margem transparente sair do quadro.
+          */}
+          <div className="pointer-events-none absolute -bottom-[6.4rem] -right-28 h-[21.16rem] w-[21.16rem] sm:-bottom-[8.14rem] sm:-right-10 sm:h-[36rem] sm:w-[36rem]">
+            <Image
+              src="/mascote-anihype.png"
+              alt="Mascote do AniHype"
+              fill
+              priority
+              sizes="(max-width: 639px) 340px, 576px"
+              className="object-contain"
+            />
+          </div>
         </div>
       </div>
     </section>

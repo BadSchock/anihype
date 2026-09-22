@@ -3,6 +3,7 @@
 import { useMyFeed } from '@/hooks/use-feed';
 import { FeedItemCard } from '@/components/feed/feed-item-card';
 import { EmptyState } from '@/components/ui/empty-state';
+import { Mascot } from '@/components/brand/mascot';
 import { ErrorState } from '@/components/ui/error-state';
 import Link from 'next/link';
 
@@ -33,6 +34,7 @@ export function FeedPageClient() {
       {!isLoading && !isError && !data?.data.length && (
         <div className="flex flex-col items-center gap-3">
           <EmptyState
+            icon={<Mascot />}
             title="Feed vazio"
             description="Siga outros usuários para ver a atividade deles aqui."
           />

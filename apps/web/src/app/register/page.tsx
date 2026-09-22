@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useRegister } from '@/hooks/use-auth';
+import { Mascot } from '@/components/brand/mascot';
 
 const USERNAME_RE = /^[a-z0-9_-]+$/i;
 
@@ -59,6 +60,7 @@ export default function RegisterPage() {
 
   return (
     <div className="mx-auto mt-10 max-w-sm">
+      <Mascot size="md" className="mb-1" />
       <div className="rounded-2xl border border-border bg-card p-8">
         <h1 className="mb-1 text-2xl font-bold text-foreground">Criar conta</h1>
         <p className="mb-6 text-sm text-muted-foreground">
