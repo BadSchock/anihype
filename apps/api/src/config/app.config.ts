@@ -23,3 +23,15 @@ export const providersConfig = registerAs('providers', () => ({
   anilistApiUrl: process.env['ANILIST_API_URL'] ?? 'https://graphql.anilist.co',
   jikanApiUrl: process.env['JIKAN_API_URL'] ?? 'https://api.jikan.moe/v4',
 }));
+
+/**
+ * Cloudflare R2 (avatar upload). Todas opcionais: sem elas, o upload de
+ * avatar responde 503 mas o resto da API funciona normalmente.
+ */
+export const r2Config = registerAs('r2', () => ({
+  accountId: process.env['R2_ACCOUNT_ID'],
+  accessKeyId: process.env['R2_ACCESS_KEY_ID'],
+  secretAccessKey: process.env['R2_SECRET_ACCESS_KEY'],
+  bucket: process.env['R2_BUCKET'],
+  publicUrl: process.env['R2_PUBLIC_URL'],
+}));

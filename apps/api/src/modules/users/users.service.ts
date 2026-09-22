@@ -1,9 +1,15 @@
-import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, ConflictException, NotFoundException } from '@nestjs/common';
 import { User, RoleCode } from '@prisma/client';
+import sharp from 'sharp';
+import { randomUUID } from 'crypto';
 
 import { PrismaService } from '../../prisma/prisma.service';
 import { UsersRepository } from './users.repository';
 import { BadgesService } from '../badges/badges.service';
+import { AvatarStorageService } from './avatar-storage.service';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { censorText } from '../../common/moderation/censor-text';
+import { detectImageMime } from '../../common/files/image-signature.util';
 
 export interface CreateUserInput {
   email: string;
@@ -16,12 +22,27 @@ export interface UserWithRoles extends User {
   roles: { role: { code: RoleCode } }[];
 }
 
+/** Formato retornado por PATCH /users/me e POST /users/me/avatar. */
+export interface MeProfileDto {
+  id: number;
+  email: string;
+  username: string;
+  displayName: string | null;
+  avatarUrl: string | null;
+  bio: string | null;
+  roles: string[];
+}
+
+const AVATAR_MAX_DIMENSION = 512;
+const AVATAR_WEBP_QUALITY = 85;
+
 @Injectable()
 export class UsersService {
   constructor(
     private readonly repo: UsersRepository,
     private readonly prisma: PrismaService,
     private readonly badgesService: BadgesService,
+    private readonly avatarStorage: AvatarStorageService,
   ) {}
 
   async findById(id: number): Promise<User | null> {
@@ -116,6 +137,95 @@ export class UsersService {
       bio: user.bio,
       createdAt: user.createdAt,
       equippedBadge: user.profile?.equippedBadge ?? null,
+    };
+  }
+
+  // ─── Edição do próprio perfil ────────────────────────────────────────────
+  //
+  // Username NÃO é editável nesta versão: o perfil público usa /u/[username]
+  // e ainda não existe histórico/redirect de usernames antigos. Aceitar só
+  // displayName + bio aqui evita quebrar links compartilhados.
+
+  /** PATCH /users/me — aceita SOMENTE displayName e bio (nunca username/avatar/email/roles). */
+  async updateProfile(userId: number, dto: UpdateUserDto): Promise<MeProfileDto> {
+    await this.assertExists(userId);
+
+    const data: { displayName?: string | null; bio?: string | null } = {};
+
+    if (dto.displayName !== undefined) {
+      const trimmed = dto.displayName.trim();
+      data.displayName = trimmed.length > 0 ? trimmed : null;
+    }
+
+    if (dto.bio !== undefined) {
+      const trimmed = dto.bio.trim();
+      data.bio = trimmed.length > 0 ? censorText(trimmed).text : null;
+    }
+
+    const updated = await this.repo.update(userId, data);
+    return this.toMeShape(updated);
+  }
+
+  /**
+   * POST /users/me/avatar — recebe o buffer já validado (mimetype declarado)
+   * pelo ParseFilePipe do controller. Aqui fazemos a validação forte:
+   * assinatura binária real + decodificação via sharp (rejeita qualquer
+   * payload que não seja de fato uma imagem, mesmo com header correto).
+   */
+  async updateAvatar(userId: number, file: Express.Multer.File): Promise<MeProfileDto> {
+    const current = await this.assertExists(userId);
+
+    const detected = detectImageMime(file.buffer);
+    if (!detected) {
+      throw new BadRequestException(
+        'Arquivo inválido. Envie uma imagem JPEG, PNG ou WebP (SVG não é aceito).',
+      );
+    }
+
+    let processed: Buffer;
+    try {
+      processed = await sharp(file.buffer)
+        .rotate() // corrige orientação EXIF
+        .resize(AVATAR_MAX_DIMENSION, AVATAR_MAX_DIMENSION, {
+          fit: 'cover',
+          position: 'attention',
+        })
+        .webp({ quality: AVATAR_WEBP_QUALITY })
+        .toBuffer();
+    } catch {
+      throw new BadRequestException('Não foi possível processar a imagem enviada.');
+    }
+
+    // Chave única e segura — nunca deriva do nome original do arquivo (evita
+    // path traversal e colisões); extensão fixa .webp (sempre reprocessado).
+    const key = `avatars/${userId}/${randomUUID()}.webp`;
+    const url = await this.avatarStorage.upload(key, processed, 'image/webp');
+
+    const oldKey = this.avatarStorage.extractManagedKey(current.avatarUrl);
+
+    const updated = await this.repo.update(userId, { avatarUrl: url });
+
+    // Best-effort: só remove avatar anterior se for um objeto nosso no R2.
+    // Nunca apaga URLs externas/legado que não pertençam ao nosso bucket.
+    if (oldKey && oldKey !== key) {
+      void this.avatarStorage.delete(oldKey);
+    }
+
+    return this.toMeShape(updated);
+  }
+
+  private async toMeShape(user: User): Promise<MeProfileDto> {
+    const withRoles = await this.repo.findWithRoles(user.id);
+    const roles = (withRoles?.roles ?? []).map((r) => r.role.code as string);
+
+    return {
+      id: user.id,
+      email: user.email,
+      username: user.username,
+      displayName: user.displayName,
+      avatarUrl: user.avatarUrl,
+      bio: user.bio,
+      roles,
     };
   }
 }

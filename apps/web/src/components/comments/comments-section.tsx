@@ -5,6 +5,7 @@ import { useEpisodeComments } from '@/hooks/use-comments';
 import { CommentItem, CommentItemSkeleton } from './comment-item';
 import { CommentForm } from './comment-form';
 import { EmptyState } from '@/components/ui/empty-state';
+import { Mascot } from '@/components/brand/mascot';
 import { ErrorState } from '@/components/ui/error-state';
 
 interface CommentsSectionProps {
@@ -51,6 +52,7 @@ export function CommentsSection({ episodeId }: CommentsSectionProps) {
 
       {!isLoading && !isError && (!data?.data || data.data.length === 0) && (
         <EmptyState
+          icon={<Mascot size="md" />}
           title="Sem comentários ainda"
           description="Seja o primeiro a comentar neste episódio!"
         />

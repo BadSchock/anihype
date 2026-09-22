@@ -17,6 +17,13 @@ const envSchema = z.object({
 
   ANILIST_API_URL: z.string().url().default('https://graphql.anilist.co'),
   JIKAN_API_URL: z.string().url().default('https://api.jikan.moe/v4'),
+
+  // Cloudflare R2 (avatar upload) — opcionais; sem elas, upload de avatar fica indisponível (503)
+  R2_ACCOUNT_ID: z.string().optional(),
+  R2_ACCESS_KEY_ID: z.string().optional(),
+  R2_SECRET_ACCESS_KEY: z.string().optional(),
+  R2_BUCKET: z.string().optional(),
+  R2_PUBLIC_URL: z.string().url().optional(),
 });
 
 export type EnvConfig = z.infer<typeof envSchema>;

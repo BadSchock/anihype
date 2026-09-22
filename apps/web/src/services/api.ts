@@ -78,8 +78,12 @@ async function tryRefreshSession(): Promise<string | null> {
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const { token: explicitToken, skipAuth, _retry, ...rest } = options;
 
+  // FormData (upload de arquivo) precisa que o browser defina o Content-Type
+  // sozinho (inclui o boundary do multipart) — nunca forçar JSON aqui.
+  const isFormData = typeof FormData !== 'undefined' && rest.body instanceof FormData;
+
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
+    ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
     ...(rest.headers as Record<string, string>),
   };
 
@@ -290,6 +294,42 @@ export interface PublicProfile {
 
 export function getPublicProfile(username: string) {
   return request<PublicProfile>(`/users/${username}`, { skipAuth: true });
+}
+
+// ─── Meu perfil (edição) ──────────────────────────────────────────────────────
+
+export interface UpdateProfilePayload {
+  displayName?: string;
+  bio?: string;
+}
+
+/** Retorno de PATCH /users/me e POST /users/me/avatar. */
+export interface MeProfile {
+  id: number;
+  email: string;
+  username: string;
+  displayName: string | null;
+  avatarUrl: string | null;
+  bio: string | null;
+  roles: string[];
+}
+
+export function updateMyProfile(payload: UpdateProfilePayload, token?: string) {
+  return request<MeProfile>('/users/me', {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+    token,
+  });
+}
+
+export function uploadMyAvatar(file: File, token?: string) {
+  const form = new FormData();
+  form.append('file', file);
+  return request<MeProfile>('/users/me/avatar', {
+    method: 'POST',
+    body: form,
+    token,
+  });
 }
 
 // ─── Badges / Conquistas ─────────────────────────────────────────────────────
