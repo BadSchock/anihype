@@ -11,6 +11,8 @@ import { TrailerEmbed } from '@/components/anime/trailer-embed';
 import { FollowAnimeButton } from '@/components/anime/follow-anime-button';
 import { WhereToWatch } from '@/components/anime/where-to-watch';
 import { AnimeScheduleBanner } from '@/components/anime/anime-schedule-banner';
+import { SynopsisBlock } from '@/components/anime/synopsis-block';
+import { synopsisPlainText } from '@/lib/format-synopsis';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -22,7 +24,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const anime = await getAnimeBySlug(slug);
     return {
       title: anime.titleEnglish ?? anime.titleRomaji,
-      description: anime.synopsis?.slice(0, 160) ?? undefined,
+      description: synopsisPlainText(anime.synopsis),
       openGraph: {
         images: anime.bannerImageUrl ?? anime.coverImageUrl ?? undefined,
       },
@@ -178,12 +180,7 @@ export default async function AnimePage({ params }: Props) {
         <WhereToWatch links={anime.streamingLinks} />
 
         {/* Synopsis */}
-        {anime.synopsis && (
-          <section className="mt-8">
-            <h2 className="mb-2 text-lg font-bold text-foreground">Sinopse</h2>
-            <p className="whitespace-pre-line text-sm leading-relaxed text-foreground/80 sm:text-base">{anime.synopsis}</p>
-          </section>
-        )}
+        <SynopsisBlock synopsis={anime.synopsis} className="mt-8" />
 
         {/* Trailer */}
         {anime.trailerUrl && (
@@ -199,7 +196,7 @@ export default async function AnimePage({ params }: Props) {
         </section>
 
         {/* Episódios */}
-        <section className="mt-10 mb-10">
+        <section id="episodios" className="mb-10 mt-10 scroll-mt-24">
           <h2 className="mb-4 text-lg font-bold text-foreground">Episódios</h2>
           <AnimeEpisodesClient animeId={anime.id} animeSlug={slug} />
         </section>

@@ -8,6 +8,7 @@ import { cn } from '@anihype/ui';
 import { useAuthHydrated } from '@/hooks/use-auth-hydrated';
 import { useLogout } from '@/hooks/use-auth';
 import { buildLoginUrl } from '@/lib/auth-url';
+import { UserAvatar } from '@/components/user/user-avatar';
 
 const MOBILE_NAV: { href: string; label: string; icon: LucideIcon }[] = [
   { href: '/', label: 'Início', icon: Zap },
@@ -64,10 +65,12 @@ function UserMobileNavItem() {
         aria-expanded={menuOpen}
         aria-haspopup="menu"
       >
-        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/20 text-xs font-bold text-primary">
-          {user?.username?.charAt(0).toUpperCase()}
-        </span>
-        Conta
+        <UserAvatar
+          name={user?.displayName ?? user?.username ?? '?'}
+          avatarUrl={user?.avatarUrl}
+          className="!h-6 !w-6 text-[10px]"
+        />
+        Perfil
       </button>
 
       {menuOpen && (
@@ -89,6 +92,14 @@ function UserMobileNavItem() {
               className="block px-4 py-3 text-sm text-foreground transition-colors hover:bg-muted"
             >
               Meu perfil
+            </Link>
+            <Link
+              href="/perfil/editar"
+              role="menuitem"
+              onClick={() => setMenuOpen(false)}
+              className="block px-4 py-3 text-sm text-foreground transition-colors hover:bg-muted"
+            >
+              Editar perfil
             </Link>
             <button
               type="button"

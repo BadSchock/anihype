@@ -2,7 +2,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { WhereToWatch } from '@/components/anime/where-to-watch';
-import { formatAirTimeBrt, getEpisodeAiredAt } from '@/lib/date-brt';
+import { SynopsisBlock } from '@/components/anime/synopsis-block';
+import { episodeTimingLabel, formatAirTimeBrt, getEpisodeAiredAt, getEpisodeTiming } from '@/lib/date-brt';
 import type { AnimeDetail, EpisodeWithAnime } from '@/types/api';
 
 interface Props {
@@ -15,6 +16,7 @@ interface Props {
 export function EpisodeHero({ anime, episode, prevEpisode, nextEpisode }: Props) {
   const airedAt = getEpisodeAiredAt(episode);
   const airTimeLabel = airedAt ? formatAirTimeBrt(airedAt) : null;
+  const timing = getEpisodeTiming(episode);
   const airDate = episode.airDate
     ? new Date(episode.airDate).toLocaleDateString('pt-BR', {
         day: '2-digit',
@@ -76,21 +78,16 @@ export function EpisodeHero({ anime, episode, prevEpisode, nextEpisode }: Props)
                   </span>
                 )}
                 <Badge
-                  variant={
-                    episode.status === 'AIRED' ? 'green' :
-                    episode.status === 'UPCOMING' ? 'yellow' : 'default'
-                  }
+                  variant={timing === 'upcoming' ? 'yellow' : timing === 'unknown' ? 'default' : 'green'}
                 >
-                  {episode.status === 'AIRED' ? 'Exibido' : episode.status === 'UPCOMING' ? 'Em breve' : 'Desconhecido'}
+                  {episodeTimingLabel(timing)}
                 </Badge>
               </div>
             </div>
       </div>
 
       <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6">
-        {episode.synopsis && (
-          <p className="whitespace-pre-line text-sm leading-relaxed text-foreground/80 sm:text-base">{episode.synopsis}</p>
-        )}
+        <SynopsisBlock synopsis={episode.synopsis} title={null} />
 
         <WhereToWatch links={anime.streamingLinks ?? []} compact />
 

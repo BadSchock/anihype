@@ -25,13 +25,13 @@ export const providersConfig = registerAs('providers', () => ({
 }));
 
 /**
- * Cloudflare R2 (avatar upload). Todas opcionais: sem elas, o upload de
- * avatar responde 503 mas o resto da API funciona normalmente.
+ * Avatar no disco da API. AVATAR_PUBLIC_URL é o endereço que o navegador
+ * usa para abrir a imagem (em produção, a URL pública da API + /uploads).
  */
-export const r2Config = registerAs('r2', () => ({
-  accountId: process.env['R2_ACCOUNT_ID'],
-  accessKeyId: process.env['R2_ACCESS_KEY_ID'],
-  secretAccessKey: process.env['R2_SECRET_ACCESS_KEY'],
-  bucket: process.env['R2_BUCKET'],
-  publicUrl: process.env['R2_PUBLIC_URL'],
-}));
+export const avatarStorageConfig = registerAs('avatarStorage', () => {
+  const port = process.env['PORT'] ?? '3001';
+  return {
+    uploadDir: process.env['AVATAR_UPLOAD_DIR'],
+    publicUrl: process.env['AVATAR_PUBLIC_URL'] ?? `http://localhost:${port}/uploads`,
+  };
+});

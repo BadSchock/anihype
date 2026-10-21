@@ -22,6 +22,21 @@ function getWebOrigin(): string {
 const API_ORIGIN = getApiOrigin();
 const WEB_ORIGIN = getWebOrigin();
 
+function getApiImagePattern(): { protocol: 'http' | 'https'; hostname: string } | null {
+  try {
+    const url = new URL(API_URL);
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') return null;
+    return {
+      protocol: url.protocol === 'https:' ? 'https' : 'http',
+      hostname: url.hostname,
+    };
+  } catch {
+    return null;
+  }
+}
+
+const API_IMAGE_PATTERN = getApiImagePattern();
+
 const isDev = process.env.NODE_ENV === 'development';
 
 /** CSP mais permissiva em dev (HMR, fonts, YouTube trailer). Produção mantém regras estritas. */
@@ -35,7 +50,7 @@ function buildCsp(): string {
     "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com data:",
-    "img-src 'self' data: blob: https://s4.anilist.co https://img.anili.st https://cdn.myanimelist.net https://media.kitsu.app https://img.youtube.com https://i.ytimg.com",
+    `img-src 'self' data: blob: ${API_ORIGIN} https://s4.anilist.co https://img.anili.st https://cdn.myanimelist.net https://media.kitsu.app https://img.youtube.com https://i.ytimg.com`,
     `connect-src ${connectSrc}`,
     "frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com",
     "frame-ancestors 'none'",
@@ -62,6 +77,7 @@ const nextConfig: NextConfig = {
     imageSizes: [16, 32, 48, 64, 96, 128, 256],
     minimumCacheTTL: 60 * 60 * 24 * 7, // 7 dias
     remotePatterns: [
+      ...(API_IMAGE_PATTERN ? [API_IMAGE_PATTERN] : []),
       { protocol: 'https', hostname: 's4.anilist.co' },
       { protocol: 'https', hostname: 'img.anili.st' },
       { protocol: 'https', hostname: 'cdn.myanimelist.net' },

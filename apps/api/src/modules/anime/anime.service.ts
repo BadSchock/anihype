@@ -1,5 +1,4 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { cleanSynopsis } from '../../common/content/synopsis';
 import { TranslateService } from '../translate/translate.service';
 import { AnimeRepository, AnimeWithRelations } from './anime.repository';
 import { AnimeQueryDto } from './dto/anime-query.dto';
@@ -11,6 +10,7 @@ import {
   StudioDto,
 } from './dto/anime-response.dto';
 import { PaginatedResult, paginate } from '../../common/dto/pagination.dto';
+import { formatSynopsisText } from '../../common/text/format-synopsis';
 import {
   parseGenreIdList,
   parseGenreSlugList,
@@ -96,7 +96,7 @@ export class AnimeService {
       titleRomaji: a.titleRomaji,
       titleEnglish: a.titleEnglish,
       titleNative: a.titleNative,
-      synopsis: cleanSynopsis(a.synopsis),
+      synopsis: formatSynopsisText(a.synopsis),
       coverImageUrl: a.coverImageUrl,
       bannerImageUrl: a.bannerImageUrl,
       status: a.status,

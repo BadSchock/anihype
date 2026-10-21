@@ -3,6 +3,7 @@ import { Anime, Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AnimeQueryDto } from './dto/anime-query.dto';
 import { PaginatedResult, paginate } from '../../common/dto/pagination.dto';
+import { compactSearchText, likeContains } from '../../common/text/compact-search';
 import { buildGenreAndConditions } from './genre-filter.util';
 import { publicAnimeWhere } from '../../common/content/public-anime';
 
@@ -42,6 +43,14 @@ export class AnimeRepository {
         ? buildGenreAndConditions(resolvedGenreIds)
         : undefined;
 
+    let searchIds: number[] | undefined;
+    if (search?.trim()) {
+      searchIds = await this.findFlexibleSearchIds(search);
+      if (searchIds.length === 0) {
+        return paginate([], 0, page, limit);
+      }
+    }
+
     const where: Prisma.AnimeWhereInput = {
       deletedAt: null,
       ...publicAnimeWhere(),
@@ -50,13 +59,7 @@ export class AnimeRepository {
       ...(season && { season }),
       ...(seasonYear && { seasonYear }),
       ...(genreAnd && { AND: genreAnd }),
-      ...(search && {
-        OR: [
-          { titleRomaji: { contains: search, mode: 'insensitive' } },
-          { titleEnglish: { contains: search, mode: 'insensitive' } },
-          { titleNative: { contains: search, mode: 'insensitive' } },
-        ],
-      }),
+      ...(searchIds && { id: { in: searchIds } }),
     };
 
     const orderByClause = this.buildOrderBy(orderBy);
@@ -117,6 +120,39 @@ export class AnimeRepository {
       where: { slug, deletedAt: null, ...(excludeId && { id: { not: excludeId } }) },
     });
     return count > 0;
+  }
+
+  /**
+   * Acha "Re:Zero" com "rezero", "re:zero" ou "re zero".
+   * Títulos em japonês continuam casando pelo texto original.
+   */
+  async findFlexibleSearchIds(search: string): Promise<number[]> {
+    const like = likeContains(search.trim());
+    const ascii = compactSearchText(search);
+    const asciiLike = `%${ascii}%`;
+
+    const rows = await this.prisma.$queryRaw<{ id: number }[]>`
+      SELECT id
+      FROM anime
+      WHERE deleted_at IS NULL
+        AND (
+          lower(title_romaji) LIKE ${like} ESCAPE '\\'
+          OR lower(coalesce(title_english, '')) LIKE ${like} ESCAPE '\\'
+          OR lower(coalesce(title_native, '')) LIKE ${like} ESCAPE '\\'
+          OR (
+            ${ascii} <> ''
+            AND char_length(${ascii}) >= 2
+            AND (
+              regexp_replace(lower(title_romaji), '[^a-z0-9]+', '', 'g') LIKE ${asciiLike}
+              OR regexp_replace(lower(coalesce(title_english, '')), '[^a-z0-9]+', '', 'g') LIKE ${asciiLike}
+            )
+          )
+        )
+      ORDER BY popularity_score DESC NULLS LAST
+      LIMIT 200
+    `;
+
+    return rows.map((row) => row.id);
   }
 
   private buildOrderBy(orderBy?: string): Prisma.AnimeOrderByWithRelationInput {
