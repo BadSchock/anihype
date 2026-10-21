@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios, { AxiosInstance } from 'axios';
+import { formatSynopsisText } from '../../../common/text/format-synopsis';
 import { AnimeProviderResult, NormalizedAnime, NormalizedEpisode } from '../provider.types';
 
 const ANIME_QUERY = `
@@ -257,7 +258,7 @@ export class AniListService {
       titleRomaji: media.title.romaji,
       titleEnglish: media.title.english ?? null,
       titleNative: media.title.native ?? null,
-      synopsis: media.description ?? null,
+      synopsis: formatSynopsisText(media.description),
       coverImageUrl: media.coverImage.extraLarge ?? media.coverImage.large ?? null,
       bannerImageUrl: media.bannerImage ?? null,
       status: this.mapStatus(media.status),

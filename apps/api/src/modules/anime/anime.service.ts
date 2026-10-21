@@ -9,6 +9,7 @@ import {
   StudioDto,
 } from './dto/anime-response.dto';
 import { PaginatedResult, paginate } from '../../common/dto/pagination.dto';
+import { formatSynopsisText } from '../../common/text/format-synopsis';
 import {
   parseGenreIdList,
   parseGenreSlugList,
@@ -85,7 +86,7 @@ export class AnimeService {
       titleRomaji: a.titleRomaji,
       titleEnglish: a.titleEnglish,
       titleNative: a.titleNative,
-      synopsis: a.synopsis,
+      synopsis: formatSynopsisText(a.synopsis),
       coverImageUrl: a.coverImageUrl,
       bannerImageUrl: a.bannerImageUrl,
       status: a.status,

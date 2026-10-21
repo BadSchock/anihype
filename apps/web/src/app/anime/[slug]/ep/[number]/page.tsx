@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { getAnimeBySlug, getEpisodeByNumber } from '@/services/api';
 import { CommentsSection } from '@/components/comments/comments-section';
 import { EpisodeHypometerCta } from '@/components/ratings/episode-hypometer-cta';
+import { synopsisPlainText } from '@/lib/format-synopsis';
 import { EpisodeHero } from './_components/episode-hero';
 
 interface Props {
@@ -17,7 +18,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const title = ep.title ?? `Episódio ${ep.number}`;
     return {
       title: `${title} — ${anime.titleEnglish ?? anime.titleRomaji}`,
-      description: ep.synopsis?.slice(0, 160) ?? undefined,
+      description: synopsisPlainText(ep.synopsis),
       openGraph: {
         images: ep.thumbnailUrl ?? anime.bannerImageUrl ?? undefined,
       },

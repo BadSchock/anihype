@@ -3,6 +3,7 @@ import { EpisodesRepository, EpisodeWithAnime } from './episodes.repository';
 import { EpisodeQueryDto } from './dto/episode-query.dto';
 import { CalendarDayDto, EpisodeDto, EpisodeWithAnimeDto, TrendingEpisodeDto } from './dto/episode-response.dto';
 import { PaginatedResult } from '../../common/dto/pagination.dto';
+import { formatSynopsisText } from '../../common/text/format-synopsis';
 
 @Injectable()
 export class EpisodesService {
@@ -78,7 +79,7 @@ export class EpisodesService {
       slug: e.slug,
       number: e.number,
       title: e.title ?? null,
-      synopsis: e.synopsis ?? null,
+      synopsis: formatSynopsisText(e.synopsis),
       thumbnailUrl: e.thumbnailUrl ?? null,
       airDate: e.airDate ?? null,
       airTimeUtc: e.airTimeUtc ?? null,

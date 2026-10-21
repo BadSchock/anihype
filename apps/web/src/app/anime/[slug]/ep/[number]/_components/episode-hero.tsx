@@ -2,6 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { WhereToWatch } from '@/components/anime/where-to-watch';
+import { SynopsisBlock } from '@/components/anime/synopsis-block';
 import { episodeTimingLabel, formatAirTimeBrt, getEpisodeAiredAt, getEpisodeTiming } from '@/lib/date-brt';
 import type { AnimeDetail, EpisodeWithAnime } from '@/types/api';
 
@@ -97,9 +98,7 @@ export function EpisodeHero({ anime, episode, prevEpisode, nextEpisode }: Props)
       </div>
 
       <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6">
-        {episode.synopsis && (
-          <p className="text-sm leading-relaxed text-foreground/80 sm:text-base">{episode.synopsis}</p>
-        )}
+        <SynopsisBlock synopsis={episode.synopsis} title={null} />
 
         <WhereToWatch links={anime.streamingLinks ?? []} compact />
 

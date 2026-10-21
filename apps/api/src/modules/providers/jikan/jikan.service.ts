@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios, { AxiosInstance } from 'axios';
+import { formatSynopsisText } from '../../../common/text/format-synopsis';
 import { AnimeProviderResult, NormalizedAnime, NormalizedEpisode } from '../provider.types';
 
 interface JikanAnime {
@@ -84,7 +85,7 @@ export class JikanService {
       titleRomaji: j.title,
       titleEnglish: j.title_english ?? null,
       titleNative: j.title_japanese ?? null,
-      synopsis: j.synopsis ?? null,
+      synopsis: formatSynopsisText(j.synopsis),
       coverImageUrl:
         j.images?.webp?.large_image_url ?? j.images?.jpg?.large_image_url ?? null,
       bannerImageUrl: null,
