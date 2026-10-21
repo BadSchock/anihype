@@ -19,5 +19,4 @@ jobs:
           script_stop: true
           command_timeout: 20m
           script: |
-            cd /home/deploy
-            ./deploy-anihype.sh
+            bash -lc 'cd /home/deploy && ./deploy-anihype.sh'
