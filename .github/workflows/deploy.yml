@@ -16,7 +16,6 @@ jobs:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
-          script_stop: true
           command_timeout: 20m
           script: |
-            bash -lc 'cd /home/deploy && ./deploy-anihype.sh'
+            bash -lic 'cd /home/deploy && ./deploy-anihype.sh'
