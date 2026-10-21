@@ -6,6 +6,8 @@ import { JikanService } from '../providers/jikan/jikan.service';
 import { AnimeService } from '../anime/anime.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { AnimeProviderResult, NormalizedAnime, NormalizedEpisode } from '../providers/provider.types';
+import { AnimeRepository } from '../anime/anime.repository';
+import { compactSearchText } from '../../common/text/compact-search';
 
 export type SyncProvider = 'anilist' | 'jikan';
 
@@ -48,12 +50,15 @@ export interface SeasonSyncResult {
 @Injectable()
 export class SyncService {
   private readonly logger = new Logger(SyncService.name);
+  private readonly searchImportAt = new Map<string, number>();
+  private readonly searchImportInflight = new Map<string, Promise<void>>();
 
   constructor(
     private readonly prisma: PrismaService,
     private readonly anilist: AniListService,
     private readonly jikan: JikanService,
     private readonly notificationsService: NotificationsService,
+    private readonly animeRepo: AnimeRepository,
   ) {}
 
   // ---------------------------------------------------------------------------
@@ -83,6 +88,75 @@ export class SyncService {
   // ---------------------------------------------------------------------------
   // Buscar + sync pelo título (usa AniList como fonte primária)
   // ---------------------------------------------------------------------------
+
+  /**
+   * A busca local só enxerga o que já foi importado. Se o termo ainda não
+   * tem resultados suficientes, grava os títulos da AniList para a pesquisa achar.
+   */
+  async ensureSearchCatalog(search: string): Promise<void> {
+    const key = compactSearchText(search);
+    if (key.length < 2) return;
+
+    const importedAt = this.searchImportAt.get(key);
+    if (importedAt && Date.now() - importedAt < 10 * 60 * 1000) return;
+
+    const inflight = this.searchImportInflight.get(key);
+    if (inflight) return inflight;
+
+    const job = this.importMissingSearchHits(search, key).finally(() => {
+      this.searchImportInflight.delete(key);
+    });
+    this.searchImportInflight.set(key, job);
+    return job;
+  }
+
+  private async importMissingSearchHits(search: string, key: string): Promise<void> {
+    const localIds = await this.animeRepo.findFlexibleSearchIds(search);
+    if (localIds.length >= 8) {
+      this.searchImportAt.set(key, Date.now());
+      return;
+    }
+
+    const media = await this.anilist.searchAnime(search.trim(), 1, 8);
+    const createdAnilistIds: number[] = [];
+
+    for (const item of media) {
+      if (item.isAdult) continue;
+      const externalId = String(item.id);
+      const existing = await this.prisma.animeExternalId.findFirst({
+        where: { provider: ExternalProviderKind.ANILIST, externalId },
+        select: { animeId: true },
+      });
+      if (existing) continue;
+
+      try {
+        const normalized = this.anilist.normalizeAnime(item);
+        const result = await this.upsertAnimeWithEpisodes(
+          { anime: normalized, episodes: [] },
+          'anilist',
+          externalId,
+        );
+        if (result?.created) createdAnilistIds.push(item.id);
+      } catch (err) {
+        this.logger.warn(`Falha ao indexar AniList ${item.id} para "${search}": ${String(err)}`);
+      }
+    }
+
+    this.searchImportAt.set(key, Date.now());
+    if (createdAnilistIds.length > 0) {
+      void this.backfillSearchEpisodes(createdAnilistIds);
+    }
+  }
+
+  private async backfillSearchEpisodes(anilistIds: number[]): Promise<void> {
+    for (const anilistId of anilistIds) {
+      try {
+        await this.syncByAniListId(anilistId);
+      } catch (err) {
+        this.logger.warn(`Falha ao completar episódios AniList ${anilistId}: ${String(err)}`);
+      }
+    }
+  }
 
   async syncBySearch(search: string): Promise<SyncResult[]> {
     this.logger.log(`Sync por busca: "${search}"`);

@@ -7,6 +7,7 @@ import { cn } from '@anihype/ui';
 import { useAuthHydrated } from '@/hooks/use-auth-hydrated';
 import { useLogout } from '@/hooks/use-auth';
 import { buildLoginUrl } from '@/lib/auth-url';
+import { UserAvatar } from '@/components/user/user-avatar';
 
 const MOBILE_NAV = [
   { href: '/', label: 'Início', icon: '⚡' },
@@ -59,10 +60,12 @@ function UserMobileNavItem() {
         aria-expanded={menuOpen}
         aria-haspopup="menu"
       >
-        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/20 text-xs font-bold text-primary">
-          {user?.username?.charAt(0).toUpperCase()}
-        </span>
-        Conta
+        <UserAvatar
+          name={user?.displayName ?? user?.username ?? '?'}
+          avatarUrl={user?.avatarUrl}
+          className="!h-6 !w-6 text-[10px]"
+        />
+        Perfil
       </button>
 
       {menuOpen && (

@@ -199,6 +199,9 @@ function AnimePickerModal({
           )}
           {data?.map((anime: import('@/types/api').AnimeListItem) => {
             const title = anime.titleEnglish ?? anime.titleRomaji;
+            const altTitle =
+              anime.titleEnglish && anime.titleRomaji !== anime.titleEnglish ? anime.titleRomaji : null;
+            const meta = [altTitle, anime.seasonYear].filter(Boolean).join(' · ');
             const isCurrent = current?.id === anime.id;
             const excluded = excludeIds.includes(anime.id);
             return (
@@ -226,8 +229,8 @@ function AnimePickerModal({
                 )}
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium text-foreground">{title}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {isCurrent ? 'Selecionado na capa' : anime.seasonYear ?? ''}
+                  <p className="truncate text-xs text-muted-foreground">
+                    {isCurrent ? 'Selecionado na capa' : meta}
                   </p>
                 </div>
               </button>

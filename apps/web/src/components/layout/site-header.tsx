@@ -9,6 +9,7 @@ import { cn } from '@anihype/ui';
 import { useAuthHydrated } from '@/hooks/use-auth-hydrated';
 import { useLogout } from '@/hooks/use-auth';
 import { NotificationsBell } from '@/components/layout/notifications-bell';
+import { UserAvatar } from '@/components/user/user-avatar';
 import { buildLoginUrl } from '@/lib/auth-url';
 
 const NAV_LINKS = [
@@ -129,9 +130,15 @@ export function SiteHeader() {
                 <NotificationsBell />
                 <Link
                   href={`/u/${user?.username}`}
-                  className="hidden max-w-[120px] truncate text-sm text-muted-foreground transition-colors hover:text-foreground sm:block"
+                  aria-label="Meu perfil"
+                  title="Meu perfil"
+                  className="hidden rounded-full transition-opacity hover:opacity-80 sm:block"
                 >
-                  {user?.username}
+                  <UserAvatar
+                    name={user?.displayName ?? user?.username ?? '?'}
+                    avatarUrl={user?.avatarUrl}
+                    size="sm"
+                  />
                 </Link>
                 <button
                   type="button"
