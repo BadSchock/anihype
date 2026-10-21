@@ -199,7 +199,7 @@ export default async function AnimePage({ params }: Props) {
         </section>
 
         {/* Episódios */}
-        <section className="mt-10 mb-10">
+        <section id="episodios" className="mb-10 mt-10 scroll-mt-24">
           <h2 className="mb-4 text-lg font-bold text-foreground">Episódios</h2>
           <AnimeEpisodesClient animeId={anime.id} animeSlug={slug} />
         </section>

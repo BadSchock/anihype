@@ -8,19 +8,30 @@ import { EpisodeCardSkeleton } from '@/components/episode/episode-card';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ErrorState } from '@/components/ui/error-state';
 import { Badge } from '@/components/ui/badge';
+import { episodeTimingLabel, formatAirTimeBrt, getEpisodeAiredAt, getEpisodeTiming } from '@/lib/date-brt';
 import type { EpisodeWithAnime } from '@/types/api';
 
-const STATUS_COLOR: Record<string, 'green' | 'yellow' | 'default'> = {
-  AIRED: 'green',
-  UPCOMING: 'yellow',
-  UNKNOWN: 'default',
-};
-
 function EpisodeRow({ ep, animeSlug }: { ep: EpisodeWithAnime; animeSlug: string }) {
+  const timing = getEpisodeTiming(ep);
+  const airedAt = getEpisodeAiredAt(ep);
+  const whenLabel =
+    timing === 'today' && airedAt
+      ? `Hoje · ${formatAirTimeBrt(airedAt)}`
+      : ep.airDate
+        ? new Date(ep.airDate).toLocaleDateString('pt-BR', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+            timeZone: 'America/Sao_Paulo',
+          })
+        : null;
+
   return (
     <Link
       href={`/anime/${animeSlug}/ep/${ep.number}`}
-      className="group flex items-center gap-4 rounded-xl border border-transparent bg-muted p-3 transition-all hover:border-purple-500/30 hover:bg-muted/80"
+      className={`group flex items-center gap-4 rounded-xl border bg-muted p-3 transition-all hover:border-purple-500/30 hover:bg-muted/80 ${
+        timing === 'today' ? 'border-purple-500/40' : 'border-transparent'
+      }`}
     >
       <div className="relative h-14 w-24 flex-shrink-0 overflow-hidden rounded-lg bg-muted">
         {(ep.thumbnailUrl ?? ep.anime?.coverImageUrl) && (
@@ -41,19 +52,13 @@ function EpisodeRow({ ep, animeSlug }: { ep: EpisodeWithAnime; animeSlug: string
         <p className="truncate text-sm font-semibold text-foreground">
           {ep.title ?? `Episódio ${ep.number}`}
         </p>
-        {ep.airDate && (
-          <p className="text-xs text-muted-foreground">
-            {new Date(ep.airDate).toLocaleDateString('pt-BR', {
-              day: '2-digit',
-              month: 'short',
-              year: 'numeric',
-            })}
-          </p>
-        )}
+        {whenLabel && <p className="text-xs text-muted-foreground">{whenLabel}</p>}
       </div>
 
-      <Badge variant={STATUS_COLOR[ep.status] ?? 'default'}>
-        {ep.status === 'AIRED' ? 'Exibido' : ep.status === 'UPCOMING' ? 'Em breve' : '—'}
+      <Badge
+        variant={timing === 'today' || timing === 'aired' ? 'green' : timing === 'upcoming' ? 'yellow' : 'default'}
+      >
+        {episodeTimingLabel(timing)}
       </Badge>
     </Link>
   );

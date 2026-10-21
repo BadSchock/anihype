@@ -46,7 +46,7 @@ export default async function UserProfilePage({ params }: Props) {
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(124,58,237,0.25),transparent_55%)]" />
         </div>
 
-        <div className="relative px-6 pb-6">
+        <div className="relative px-4 pb-6 sm:px-6">
           <div className="-mt-12 flex flex-col items-center gap-4 sm:flex-row sm:items-end sm:justify-between sm:text-left">
             <UserAvatar
               name={displayName}

@@ -58,3 +58,37 @@ export function getEpisodeAiredAt(episode: {
 }): string | null {
   return episode.airTimeUtc ?? episode.airDate ?? null;
 }
+
+export type EpisodeTiming = 'upcoming' | 'today' | 'aired' | 'unknown';
+
+/**
+ * O status salvo no banco pode continuar UPCOMING até o próximo sync.
+ * Se o horário de exibição já passou, o episódio conta como lançado.
+ */
+export function getEpisodeTiming(episode: {
+  status?: string;
+  airTimeUtc?: string | null;
+  airDate?: string | null;
+}): EpisodeTiming {
+  const at = getEpisodeAiredAt(episode);
+  if (!at) {
+    if (episode.status === 'AIRED') return 'aired';
+    if (episode.status === 'UPCOMING') return 'upcoming';
+    return 'unknown';
+  }
+
+  const when = new Date(at).getTime();
+  if (Number.isNaN(when)) return 'unknown';
+  if (when > Date.now() && episode.status !== 'AIRED') return 'upcoming';
+
+  const day = new Intl.DateTimeFormat('en-CA', { timeZone: BRT }).format(new Date(at));
+  if (day === getTodayBrtDateString()) return 'today';
+  return 'aired';
+}
+
+export function episodeTimingLabel(timing: EpisodeTiming): string {
+  if (timing === 'today') return 'Lançado hoje';
+  if (timing === 'aired') return 'Exibido';
+  if (timing === 'upcoming') return 'Em breve';
+  return '—';
+}

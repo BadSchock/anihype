@@ -85,6 +85,14 @@ function UserMobileNavItem() {
             >
               Meu perfil
             </Link>
+            <Link
+              href="/perfil/editar"
+              role="menuitem"
+              onClick={() => setMenuOpen(false)}
+              className="block px-4 py-3 text-sm text-foreground transition-colors hover:bg-muted"
+            >
+              Editar perfil
+            </Link>
             <button
               type="button"
               role="menuitem"
