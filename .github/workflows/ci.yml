@@ -29,6 +29,9 @@ jobs:
       - name: Instalar dependências
         run: npm ci
 
+      - name: Lint
+        run: npm run lint
+
       - name: Gerar o cliente do banco
         run: npm run db:generate -w @anihype/api
 

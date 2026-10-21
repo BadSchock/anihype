@@ -214,13 +214,28 @@ export class SyncService {
     let hasNextPage = true;
 
     while (hasNextPage) {
-      const browse = await this.anilist.browseSeason(
-        anilistSeason,
-        seasonYear,
-        page,
-        perPage,
-        anilistStatus,
-      );
+      let browse: Awaited<ReturnType<AniListService['browseSeason']>>;
+      try {
+        browse = await this.anilist.browseSeason(
+          anilistSeason,
+          seasonYear,
+          page,
+          perPage,
+          anilistStatus,
+        );
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        summary.failed++;
+        summary.errors.push({
+          anilistId: 0,
+          title: `página ${page}`,
+          error: message,
+        });
+        this.logger.error(
+          `Página ${page} da temporada ${season} ${seasonYear} não veio depois das novas tentativas: ${message}`,
+        );
+        break;
+      }
 
       if (page === 1) {
         summary.totalFound = browse.pageInfo.total;

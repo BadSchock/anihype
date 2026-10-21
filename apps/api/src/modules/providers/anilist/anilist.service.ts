@@ -4,6 +4,7 @@ import axios, { AxiosInstance } from 'axios';
 import { formatSynopsisText } from '../../../common/text/format-synopsis';
 import { AnimeProviderResult, NormalizedAnime, NormalizedEpisode } from '../provider.types';
 import { isExplicitAdult } from '../../../common/content/public-anime';
+import { anilistRetryDelayMs } from './anilist-retry';
 
 const ANIME_QUERY = `
 query ($id: Int, $search: String, $page: Int, $perPage: Int) {
@@ -161,6 +162,7 @@ export interface AniListSeasonBrowseResult {
 export class AniListService {
   private readonly logger = new Logger(AniListService.name);
   private readonly client: AxiosInstance;
+  private rateLimitRemaining: number | null = null;
 
   constructor(config: ConfigService) {
     const baseURL = config.get<string>('providers.anilistApiUrl') ?? 'https://graphql.anilist.co';
@@ -183,29 +185,23 @@ export class AniListService {
       pageInfo: { total: 0, currentPage: page, lastPage: 0, hasNextPage: false },
     };
 
-    try {
-      const query = status === 'RELEASING' ? SEASON_BROWSE_AIRING_QUERY : SEASON_BROWSE_QUERY;
-      const { data } = await this.client.post<{
-        data: { Page: AniListSeasonBrowseResult };
-      }>('', {
-        query,
-        variables: { season, seasonYear, page, perPage },
-      });
+    const query = status === 'RELEASING' ? SEASON_BROWSE_AIRING_QUERY : SEASON_BROWSE_QUERY;
+    const data = await this.post<{ data: { Page: AniListSeasonBrowseResult } }>(query, {
+      season,
+      seasonYear,
+      page,
+      perPage,
+    });
 
-      return data.data.Page ?? empty;
-    } catch (err) {
-      this.logger.error(
-        `AniList browseSeason(${season} ${seasonYear}, page=${page}) falhou: ${String(err)}`,
-      );
-      return empty;
-    }
+    return data.data?.Page ?? empty;
   }
 
   async searchAnime(search: string, page = 1, perPage = 20): Promise<AniListMedia[]> {
     try {
-      const { data } = await this.client.post<{ data: { Page: { media: AniListMedia[] } } }>('', {
-        query: ANIME_QUERY,
-        variables: { search, page, perPage },
+      const data = await this.post<{ data: { Page: { media: AniListMedia[] } } }>(ANIME_QUERY, {
+        search,
+        page,
+        perPage,
       });
       return data.data.Page.media ?? [];
     } catch (err) {
@@ -216,9 +212,10 @@ export class AniListService {
 
   async getAnimeById(id: number): Promise<AnimeProviderResult | null> {
     try {
-      const { data } = await this.client.post<{ data: { Page: { media: AniListMedia[] } } }>('', {
-        query: ANIME_QUERY,
-        variables: { id, page: 1, perPage: 1 },
+      const data = await this.post<{ data: { Page: { media: AniListMedia[] } } }>(ANIME_QUERY, {
+        id,
+        page: 1,
+        perPage: 1,
       });
 
       const media = data.data.Page.media[0];
@@ -240,18 +237,65 @@ export class AniListService {
 
   private async getEpisodes(anilistId: number): Promise<NormalizedEpisode[]> {
     try {
-      const { data } = await this.client.post<{
+      const data = await this.post<{
         data: { Media: { airingSchedule: { nodes: AniListAiringNode[] } } };
-      }>('', {
-        query: EPISODES_QUERY,
-        variables: { id: anilistId, page: 1 },
-      });
+      }>(EPISODES_QUERY, { id: anilistId, page: 1 });
 
       const nodes = data.data.Media?.airingSchedule?.nodes ?? [];
       return nodes.map((n) => this.normalizeEpisode(n));
     } catch {
       return [];
     }
+  }
+
+  private async post<T>(query: string, variables: Record<string, unknown>): Promise<T> {
+    const maxAttempts = 5;
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      await this.pauseIfRateLimitLow();
+
+      try {
+        const response = await this.client.post<T>('', { query, variables });
+        this.rememberRateLimit(response.headers);
+        return response.data;
+      } catch (err) {
+        const status = axios.isAxiosError(err) ? err.response?.status : undefined;
+        const retryAfter = axios.isAxiosError(err)
+          ? err.response?.headers?.['retry-after']
+          : undefined;
+        const delay = anilistRetryDelayMs(status, retryAfter, attempt);
+        if (delay === null || attempt === maxAttempts) throw err;
+
+        this.logger.warn(
+          `AniList pediu espera (${status}). Tentativa ${attempt + 1}/${maxAttempts} em ${Math.ceil(delay / 1000)}s.`,
+        );
+        this.rateLimitRemaining = null;
+        await this.sleep(delay);
+      }
+    }
+
+    throw new Error('AniList: tentativas esgotadas');
+  }
+
+  private rememberRateLimit(headers: { [key: string]: unknown }): void {
+    const raw = headers['x-ratelimit-remaining'];
+    const value = Array.isArray(raw) ? raw[0] : raw;
+    const remaining = typeof value === 'number' ? value : Number(value);
+    if (Number.isFinite(remaining)) this.rateLimitRemaining = remaining;
+  }
+
+  private async pauseIfRateLimitLow(): Promise<void> {
+    if (this.rateLimitRemaining === null || this.rateLimitRemaining > 2) return;
+
+    this.logger.warn(
+      `AniList com ${this.rateLimitRemaining} requisições restantes nesta janela. Aguardando 60s.`,
+    );
+    this.rateLimitRemaining = null;
+    await this.sleep(60_000);
+  }
+
+  private sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   normalizeAnime(media: AniListMedia): NormalizedAnime {

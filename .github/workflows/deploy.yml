@@ -25,4 +25,4 @@ jobs:
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           command_timeout: 20m
           script: |
-            bash -lic 'cd /home/deploy && ./deploy-anihype.sh'
+            bash -lic 'cd /home/deploy/projetos/anihype && git pull origin main && bash scripts/deploy-anihype.sh'
