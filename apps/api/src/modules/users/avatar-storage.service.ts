@@ -1,90 +1,96 @@
-import { Injectable, Logger, ServiceUnavailableException } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
+import { mkdir, unlink, writeFile } from 'fs/promises';
+import path from 'path';
 
 /**
- * Abstração de storage de avatar. Controller/service do módulo `users`
- * não conhecem detalhes do Cloudflare R2 — só chamam `upload`/`delete`.
- *
- * Se as variáveis R2_* não estiverem configuradas, o serviço sobe
- * normalmente (não quebra o boot da API) mas `upload()` responde 503.
+ * Pasta padrão: apps/api/uploads.
+ * Funciona tanto com o arquivo compilado em dist/ quanto se o serviço
+ * for carregado a partir de src/.
+ */
+export function resolveAvatarUploadRoot(configured?: string): string {
+  if (configured?.trim()) {
+    return path.resolve(configured.trim());
+  }
+
+  return path.resolve(__dirname, '../../../uploads');
+}
+
+/**
+ * Abstração de storage de avatar. O restante do módulo `users` só chama
+ * upload/delete. Hoje grava no disco da API; Cloudflare ou S3 entram
+ * trocando esta classe, sem mudar o controller.
  */
 @Injectable()
 export class AvatarStorageService {
   private readonly logger = new Logger(AvatarStorageService.name);
-  private readonly client: S3Client | null;
-  private readonly bucket?: string;
-  private readonly publicUrl?: string;
+  private readonly uploadRoot: string;
+  private readonly publicUrl: string;
 
   constructor(private readonly config: ConfigService) {
-    const accountId = this.config.get<string>('r2.accountId');
-    const accessKeyId = this.config.get<string>('r2.accessKeyId');
-    const secretAccessKey = this.config.get<string>('r2.secretAccessKey');
-    this.bucket = this.config.get<string>('r2.bucket');
-    this.publicUrl = this.config.get<string>('r2.publicUrl');
+    this.uploadRoot = resolveAvatarUploadRoot(this.config.get<string>('avatarStorage.uploadDir'));
+    this.publicUrl = (
+      this.config.get<string>('avatarStorage.publicUrl') ?? 'http://localhost:3001/uploads'
+    ).replace(/\/+$/, '');
 
-    if (accountId && accessKeyId && secretAccessKey && this.bucket && this.publicUrl) {
-      this.client = new S3Client({
-        region: 'auto',
-        endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
-        credentials: { accessKeyId, secretAccessKey },
-      });
-    } else {
-      this.client = null;
+    if (
+      this.config.get<string>('app.nodeEnv') === 'production' &&
+      !process.env['AVATAR_PUBLIC_URL']
+    ) {
       this.logger.warn(
-        'Cloudflare R2 não configurado (R2_ACCOUNT_ID/R2_ACCESS_KEY_ID/R2_SECRET_ACCESS_KEY/R2_BUCKET/R2_PUBLIC_URL). ' +
-          'Upload de avatar ficará indisponível (503) até configurar essas variáveis.',
+        'AVATAR_PUBLIC_URL não definida. Avatares vão apontar para localhost e não abrem no site público. ' +
+          'Defina a URL da API, por exemplo https://api.anihype.com.br/uploads.',
       );
     }
   }
 
-  isConfigured(): boolean {
-    return this.client !== null;
+  /** Grava o arquivo e devolve a URL pública. A key é sempre gerada pelo serviço de usuário. */
+  async upload(key: string, body: Buffer, _contentType: string): Promise<string> {
+    const target = this.resolveInsideRoot(key);
+    await mkdir(path.dirname(target), { recursive: true });
+    await writeFile(target, body);
+    return `${this.publicUrl}/${key}`;
   }
 
-  /** Sobe o objeto e retorna a URL pública final. */
-  async upload(key: string, body: Buffer, contentType: string): Promise<string> {
-    if (!this.client || !this.bucket || !this.publicUrl) {
-      throw new ServiceUnavailableException(
-        'Upload de avatar está temporariamente indisponível. Tente novamente mais tarde.',
-      );
-    }
-
-    await this.client.send(
-      new PutObjectCommand({
-        Bucket: this.bucket,
-        Key: key,
-        Body: body,
-        ContentType: contentType,
-        CacheControl: 'public, max-age=31536000, immutable',
-      }),
-    );
-
-    return `${this.publicUrl.replace(/\/+$/, '')}/${key}`;
-  }
-
-  /** Remoção best-effort — falhas aqui nunca devem quebrar o fluxo principal. */
+  /** Remoção best-effort. Arquivo ausente não interrompe a troca de avatar. */
   async delete(key: string): Promise<void> {
-    if (!this.client || !this.bucket) return;
-
     try {
-      await this.client.send(new DeleteObjectCommand({ Bucket: this.bucket, Key: key }));
+      await unlink(this.resolveInsideRoot(key));
     } catch (err) {
-      this.logger.warn(
-        `Falha ao remover avatar antigo do R2 (key=${key}): ${(err as Error).message}`,
-      );
+      const code = (err as NodeJS.ErrnoException).code;
+      if (code === 'ENOENT') return;
+      this.logger.warn(`Falha ao remover avatar antigo (key=${key}): ${(err as Error).message}`);
     }
   }
 
   /**
-   * Se a URL pertencer ao nosso bucket público (avatar gerenciado por nós),
-   * retorna a key do objeto. Caso contrário (URL externa/legado), retorna
-   * null — nunca tentamos apagar algo que não subimos.
+   * Se a URL for de um arquivo que nós mesmos gravamos, devolve a key.
+   * URL externa (avatar antigo de outro lugar) devolve null e não é apagada.
    */
   extractManagedKey(url: string | null | undefined): string | null {
-    if (!url || !this.publicUrl) return null;
-    const prefix = `${this.publicUrl.replace(/\/+$/, '')}/`;
+    if (!url) return null;
+    const prefix = `${this.publicUrl}/`;
     if (!url.startsWith(prefix)) return null;
-    return url.slice(prefix.length);
+
+    const key = url.slice(prefix.length);
+    if (!this.isSafeKey(key)) return null;
+    return key;
+  }
+
+  private resolveInsideRoot(key: string): string {
+    if (!this.isSafeKey(key)) {
+      throw new Error('Chave de avatar inválida');
+    }
+
+    const root = path.resolve(this.uploadRoot);
+    const target = path.resolve(root, key);
+    if (target !== root && !target.startsWith(root + path.sep)) {
+      throw new Error('Chave de avatar fora da pasta permitida');
+    }
+    return target;
+  }
+
+  private isSafeKey(key: string): boolean {
+    return /^avatars\/\d+\/[0-9a-f-]{36}\.webp$/i.test(key);
   }
 }

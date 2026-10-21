@@ -46,5 +46,8 @@ Thumbs.db
 # Coverage
 coverage
 
+# Avatares enviados pelos usuários (disco da API)
+apps/api/uploads/
+
 # Misc
 *.pem

@@ -1,16 +1,18 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 import { AppModule } from './app.module';
 import { AppLogger } from './common/logger';
 import { buildCorsOptions, parseCorsOrigins } from './config/cors.util';
+import { resolveAvatarUploadRoot } from './modules/users/avatar-storage.service';
 
 async function bootstrap() {
   const logger = new AppLogger();
   logger.setContext('Bootstrap');
 
-  const app = await NestFactory.create(AppModule, {
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     bufferLogs: true,
   });
 
@@ -21,6 +23,14 @@ async function bootstrap() {
   const nodeEnv = process.env['NODE_ENV'] ?? 'development';
 
   app.enableCors(buildCorsOptions(corsOrigins));
+
+  // Fora do prefixo /api/v1. O Nginx da API já encaminha o host inteiro.
+  app.useStaticAssets(resolveAvatarUploadRoot(process.env['AVATAR_UPLOAD_DIR']), {
+    prefix: '/uploads/',
+    index: false,
+    dotfiles: 'deny',
+    fallthrough: true,
+  });
 
   app.setGlobalPrefix('api/v1');
 

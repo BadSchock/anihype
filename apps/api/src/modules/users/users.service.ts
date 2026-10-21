@@ -205,8 +205,8 @@ export class UsersService {
 
     const updated = await this.repo.update(userId, { avatarUrl: url });
 
-    // Best-effort: só remove avatar anterior se for um objeto nosso no R2.
-    // Nunca apaga URLs externas/legado que não pertençam ao nosso bucket.
+    // Best-effort: só remove o arquivo anterior se ele estiver na nossa pasta.
+    // Nunca apaga URL externa que não tenhamos gravado.
     if (oldKey && oldKey !== key) {
       void this.avatarStorage.delete(oldKey);
     }
