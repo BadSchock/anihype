@@ -330,6 +330,8 @@ export interface AuthUser {
   email: string;
   displayName?: string | null;
   avatarUrl?: string | null;
+  /** false até a pessoa abrir o link enviado por e-mail */
+  emailVerified?: boolean;
   roles: string[];
 }
 

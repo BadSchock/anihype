@@ -9,6 +9,7 @@ import * as bcrypt from 'bcryptjs';
 
 import { PrismaService } from '../../prisma/prisma.service';
 import { UsersService } from '../users/users.service';
+import { HypeService } from '../hype/hype.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { CurrentUserPayload } from '../../common/decorators/current-user.decorator';
@@ -28,6 +29,7 @@ export interface AuthResponse {
     username: string;
     displayName: string | null;
     avatarUrl: string | null;
+    emailVerified: boolean;
     roles: string[];
   };
   tokens: AuthTokenPair;
@@ -42,6 +44,7 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
     private readonly config: ConfigService,
+    private readonly hypeService: HypeService,
   ) {}
 
   // ─── Register ────────────────────────────────────────────────────────────
@@ -70,6 +73,7 @@ export class AuthService {
         username: user.username,
         displayName: user.displayName,
         avatarUrl: user.avatarUrl,
+        emailVerified: user.emailVerified,
         roles: roleNames,
       },
       tokens,
@@ -107,6 +111,7 @@ export class AuthService {
     );
 
     await this.usersService.updateLastLogin(user.id);
+    void this.hypeService.awardDailyLogin(user.id);
 
     this.logger.log(`User logged in: ${user.username} (id=${user.id})`);
 
@@ -117,6 +122,7 @@ export class AuthService {
         username: user.username,
         displayName: user.displayName,
         avatarUrl: user.avatarUrl,
+        emailVerified: user.emailVerified,
         roles: roleNames,
       },
       tokens,
@@ -179,6 +185,9 @@ export class AuthService {
 
     const roleNames = user.roles.map((r) => r.role.code as string);
 
+    // Quem volta ao site com a sessão aberta também conta como visita do dia.
+    void this.hypeService.awardDailyLogin(user.id);
+
     return this.issueTokenPair(
       user.id,
       user.email,
@@ -201,6 +210,7 @@ export class AuthService {
       username: user.username,
       displayName: user.displayName,
       avatarUrl: user.avatarUrl,
+      emailVerified: user.emailVerified,
       roles: user.roles.map((r) => r.role.code as string),
     };
   }

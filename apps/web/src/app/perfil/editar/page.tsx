@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Mascot } from '@/components/brand/mascot';
+import { EmailVerificationNotice } from '@/components/auth/email-verification-notice';
 import { UserAvatar } from '@/components/user/user-avatar';
 import { useAuthHydrated } from '@/hooks/use-auth-hydrated';
 import { useUpdateProfile, useUploadAvatar } from '@/hooks/use-update-profile';
@@ -178,6 +179,8 @@ export default function EditProfilePage() {
         <p className="mb-6 text-sm text-muted-foreground">
           Essas informações aparecem no seu perfil público.
         </p>
+
+        <EmailVerificationNotice />
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
           {/* Avatar */}

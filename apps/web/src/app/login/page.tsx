@@ -48,7 +48,12 @@ function LoginForm() {
           </div>
 
           <div>
-            <label className="mb-1 block text-sm text-muted-foreground">Senha</label>
+            <div className="mb-1 flex items-center justify-between">
+              <label className="text-sm text-muted-foreground">Senha</label>
+              <Link href="/esqueci-senha" className="text-xs text-purple-400 hover:underline">
+                Esqueci a senha
+              </Link>
+            </div>
             <input
               type="password"
               value={password}

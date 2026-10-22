@@ -21,6 +21,8 @@ import { Request } from 'express';
 import { Throttle } from '@nestjs/throttler';
 
 import { AuthService } from './auth.service';
+import { AccountSecurityService } from './account-security.service';
+import { ForgotPasswordDto, ResetPasswordDto, VerifyEmailDto } from './dto/account-security.dto';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
@@ -32,7 +34,10 @@ import { Public } from '../../common/decorators/roles.decorator';
 @Controller('auth')
 @UseGuards(JwtAuthGuard)
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly accountSecurity: AccountSecurityService,
+  ) {}
 
   // ─── Register ────────────────────────────────────────────────────────────
 
@@ -43,7 +48,54 @@ export class AuthController {
   @ApiCreatedResponse({ description: 'Usuário criado com tokens de acesso' })
   @ApiConflictResponse({ description: 'Email ou username já em uso' })
   async register(@Body() dto: RegisterDto) {
-    return this.authService.register(dto);
+    const result = await this.authService.register(dto);
+    void this.accountSecurity.sendEmailVerificationSafely(result.user.id);
+    return result;
+  }
+
+  // ─── Senha e e-mail ──────────────────────────────────────────────────────
+
+  @Public()
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 3, ttl: 60000 } })
+  @ApiOperation({ summary: 'Pedir link para redefinir a senha (resposta igual exista o e-mail ou não)' })
+  async forgotPassword(@Body() dto: ForgotPasswordDto) {
+    await this.accountSecurity.requestPasswordReset(dto.email);
+    return { message: 'Se o e-mail estiver cadastrado, enviamos um link para redefinir a senha.' };
+  }
+
+  @Public()
+  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
+  @ApiOperation({ summary: 'Definir nova senha com o token recebido por e-mail' })
+  async resetPassword(@Body() dto: ResetPasswordDto) {
+    await this.accountSecurity.resetPassword(dto.token, dto.password);
+    return { message: 'Senha atualizada. Entre com a nova senha.' };
+  }
+
+  @Public()
+  @Post('verify-email')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
+  @ApiOperation({ summary: 'Confirmar o e-mail com o token recebido' })
+  async verifyEmail(@Body() dto: VerifyEmailDto) {
+    await this.accountSecurity.verifyEmail(dto.token);
+    return { message: 'E-mail confirmado.' };
+  }
+
+  @Post('resend-verification')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 3, ttl: 60000 } })
+  @ApiBearerAuth('access-token')
+  @ApiOperation({ summary: 'Reenviar o e-mail de confirmação' })
+  async resendVerification(@CurrentUser() user: CurrentUserPayload) {
+    const { alreadyVerified } = await this.accountSecurity.sendEmailVerification(user.sub);
+    return {
+      alreadyVerified,
+      message: alreadyVerified ? 'Seu e-mail já está confirmado.' : 'Enviamos um novo link de confirmação.',
+    };
   }
 
   // ─── Login ───────────────────────────────────────────────────────────────

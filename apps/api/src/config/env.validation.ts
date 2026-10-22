@@ -21,6 +21,20 @@ const envSchema = z.object({
   // Pasta local de avatares. Sem AVATAR_PUBLIC_URL, o padrão é http://localhost:PORT/uploads.
   AVATAR_UPLOAD_DIR: z.string().optional(),
   AVATAR_PUBLIC_URL: z.string().url().optional(),
+
+  // Endereço público do site, usado nos links dos e-mails (redefinir senha, verificar e-mail).
+  WEB_URL: z.string().url().optional(),
+
+  // E-mail transacional. Sem SMTP_HOST, os links aparecem só no log da API.
+  SMTP_HOST: z.string().optional(),
+  SMTP_PORT: z.coerce.number().positive().default(587),
+  SMTP_SECURE: z.enum(['true', 'false']).default('false'),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASS: z.string().optional(),
+  MAIL_FROM: z.string().default('AniHype <nao-responda@anihype.com.br>'),
+
+  // Importa a temporada atual quando a API sobe e ela está vazia. Use false para desligar.
+  SYNC_ON_BOOT: z.enum(['true', 'false']).default('true'),
 });
 
 export type EnvConfig = z.infer<typeof envSchema>;
