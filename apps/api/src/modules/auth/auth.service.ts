@@ -9,6 +9,7 @@ import * as bcrypt from 'bcryptjs';
 
 import { PrismaService } from '../../prisma/prisma.service';
 import { UsersService } from '../users/users.service';
+import { resolveOnboardingState } from '../users/onboarding';
 import { HypeService } from '../hype/hype.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
@@ -30,6 +31,7 @@ export interface AuthResponse {
     displayName: string | null;
     avatarUrl: string | null;
     emailVerified: boolean;
+    onboardingState: 'pending' | 'later' | 'done';
     roles: string[];
   };
   tokens: AuthTokenPair;
@@ -74,6 +76,7 @@ export class AuthService {
         displayName: user.displayName,
         avatarUrl: user.avatarUrl,
         emailVerified: user.emailVerified,
+        onboardingState: resolveOnboardingState(userWithRoles?.profile?.onboardingState),
         roles: roleNames,
       },
       tokens,
@@ -123,6 +126,7 @@ export class AuthService {
         displayName: user.displayName,
         avatarUrl: user.avatarUrl,
         emailVerified: user.emailVerified,
+        onboardingState: resolveOnboardingState(userWithRoles?.profile?.onboardingState),
         roles: roleNames,
       },
       tokens,
@@ -211,6 +215,7 @@ export class AuthService {
       displayName: user.displayName,
       avatarUrl: user.avatarUrl,
       emailVerified: user.emailVerified,
+      onboardingState: resolveOnboardingState(user.profile?.onboardingState),
       roles: user.roles.map((r) => r.role.code as string),
     };
   }

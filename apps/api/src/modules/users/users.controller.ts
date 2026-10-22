@@ -28,6 +28,7 @@ import {
 import { CurrentUser, Public } from '../../common/decorators';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { SetOnboardingDto } from './dto/onboarding.dto';
 import { RankingPeriod, RankingService } from '../ranking/ranking.service';
 
 const AVATAR_MAX_BYTES = 3 * 1024 * 1024; // 3 MB
@@ -47,10 +48,17 @@ export class UsersController {
   @Patch('me')
   @ApiBearerAuth('access-token')
   @ApiOperation({
-    summary: 'Editar meu perfil (displayName e bio). Username não é editável nesta versão.',
+    summary: 'Editar meu perfil (displayName, bio e fundo). Username não é editável nesta versão.',
   })
   updateMe(@CurrentUser('sub') userId: number, @Body() dto: UpdateUserDto) {
     return this.usersService.updateProfile(userId, dto);
+  }
+
+  @Patch('me/onboarding')
+  @ApiBearerAuth('access-token')
+  @ApiOperation({ summary: 'Pular ou concluir a apresentação de novos membros' })
+  setOnboarding(@CurrentUser('sub') userId: number, @Body() body: SetOnboardingDto) {
+    return this.usersService.setOnboardingState(userId, body.state);
   }
 
   @Post('me/avatar')

@@ -21,6 +21,8 @@ function applyMeToStore(me: MeProfile) {
       username: me.username,
       displayName: me.displayName,
       avatarUrl: me.avatarUrl,
+      emailVerified: state.user?.emailVerified,
+      onboardingState: me.onboardingState,
       roles: me.roles,
     },
     state.accessToken,

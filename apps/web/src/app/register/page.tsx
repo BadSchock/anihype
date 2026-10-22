@@ -49,7 +49,9 @@ export default function RegisterPage() {
         password: form.password,
       },
       {
-        onSuccess: () => router.push('/'),
+        onSuccess: (response) => {
+          router.push(response.user.onboardingState === 'pending' ? '/bem-vindo' : '/');
+        },
         onError: (err) => setError(err.message),
       },
     );

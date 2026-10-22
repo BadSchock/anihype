@@ -815,6 +815,12 @@ model UserProfile {
   location String? @db.VarChar(120)
   website  String? @db.VarChar(500)
 
+  /// Identificador de um fundo oficial. Nunca CSS ou URL enviado pelo cliente.
+  profileBanner String @default("original") @map("profile_banner") @db.VarChar(32)
+
+  /// pending: conta nova, ainda na apresentação. later: pulou e pode retomar. done: concluiu ou conta antiga.
+  onboardingState String @default("done") @map("onboarding_state") @db.VarChar(16)
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 

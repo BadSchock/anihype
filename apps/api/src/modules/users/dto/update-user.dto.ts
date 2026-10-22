@@ -1,5 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsIn, IsOptional, IsString, MaxLength } from 'class-validator';
+import { EQUIPABLE_PROFILE_BANNER_IDS } from '../profile-banners';
 
 export class UpdateUserDto {
   @ApiPropertyOptional({
@@ -19,4 +20,14 @@ export class UpdateUserDto {
   @IsString()
   @MaxLength(300, { message: 'Bio deve ter no máximo 300 caracteres' })
   bio?: string;
+
+  @ApiPropertyOptional({
+    example: 'neon',
+    enum: EQUIPABLE_PROFILE_BANNER_IDS,
+    description: 'Id de um fundo oficial já liberado. Não aceita CSS nem URL.',
+  })
+  @IsOptional()
+  @IsString()
+  @IsIn(EQUIPABLE_PROFILE_BANNER_IDS, { message: 'Fundo de perfil inválido.' })
+  profileBanner?: string;
 }
