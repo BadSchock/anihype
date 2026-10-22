@@ -157,6 +157,32 @@ echo "------------------------------"
 pm2 save
 
 echo ""
+echo "💾 BACKUP DAS FOTOS DE PERFIL"
+echo "------------------------------"
+
+install_uploads_backup() {
+  local script="$ROOT_DIR/scripts/backup-uploads.sh"
+  local log_dir="/home/deploy/backups"
+  local cron_line="30 4 * * * bash $script >> $log_dir/backup.log 2>&1"
+  local current
+
+  mkdir -p "$log_dir"
+  current="$(crontab -l 2>/dev/null || true)"
+
+  if printf '%s\n' "$current" | grep -Fqx "$cron_line"; then
+    echo "Backup diário já estava agendado (04:30)"
+  else
+    printf '%s\n%s\n' "$current" "$cron_line" | sed '/^$/d' | crontab -
+    echo "Backup diário agendado para 04:30"
+  fi
+
+  echo "Gerando um backup agora"
+  bash "$script" || echo "O backup desta vez falhou. O site continua no ar."
+}
+
+install_uploads_backup
+
+echo ""
 echo "=============================="
 echo "✅ DEPLOY ANIHYPE FINALIZADO"
 echo "=============================="
