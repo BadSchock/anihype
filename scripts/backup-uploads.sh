@@ -2,7 +2,7 @@
 # Backup da pasta de avatares (apps/api/uploads). Ela não vai para o Git, então só existe na VPS.
 #
 # Uso manual:   bash scripts/backup-uploads.sh
-# Todo dia:     adicione em `crontab -e` (usuário deploy):
+# No deploy, scripts/deploy-anihype.sh agenda isto todo dia às 04:30 e roda uma vez:
 #   30 4 * * * bash /home/deploy/projetos/anihype/scripts/backup-uploads.sh >> /home/deploy/backups/backup.log 2>&1
 #
 # Variáveis opcionais:

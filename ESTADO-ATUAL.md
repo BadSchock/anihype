@@ -98,12 +98,7 @@ O XP é concedido de forma idempotente, e uma falha nele nunca derruba a ação 
 
 - Os avatares ficam em `apps/api/uploads` (fora do Git) e são servidos em `https://api.anihype.com.br/uploads/...`. A classe `AvatarStorageService` isola o armazenamento, então trocar para R2 ou S3 mexe só nela.
 - `scripts/backup-uploads.sh` compacta a pasta em `/home/deploy/backups/uploads`, mantém os 14 mais recentes e, se `BACKUP_REMOTE` existir, copia por rsync para outro servidor.
-- Agende uma vez na VPS (`crontab -e`, usuário `deploy`):
-
-```
-30 4 * * * bash /home/deploy/projetos/anihype/scripts/backup-uploads.sh >> /home/deploy/backups/backup.log 2>&1
-```
-
+- O deploy agenda isso sozinho, todo dia às 04:30, e gera um backup na hora. O registro fica em `/home/deploy/backups/backup.log`.
 - Um backup na mesma VPS não protege se a VPS inteira cair. Copie para outro lugar de vez em quando.
 
 ## 9. Variáveis de ambiente da API (`apps/api/.env`)
