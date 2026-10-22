@@ -111,12 +111,13 @@ export class CommentsService {
     if (alreadyLiked) {
       await this.repo.removeLike(userId, commentId);
     } else {
-      const like = await this.repo.addLike(userId, commentId);
+      await this.repo.addLike(userId, commentId);
       if (comment.userId !== userId) {
         void this.hypeService.awardXp({
           userId: comment.userId,
           reason: HypeTransactionReason.LIKE_RECEIVED,
-          referenceId: like.id,
+          referenceId: commentId,
+          actorId: userId,
         });
         void this.notificationsService.notifyCommentLiked(commentId, userId);
         void this.badgesService.awardIfEligible(comment.userId, 'like_received');

@@ -24,6 +24,20 @@ export const providersConfig = registerAs('providers', () => ({
   jikanApiUrl: process.env['JIKAN_API_URL'] ?? 'https://api.jikan.moe/v4',
 }));
 
+/** E-mail transacional via SMTP. Sem host configurado, o MailService só registra o link no log. */
+export const mailConfig = registerAs('mail', () => {
+  const firstCors = (process.env['CORS_ORIGIN'] ?? 'http://localhost:3002').split(',')[0]?.trim();
+  return {
+    webUrl: (process.env['WEB_URL'] ?? firstCors ?? 'http://localhost:3002').replace(/\/+$/, ''),
+    host: process.env['SMTP_HOST'],
+    port: parseInt(process.env['SMTP_PORT'] ?? '587', 10),
+    secure: process.env['SMTP_SECURE'] === 'true',
+    user: process.env['SMTP_USER'],
+    pass: process.env['SMTP_PASS'],
+    from: process.env['MAIL_FROM'] ?? 'AniHype <nao-responda@anihype.com.br>',
+  };
+});
+
 /**
  * Avatar no disco da API. AVATAR_PUBLIC_URL é o endereço que o navegador
  * usa para abrir a imagem (em produção, a URL pública da API + /uploads).

@@ -260,6 +260,36 @@ export async function logout(accessToken: string, refreshToken: string) {
   });
 }
 
+export function forgotPassword(email: string) {
+  return request<{ message: string }>('/auth/forgot-password', {
+    method: 'POST',
+    body: JSON.stringify({ email }),
+    skipAuth: true,
+  });
+}
+
+export function resetPassword(token: string, password: string) {
+  return request<{ message: string }>('/auth/reset-password', {
+    method: 'POST',
+    body: JSON.stringify({ token, password }),
+    skipAuth: true,
+  });
+}
+
+export function verifyEmail(token: string) {
+  return request<{ message: string }>('/auth/verify-email', {
+    method: 'POST',
+    body: JSON.stringify({ token }),
+    skipAuth: true,
+  });
+}
+
+export function resendEmailVerification() {
+  return request<{ alreadyVerified: boolean; message: string }>('/auth/resend-verification', {
+    method: 'POST',
+  });
+}
+
 /** Restaura sessão após reload — usado no AuthProvider */
 export async function bootstrapAuthSession(): Promise<void> {
   const state = useAuthStore.getState();

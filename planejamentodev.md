@@ -1,3 +1,5 @@
+> **Documento antigo.** Parte do que está aqui já mudou. O estado real do projeto está em [ESTADO-ATUAL.md](./ESTADO-ATUAL.md).
+
 # AniHype — Planejamento de Desenvolvimento
 
 > **Última atualização:** 18/06/2026 22:21 (BRT)

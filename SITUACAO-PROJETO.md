@@ -1,3 +1,5 @@
+> **Documento antigo.** Parte do que está aqui já mudou. O estado real do projeto está em [ESTADO-ATUAL.md](./ESTADO-ATUAL.md).
+
 # AniHype — Situação do projeto e integrações
 
 Documento de referência para decidir os próximos passos (atualizado em maio/2026).  

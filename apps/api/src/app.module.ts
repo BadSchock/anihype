@@ -4,7 +4,16 @@ import { APP_FILTER, APP_INTERCEPTOR, APP_GUARD } from '@nestjs/core';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { ScheduleModule } from '@nestjs/schedule';
 
-import { appConfig, avatarStorageConfig, databaseConfig, jwtConfig, providersConfig, validateEnv } from './config';
+import {
+  appConfig,
+  avatarStorageConfig,
+  databaseConfig,
+  jwtConfig,
+  mailConfig,
+  providersConfig,
+  validateEnv,
+} from './config';
+import { MailModule } from './modules/mail/mail.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { GlobalExceptionFilter } from './common/filters';
 import { TransformInterceptor } from './common/interceptors';
@@ -36,7 +45,7 @@ import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
       isGlobal: true,
       envFilePath: ['.env.local', '.env'],
       validate: validateEnv,
-      load: [appConfig, databaseConfig, jwtConfig, providersConfig, avatarStorageConfig],
+      load: [appConfig, databaseConfig, jwtConfig, providersConfig, avatarStorageConfig, mailConfig],
     }),
     ThrottlerModule.forRoot([
       {
@@ -47,6 +56,7 @@ import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
     ]),
     ScheduleModule.forRoot(),
     PrismaModule,
+    MailModule,
     HealthModule,
     AuthModule,
     UsersModule,

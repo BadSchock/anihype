@@ -77,7 +77,7 @@ export class AnimeFollowService {
       where: { userId_animeId: { userId, animeId: anime.id } },
     });
 
-    const follow = await this.prisma.animeFollow.upsert({
+    await this.prisma.animeFollow.upsert({
       where: { userId_animeId: { userId, animeId: anime.id } },
       create: { userId, animeId: anime.id },
       update: {},
@@ -87,7 +87,7 @@ export class AnimeFollowService {
       void this.hypeService.awardXp({
         userId,
         reason: HypeTransactionReason.ANIME_FOLLOWED,
-        referenceId: follow.id,
+        referenceId: anime.id,
       });
       const awardedBadges = await this.badgesService.awardIfEligible(userId, 'anime_followed');
       return { following: true, message: 'Anime seguido com sucesso.', awardedBadges };
