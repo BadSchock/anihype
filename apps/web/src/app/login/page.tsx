@@ -18,7 +18,11 @@ function LoginForm() {
     e.preventDefault();
     doLogin(
       { email: identifier, password },
-      { onSuccess: () => router.push(returnUrl) },
+      {
+        onSuccess: (response) => {
+          router.push(response.user.onboardingState === 'pending' ? '/bem-vindo' : returnUrl);
+        },
+      },
     );
   };
 

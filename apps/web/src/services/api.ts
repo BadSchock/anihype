@@ -319,11 +319,12 @@ export interface PublicProfile {
   avatarUrl: string | null;
   bio: string | null;
   createdAt: string;
+  profileBanner?: string | null;
   equippedBadge?: EquippedBadge | null;
 }
 
 export function getPublicProfile(username: string) {
-  return request<PublicProfile>(`/users/${username}`, { skipAuth: true });
+  return request<PublicProfile>(`/users/${username}`, { skipAuth: true, cache: 'no-store' });
 }
 
 // ─── Meu perfil (edição) ──────────────────────────────────────────────────────
@@ -331,6 +332,7 @@ export function getPublicProfile(username: string) {
 export interface UpdateProfilePayload {
   displayName?: string;
   bio?: string;
+  profileBanner?: string;
 }
 
 /** Retorno de PATCH /users/me e POST /users/me/avatar. */
@@ -341,6 +343,8 @@ export interface MeProfile {
   displayName: string | null;
   avatarUrl: string | null;
   bio: string | null;
+  profileBanner: string;
+  onboardingState: 'pending' | 'later' | 'done';
   roles: string[];
 }
 
@@ -350,6 +354,24 @@ export function updateMyProfile(payload: UpdateProfilePayload, token?: string) {
     body: JSON.stringify(payload),
     token,
   });
+}
+
+export function setMyOnboarding(state: 'later' | 'done', token?: string) {
+  return request<{ onboardingState: 'pending' | 'later' | 'done' }>('/users/me/onboarding', {
+    method: 'PATCH',
+    body: JSON.stringify({ state }),
+    token,
+  });
+}
+
+export interface HypeRules {
+  actions: Array<{ id: string; label: string; points: number; dailyLimit: number | null }>;
+  badges: Array<{ slug: string; name: string; description: string }>;
+  notes: string[];
+}
+
+export function getHypeRules() {
+  return request<HypeRules>('/hype/rules', { skipAuth: true });
 }
 
 export function uploadMyAvatar(file: File, token?: string) {

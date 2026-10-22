@@ -5,6 +5,7 @@ import { UserAvatar } from '@/components/user/user-avatar';
 import { ProfileClient } from './_components/profile-client';
 import { ProfileHeaderActions } from './_components/profile-header-actions';
 import { ProfileSocialStats } from '@/components/profile/profile-social-stats';
+import { ProfileBanner } from '@/components/profile/profile-banner';
 
 interface Props {
   params: Promise<{ username: string }>;
@@ -42,9 +43,7 @@ export default async function UserProfilePage({ params }: Props) {
   return (
     <div className="mx-auto max-w-2xl">
       <div className="overflow-hidden rounded-2xl border border-border bg-card">
-        <div className="relative h-28 bg-gradient-to-br from-purple-600/30 via-purple-900/20 to-background">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(124,58,237,0.25),transparent_55%)]" />
-        </div>
+        <ProfileBanner bannerId={user.profileBanner} className="h-28" />
 
         <div className="relative px-4 pb-6 sm:px-6">
           <div className="-mt-12 flex flex-col items-center gap-4 sm:flex-row sm:items-end sm:justify-between sm:text-left">

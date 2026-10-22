@@ -16,12 +16,19 @@ export function ProfileHeaderActions({ username, userId }: Props) {
   return (
     <div className="flex flex-shrink-0 items-end pb-1">
       {isOwner ? (
-        <Link
-          href="/perfil/editar"
-          className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
-        >
-          Editar perfil
-        </Link>
+        <div className="flex flex-col items-center gap-2 sm:items-end">
+          {user?.onboardingState === 'later' || user?.onboardingState === 'pending' ? (
+            <Link href="/bem-vindo" className="text-xs text-purple-400 hover:underline">
+              Continuar apresentação
+            </Link>
+          ) : null}
+          <Link
+            href="/perfil/editar"
+            className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+          >
+            Editar perfil
+          </Link>
+        </div>
       ) : (
         <FollowUserButton username={username} isOwner={isOwner} />
       )}

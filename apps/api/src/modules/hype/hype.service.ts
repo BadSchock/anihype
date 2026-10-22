@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { HypeTransactionReason } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { BadgesService } from '../badges/badges.service';
+import { ACHIEVEMENT_BADGES } from '../badges/badge.constants';
 
 /** Pontos por ação — valores conservadores para evitar farm. */
 const XP_BY_REASON: Partial<Record<HypeTransactionReason, number>> = {
@@ -131,6 +132,29 @@ export class HypeService {
     } catch {
       // Gamificação não deve bloquear comentários/likes/ratings
     }
+  }
+
+  /** Regras públicas de XP. A tela de apresentação lê daqui, sem conceder ponto. */
+  getRules() {
+    return {
+      actions: [
+        { id: 'comment', label: 'Comentar um episódio', points: XP_BY_REASON.COMMENT_POSTED ?? 0, dailyLimit: DAILY_LIMIT_BY_REASON.COMMENT_POSTED ?? null },
+        { id: 'reply', label: 'Responder um comentário', points: XP_BY_REASON.REPLY_POSTED ?? 0, dailyLimit: DAILY_LIMIT_BY_REASON.REPLY_POSTED ?? null },
+        { id: 'like', label: 'Receber uma curtida', points: XP_BY_REASON.LIKE_RECEIVED ?? 0, dailyLimit: DAILY_LIMIT_BY_REASON.LIKE_RECEIVED ?? null },
+        { id: 'rating', label: 'Avaliar um anime no Hypômetro', points: XP_BY_REASON.RATING_POSTED ?? 0, dailyLimit: null },
+        { id: 'follow', label: 'Seguir um anime', points: XP_BY_REASON.ANIME_FOLLOWED ?? 0, dailyLimit: null },
+        { id: 'login', label: 'Entrar no dia', points: XP_BY_REASON.DAILY_LOGIN ?? 0, dailyLimit: 1 },
+      ],
+      badges: ACHIEVEMENT_BADGES.map((badge) => ({
+        slug: badge.slug,
+        name: badge.name,
+        description: badge.description,
+      })),
+      notes: [
+        'O nível sobe com o XP acumulado. O perfil mostra quanto falta para o próximo.',
+        'O ranking ordena os membros pelo Hype XP da semana, do mês ou de todo o período.',
+      ],
+    };
   }
 
   /** XP do login diário: uma vez por dia, mesmo que a pessoa entre várias vezes. */

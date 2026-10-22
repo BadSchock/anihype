@@ -10,6 +10,8 @@ import { AvatarStorageService } from './avatar-storage.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { censorText } from '../../common/moderation/censor-text';
 import { detectImageMime } from '../../common/files/image-signature.util';
+import { canEquipProfileBanner, resolveProfileBanner } from './profile-banners';
+import { isSettableOnboardingState, resolveOnboardingState } from './onboarding';
 
 export interface CreateUserInput {
   email: string;
@@ -30,6 +32,8 @@ export interface MeProfileDto {
   displayName: string | null;
   avatarUrl: string | null;
   bio: string | null;
+  profileBanner: string;
+  onboardingState: 'pending' | 'later' | 'done';
   roles: string[];
 }
 
@@ -83,7 +87,7 @@ export class UsersService {
         create: userRole ? [{ role: { connect: { id: userRole.id } } }] : [],
       },
       profile: {
-        create: {},
+        create: { onboardingState: 'pending' },
       },
     });
 
@@ -114,6 +118,7 @@ export class UsersService {
         createdAt: true,
         profile: {
           select: {
+            profileBanner: true,
             equippedBadge: {
               select: {
                 id: true,
@@ -136,6 +141,7 @@ export class UsersService {
       avatarUrl: user.avatarUrl,
       bio: user.bio,
       createdAt: user.createdAt,
+      profileBanner: resolveProfileBanner(user.profile?.profileBanner),
       equippedBadge: user.profile?.equippedBadge ?? null,
     };
   }
@@ -143,10 +149,9 @@ export class UsersService {
   // ─── Edição do próprio perfil ────────────────────────────────────────────
   //
   // Username NÃO é editável nesta versão: o perfil público usa /u/[username]
-  // e ainda não existe histórico/redirect de usernames antigos. Aceitar só
-  // displayName + bio aqui evita quebrar links compartilhados.
+  // e ainda não existe histórico/redirect de usernames antigos.
 
-  /** PATCH /users/me — aceita SOMENTE displayName e bio (nunca username/avatar/email/roles). */
+  /** PATCH /users/me — displayName, bio e fundo oficial. Nunca username, avatar, email ou CSS. */
   async updateProfile(userId: number, dto: UpdateUserDto): Promise<MeProfileDto> {
     await this.assertExists(userId);
 
@@ -162,8 +167,40 @@ export class UsersService {
       data.bio = trimmed.length > 0 ? censorText(trimmed).text : null;
     }
 
-    const updated = await this.repo.update(userId, data);
+    if (Object.keys(data).length > 0) {
+      await this.repo.update(userId, data);
+    }
+
+    if (dto.profileBanner !== undefined) {
+      if (!canEquipProfileBanner(dto.profileBanner)) {
+        throw new BadRequestException('Fundo de perfil inválido.');
+      }
+      await this.prisma.userProfile.upsert({
+        where: { userId },
+        create: { userId, profileBanner: dto.profileBanner },
+        update: { profileBanner: dto.profileBanner },
+      });
+    }
+
+    const updated = await this.assertExists(userId);
     return this.toMeShape(updated);
+  }
+
+  /** Pular (later) ou concluir (done). Não volta para pending. */
+  async setOnboardingState(userId: number, state: string) {
+    await this.assertExists(userId);
+    if (!isSettableOnboardingState(state)) {
+      throw new BadRequestException('Estado da apresentação inválido.');
+    }
+
+    const profile = await this.prisma.userProfile.upsert({
+      where: { userId },
+      create: { userId, onboardingState: state },
+      update: { onboardingState: state },
+      select: { onboardingState: true },
+    });
+
+    return { onboardingState: resolveOnboardingState(profile.onboardingState) };
   }
 
   /**
@@ -225,6 +262,8 @@ export class UsersService {
       displayName: user.displayName,
       avatarUrl: user.avatarUrl,
       bio: user.bio,
+      profileBanner: resolveProfileBanner(withRoles?.profile?.profileBanner),
+      onboardingState: resolveOnboardingState(withRoles?.profile?.onboardingState),
       roles,
     };
   }

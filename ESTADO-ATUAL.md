@@ -1,6 +1,6 @@
 # AniHype — Estado atual do projeto
 
-**Atualizado em:** 21/10/2026, depois dos PRs #6 e #7 (já na `main`).
+**Atualizado em:** 21/10/2026, com os fundos de perfil e a apresentação de novos membros.
 **Fonte da verdade:** este arquivo e o código. Os documentos antigos (`ESTADO-DO-PROJETO.md`, `SITUACAO-PROJETO.md`, `LEIA-ME-DEVS.md`, `planejamentodev.md`, `RESUMO-VPS.md`) são de maio e junho de 2026 e dizem coisas que já não valem, como "badges e rankings pendentes" e "perfil não editável".
 
 ## Combinado recente: o que já foi feito e o que falta
@@ -15,8 +15,10 @@
 | Recuperar senha e confirmar e-mail | Telas e API prontas (`/esqueci-senha`, `/redefinir-senha`, `/verificar-email`). O envio ficou para depois: falta um servidor de e-mail (SMTP) na VPS. Sem isso, o botão não entrega a mensagem. |
 | Trocar username | Deixado para depois. O perfil público é `/u/[username]` e ainda não há histórico nem redirecionamento do link antigo. |
 | Sinopse em português | Feito. O HTML da AniList é limpo e o texto é traduzido para português. |
+| Fundos de perfil | Feito. Três fundos gratuitos na edição e no perfil público: Original, Neon e Cósmico. O banco guarda só o identificador. |
+| Apresentação de novos membros | Feito. Conta nova abre `/bem-vindo`. Conta antiga não vê sozinha. Dá para pular e retomar pelo perfil. Concluir não dá XP. |
 
-**Fora desse combinado, o site ainda não tem:** login com Google, busca de usuários, ligar e desligar notificações, recortar a foto antes de enviar, tela de boas-vindas, paginação melhor no feed, backup do banco e guardar as fotos fora da VPS.
+**Fora desse combinado, o site ainda não tem:** login com Google, busca de usuários, ligar e desligar notificações, recortar a foto antes de enviar, paginação melhor no feed, backup do banco e guardar as fotos fora da VPS. Recompensas novas, badges extras e mudanças no ranking ficaram para a próxima etapa.
 
 ---
 
@@ -50,7 +52,9 @@ Rodar as checagens antes de subir: `npm run lint`, `npm run type-check -w @anihy
 **Conta e perfil**
 - Cadastro, login (e-mail ou username), renovação de sessão e logout.
 - Perfil público em `/u/[username]` com avatar, bio, badge equipado, Hype XP, Top 4 favoritos, animes seguidos e atividade.
-- Edição do próprio perfil em `/perfil/editar`: nome de exibição, bio (300 caracteres) e foto. O **username não muda**.
+- Edição do próprio perfil em `/perfil/editar`: nome de exibição, bio (300 caracteres), foto e fundo. O **username não muda**.
+- Fundo do perfil: Original, Neon ou Cósmico. A escolha vale para o dono e para quem visita o perfil.
+- Apresentação em `/bem-vindo` para quem acabou de cadastrar: o que é o AniHype, seguir animes, Top 4, atalho para personalizar o perfil e as regras reais de Hype XP. É opcional. Pular guarda o estado `later` e o link "Continuar apresentação" fica no próprio perfil. Concluir guarda `done` e não reaparece. Contas que já existiam nascem como `done`.
 - Foto: JPEG, PNG ou WebP até 3 MB, convertida para WebP 512 px, salva no disco da VPS.
 - Esqueci a senha, redefinir senha e confirmar e-mail (seção 7).
 - Barra do topo e menu do celular mostram a foto da pessoa.
@@ -131,7 +135,6 @@ Novas: `WEB_URL`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PA
 - Busca global de usuários.
 - Preferências de notificação (ligar/desligar) e notificação por e-mail.
 - Recorte da foto antes de enviar.
-- Onboarding para quem acabou de cadastrar.
 - Feed com paginação por cursor.
 - Backup do banco de dados dentro do repositório (hoje só avatares têm script).
 - Armazenamento de avatares fora da VPS (R2 ou S3).

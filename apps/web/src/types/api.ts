@@ -332,6 +332,8 @@ export interface AuthUser {
   avatarUrl?: string | null;
   /** false até a pessoa abrir o link enviado por e-mail */
   emailVerified?: boolean;
+  /** pending: apresentação nova. later: pulou. done: concluiu ou conta antiga. */
+  onboardingState?: 'pending' | 'later' | 'done';
   roles: string[];
 }
 

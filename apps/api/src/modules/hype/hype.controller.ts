@@ -8,6 +8,13 @@ import { HypeService } from './hype.service';
 export class HypeController {
   constructor(private readonly hypeService: HypeService) {}
 
+  @Get('hype/rules')
+  @Public()
+  @ApiOperation({ summary: 'Regras públicas de Hype XP, sem conceder pontos' })
+  getRules() {
+    return this.hypeService.getRules();
+  }
+
   @Get('users/:username/hype')
   @Public()
   @ApiOperation({ summary: 'XP e nível Hype de um usuário' })

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Mascot } from '@/components/brand/mascot';
 import { EmailVerificationNotice } from '@/components/auth/email-verification-notice';
@@ -9,6 +10,13 @@ import { useAuthHydrated } from '@/hooks/use-auth-hydrated';
 import { useUpdateProfile, useUploadAvatar } from '@/hooks/use-update-profile';
 import { buildLoginUrl } from '@/lib/auth-url';
 import { getPublicProfile } from '@/services/api';
+import { ProfileBanner } from '@/components/profile/profile-banner';
+import {
+  DEFAULT_PROFILE_BANNER,
+  PROFILE_BANNERS,
+  resolveProfileBanner,
+  type ProfileBannerId,
+} from '@/lib/profile-banners';
 
 const BIO_MAX = 300;
 const DISPLAY_NAME_MAX = 120;
@@ -28,6 +36,8 @@ export default function EditProfilePage() {
   const [bio, setBio] = useState('');
   const [initialDisplayName, setInitialDisplayName] = useState('');
   const [initialBio, setInitialBio] = useState('');
+  const [banner, setBanner] = useState<ProfileBannerId>(DEFAULT_PROFILE_BANNER);
+  const [initialBanner, setInitialBanner] = useState<ProfileBannerId>(DEFAULT_PROFILE_BANNER);
   const [initialized, setInitialized] = useState(false);
 
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
@@ -63,6 +73,9 @@ export default function EditProfilePage() {
       if (!cancelled) {
         setBio(profile.bio ?? '');
         setInitialBio(profile.bio ?? '');
+        const savedBanner = resolveProfileBanner(profile.profileBanner);
+        setBanner(savedBanner);
+        setInitialBanner(savedBanner);
       }
     });
 
@@ -116,9 +129,10 @@ export default function EditProfilePage() {
 
     const hasTextChanges =
       trimmedName !== initialDisplayName.trim() || trimmedBio !== initialBio.trim();
+    const hasBannerChange = banner !== initialBanner;
     const hasAvatarChange = !!avatarFile;
 
-    if (!hasTextChanges && !hasAvatarChange) {
+    if (!hasTextChanges && !hasBannerChange && !hasAvatarChange) {
       setFormError('Nenhuma alteração para salvar.');
       return;
     }
@@ -126,11 +140,15 @@ export default function EditProfilePage() {
     let step: 'text' | 'avatar' | null = null;
 
     try {
-      if (hasTextChanges) {
+      if (hasTextChanges || hasBannerChange) {
         step = 'text';
-        await updateProfile.mutateAsync({ displayName: trimmedName, bio: trimmedBio });
+        await updateProfile.mutateAsync({
+          ...(hasTextChanges ? { displayName: trimmedName, bio: trimmedBio } : {}),
+          ...(hasBannerChange ? { profileBanner: banner } : {}),
+        });
         setInitialDisplayName(trimmedName);
         setInitialBio(trimmedBio);
+        setInitialBanner(banner);
       }
 
       if (hasAvatarChange && avatarFile) {
@@ -142,6 +160,7 @@ export default function EditProfilePage() {
       cancelAvatarChange();
 
       const finalUsername = user?.username;
+      router.refresh();
       window.setTimeout(() => {
         router.push(finalUsername ? `/u/${finalUsername}` : '/');
       }, 900);
@@ -150,7 +169,7 @@ export default function EditProfilePage() {
 
       if (step === 'avatar' && hasTextChanges) {
         setFormError(
-          `Nome e bio foram salvos, mas o avatar não pôde ser enviado: ${message}`,
+          `O perfil foi salvo, mas o avatar não pôde ser enviado: ${message}`,
         );
       } else if (step === 'avatar') {
         setFormError(`Não foi possível enviar o avatar: ${message}`);
@@ -179,6 +198,13 @@ export default function EditProfilePage() {
         <p className="mb-6 text-sm text-muted-foreground">
           Essas informações aparecem no seu perfil público.
         </p>
+        {user.onboardingState === 'pending' || user.onboardingState === 'later' ? (
+          <p className="mb-6 text-sm">
+            <Link href="/bem-vindo" className="text-purple-400 hover:underline">
+              Voltar para a apresentação
+            </Link>
+          </p>
+        ) : null}
 
         <EmailVerificationNotice />
 
@@ -250,6 +276,43 @@ export default function EditProfilePage() {
               O username ainda não pode ser alterado.
             </p>
           </div>
+
+          <fieldset className="min-w-0">
+            <legend className="mb-1 text-sm font-medium text-foreground">Personalização do perfil</legend>
+            <p className="mb-3 text-xs text-muted-foreground">
+              O fundo aparece no topo do seu perfil público. A troca só vale depois de salvar.
+            </p>
+            <ProfileBanner bannerId={banner} className="mb-3 h-20 rounded-xl border border-border" />
+            <div role="radiogroup" aria-label="Fundo do perfil" className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {PROFILE_BANNERS.map((option) => {
+                const selected = banner === option.id;
+                return (
+                  <button
+                    key={option.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={selected}
+                    onClick={() => setBanner(option.id)}
+                    className={`overflow-hidden rounded-xl border text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 ${
+                      selected
+                        ? 'border-purple-400 ring-2 ring-purple-400/70'
+                        : 'border-border hover:border-purple-400/40'
+                    }`}
+                  >
+                    <ProfileBanner bannerId={option.id} variant="thumb" className="h-16" />
+                    <span className="flex items-center justify-between gap-2 px-2 py-1.5">
+                      <span className="truncate text-xs font-medium text-foreground">{option.name}</span>
+                      {selected ? (
+                        <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-purple-500 text-[10px] text-white">
+                          ✓
+                        </span>
+                      ) : null}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </fieldset>
 
           {/* Bio */}
           <div>
