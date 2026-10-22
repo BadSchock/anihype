@@ -1,3 +1,5 @@
+> **Documento antigo.** Parte do que está aqui já mudou. O estado real do projeto está em [ESTADO-ATUAL.md](./ESTADO-ATUAL.md).
+
 # AniHype — Resumo para deploy na VPS
 
 Guia rápido: linguagens, arquitetura e o essencial para subir o projeto em produção.

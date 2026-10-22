@@ -1,5 +1,7 @@
 # AniHype
 
+> Estado real do projeto, deploy e variáveis de ambiente: [ESTADO-ATUAL.md](./ESTADO-ATUAL.md).
+
 Plataforma para acompanhar lançamentos de anime, calendário semanal, páginas de anime/episódio e discussões com proteção contra spoilers. Projeto em monorepo (Turborepo), em desenvolvimento por etapas.
 
 ---

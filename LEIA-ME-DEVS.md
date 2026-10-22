@@ -1,3 +1,5 @@
+> **Documento antigo.** Parte do que está aqui já mudou. O estado real do projeto está em [ESTADO-ATUAL.md](./ESTADO-ATUAL.md).
+
 # AniHype — Guia para Devs
 
 > Leia este arquivo antes de escrever qualquer linha de código.  

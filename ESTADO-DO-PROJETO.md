@@ -1,3 +1,5 @@
+> **Documento antigo.** Parte do que está aqui já mudou. O estado real do projeto está em [ESTADO-ATUAL.md](./ESTADO-ATUAL.md).
+
 # AniHype — Estado completo do projeto (Maio 2026)
 
 Resumo técnico de tudo que está implementado, correções de qualidade concluídas, e próximos passos.
