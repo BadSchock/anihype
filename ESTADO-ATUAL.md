@@ -1,7 +1,22 @@
 # AniHype — Estado atual do projeto
 
-**Atualizado em:** 21/10/2026.
+**Atualizado em:** 21/10/2026, depois dos PRs #6 e #7 (já na `main`).
 **Fonte da verdade:** este arquivo e o código. Os documentos antigos (`ESTADO-DO-PROJETO.md`, `SITUACAO-PROJETO.md`, `LEIA-ME-DEVS.md`, `planejamentodev.md`, `RESUMO-VPS.md`) são de maio e junho de 2026 e dizem coisas que já não valem, como "badges e rankings pendentes" e "perfil não editável".
+
+## Combinado recente: o que já foi feito e o que falta
+
+| Item | Situação |
+| --- | --- |
+| Busca de anime (Re:Zero e título fora do catálogo) | Feito e testado em produção. A busca ignora pontuação e, se o anime não existir no site, importa da AniList. |
+| Importar a temporada quando a API sobe e ela está vazia | Feito. Se a temporada atual tiver menos de 5 animes, importa tudo cerca de 20 segundos depois da API subir. `SYNC_ON_BOOT=false` desliga. |
+| Backup das fotos de perfil | Feito no código. Cada deploy gera uma cópia em `/home/deploy/backups/uploads` e agenda outra todo dia às 04:30. O registro fica em `/home/deploy/backups/backup.log`. |
+| Documentação com o estado real | Este arquivo. |
+| XP das ações previstas | Feito. Comentar, responder, receber curtida, avaliar, seguir anime e login diário. Há limite diário e a mesma ação não rende XP duas vezes. |
+| Recuperar senha e confirmar e-mail | Telas e API prontas (`/esqueci-senha`, `/redefinir-senha`, `/verificar-email`). O envio ficou para depois: falta um servidor de e-mail (SMTP) na VPS. Sem isso, o botão não entrega a mensagem. |
+| Trocar username | Deixado para depois. O perfil público é `/u/[username]` e ainda não há histórico nem redirecionamento do link antigo. |
+| Sinopse em português | Feito. O HTML da AniList é limpo e o texto é traduzido para português. |
+
+**Fora desse combinado, o site ainda não tem:** login com Google, busca de usuários, ligar e desligar notificações, recortar a foto antes de enviar, tela de boas-vindas, paginação melhor no feed, backup do banco e guardar as fotos fora da VPS.
 
 ---
 
